@@ -648,14 +648,15 @@ body::after {
   gap: 10px;
 }
 
-/* 컴퓨터 순서: 고치기 | 저장(강조) · 메일 · 공유 */
-/* 컴퓨터 순서: 수정하기 | 저장(강조) · 공유 · 게시판 / 공유를 누르면 아래에 세 가지가 펼쳐짐 */
+/* 컴퓨터 순서: ← 뒤로 | 저장(강조) · 공유 · 메일 · 게시판
+   공유를 누르면 아래에 URL 복사 · 카카오톡이, 메일을 누르면 주소 칸이 펼쳐짐 */
 .send-back { order: 0; }
 .send-save { order: 1; }
 .send-share { order: 2; }
-.send-board { order: 3; }
-.send-row .share-menu { order: 4; }
-.send-row .mail-form { order: 5; flex-basis: 100%; }
+.send-mail { order: 3; }
+.send-board { order: 4; }
+.send-row .share-menu { order: 5; }
+.send-row .mail-form { order: 6; flex-basis: 100%; }
 
 .share-menu {
   flex-basis: 100%;
@@ -987,14 +988,14 @@ body::after {
     align-items: stretch;
   }
 
-  /* 휴대폰 순서: 카톡·문자 공유(강조) · 저장 · 메일 | 고치기 */
-  /* 휴대폰 순서: 공유(강조) → 펼친 세 가지 → 저장 · 게시판 | 수정하기 */
+  /* 휴대폰 순서: 공유(강조) → 펼친 두 가지 → 메일 → 주소 칸 → 저장 · 게시판 | 뒤로 */
   .send-share { order: 1; }
   .send-row .share-menu { order: 2; flex-direction: column; align-items: stretch; }
-  .send-row .mail-form { order: 3; }
-  .send-save { order: 4; }
-  .send-board { order: 5; }
-  .send-back { order: 6; }
+  .send-mail { order: 3; }
+  .send-row .mail-form { order: 4; }
+  .send-save { order: 5; }
+  .send-board { order: 6; }
+  .send-back { order: 7; }
 
   .send-share {
     background: var(--grain), var(--cloth-orange);

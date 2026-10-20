@@ -792,7 +792,7 @@ const shareMenu = document.getElementById('shareMenu');
 shareBtn.addEventListener('click', () => {
   shareMenu.hidden = !shareMenu.hidden;
   shareBtn.setAttribute('aria-expanded', String(!shareMenu.hidden));
-  if (shareMenu.hidden) {
+  if (!shareMenu.hidden) {   // 공유 칸을 펼치면 메일 칸은 접음
     mailForm.hidden = true;
     mailOption.setAttribute('aria-expanded', 'false');
   }
@@ -977,10 +977,15 @@ document.getElementById('kakaoBtn').addEventListener('click', async () => {
 // 메일 (Google Apps Script 웹앱)
 const MAIL_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby2mo6dZ-DAXsN1JRdb_V3DSTdGFMb9gOLi55IOgX94NL0KjVg5dgI7SXld9qquKC05/exec';
 
+// 메일로 보내기: 누르면 받는 사람 메일 주소 칸이 펼쳐짐 (공유 칸은 접음)
 mailOption.addEventListener('click', () => {
   mailForm.hidden = !mailForm.hidden;
   mailOption.setAttribute('aria-expanded', String(!mailForm.hidden));
-  if (!mailForm.hidden) mailInput.focus();
+  if (!mailForm.hidden) {
+    shareMenu.hidden = true;
+    shareBtn.setAttribute('aria-expanded', 'false');
+    mailInput.focus();
+  }
 });
 
 mailForm.addEventListener('submit', async (e) => {
