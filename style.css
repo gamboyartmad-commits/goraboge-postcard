@@ -1,0 +1,1325 @@
+/* 나눔명조 옛한글 (네이버, SIL OFL 1.1). 제주어의 아래아(ᄒᆞ)까지 한 글꼴로 보이게 엽서 글씨에 씀.
+   네이버 공식 주소의 woff/woff2는 크롬에서 읽기 오류가 나서 같은 글꼴을 담은
+   npm 패키지(@kfonts)를 jsDelivr로 불러옴. 약 2.6MB */
+@font-face {
+  font-family: 'NanumMyeongjo YetHangul';
+  src: url('https://cdn.jsdelivr.net/npm/@kfonts/nanum-myeongjo-yet-hangul@0.2.0/NanumMyeongjo-YetHangul.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --paper: #f5f0e3;
+  --ink: #3b3226;
+  --ink-soft: #8a7d68;
+  --cloth: #efe7d3;
+  --cloth-orange: #e08b5c;
+  --pick: #e08b5c;
+  --thread: #b9a17c;
+  --letter-font: 'NanumMyeongjo YetHangul', 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans CJK KR', serif;
+  /* 오래된 인쇄물 같은 잔 입자. 배경 사진, 종이, 천 버튼에 겹쳐 씀 */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25 0 0 0 0 .2 0 0 0 0 .12 0 0 0 .13 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; }
+
+body {
+  min-height: 100vh;
+  font-family: 'Gowun Dodum', 'Malgun Gothic', sans-serif;
+  color: var(--ink);
+  background: #b9b39c;
+  word-break: keep-all;
+}
+
+/* ---------- 배경 (빛바랜 제주 돌담 사진 + 입자) ---------- */
+
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+body::before {
+  z-index: -2;
+  background: url('images/bg-jeju.webp') center / cover no-repeat;
+  filter: sepia(0.22) saturate(0.82) contrast(0.92) brightness(1.03);
+}
+
+body::after {
+  z-index: -1;
+  background: var(--grain), var(--grain), linear-gradient(rgba(226, 200, 150, 0.14), rgba(226, 200, 150, 0.14));
+  background-position: 0 0, 90px 60px, 0 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- 상단바 ---------- */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px clamp(16px, 4vw, 40px);
+  background: var(--grain), var(--paper);
+  box-shadow: 0 3px 10px rgba(40, 30, 15, 0.25);
+}
+
+.topbar-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 16px;
+}
+
+.topbar-title {
+  margin: 0;
+  font-family: 'Gowun Batang', serif;
+  font-weight: 700;
+  font-size: clamp(20px, 2.4vw, 26px);
+}
+
+.topbar-desc {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+/* ---------- 가운데 종이 한 장: 엽서 → 고르기 → 버튼 ---------- */
+
+.stage {
+  padding: clamp(14px, 2.4vw, 28px) clamp(12px, 4vw, 40px) 40px;
+}
+
+.panel {
+  width: min(1000px, 100%);
+  margin: 0 auto;
+  padding: clamp(14px, 2vw, 24px);
+  background: var(--grain), var(--paper);
+  border-radius: 3px;
+  box-shadow: 0 14px 32px rgba(40, 30, 15, 0.35), 0 2px 4px rgba(40, 30, 15, 0.2);
+}
+
+/* ---------- 엽서 ---------- */
+/* 엽서 크기에 비례해서 글자가 커지도록 컨테이너 단위(cqh)를 씀.
+   줄 간격은 이미지 높이의 7.1875% (92px / 1280px).
+   노트북 화면에서도 엽서·고르기·버튼이 한눈에 들어오도록 화면 높이에 맞춰 폭을 제한 */
+
+.card {
+  position: relative;
+  width: min(100%, calc((100vh - 330px) * 1.5));
+  min-width: min(100%, 560px);
+  margin: 0 auto;
+  aspect-ratio: 3 / 2;
+  container-type: size;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(40, 30, 15, 0.22);
+}
+
+.card img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 직접 넣은 사진: 엽서 왼쪽 절반(960×1280)에 꽉 차게, 넘치는 부분은 가운데 기준으로 잘림 */
+.card .card-photo {
+  inset: 0 auto 0 0;
+  width: 50%;
+  object-fit: cover;
+}
+
+.card .card-photo[hidden] { display: none; }
+
+.card-field,
+.card-field input {
+  font-family: var(--letter-font);
+  font-size: 3.8cqh;
+  line-height: 7.1875cqh;
+  color: #2f2a22;
+}
+
+.card-field {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.card-field input {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  outline: none;
+}
+
+.card-message {
+  top: 24.45%;
+  left: 55.42%;
+  width: 37.86%;
+  height: 57.5cqh;   /* 8줄 */
+  resize: none;
+  overflow: hidden;
+  outline: none;
+  word-break: break-all;
+}
+
+.card-message::placeholder {
+  color: rgba(47, 42, 34, 0.35);
+}
+
+.card-to,
+.card-from {
+  height: 7.1875cqh;
+  width: 14%;
+}
+
+.card-to { top: 17.27%; left: 58.85%; }    /* To 줄 */
+
+/* 쓴 날짜: 글 쓰는 줄 아래, From 줄 왼쪽 (yyyy.mm.dd) */
+.card .card-date,
+.mini-card .card-date {
+  top: 81.95%;
+  left: 55.42%;
+  width: 16%;
+  height: 7.1875cqh;
+  font-size: 3.1cqh;
+  letter-spacing: 0.02em;
+  color: #6f6455;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.card-from { top: 81.95%; left: 73.18%; }  /* From 줄 */
+
+.card-message:focus-visible,
+.card-field input:focus-visible {
+  background: rgba(224, 139, 92, 0.08);
+}
+
+/* ---------- 휴대폰용 글쓰기 칸 (넓은 화면에서는 숨김) ---------- */
+
+.mobile-writer { display: none; }
+
+.mobile-names {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.mobile-names label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.mobile-writer input,
+.mobile-writer textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #cdbf9f;
+  border-radius: 3px;
+  background: #fffdf7;
+  font-family: var(--letter-font);
+  font-size: 16px;   /* 16px보다 작으면 아이폰이 입력할 때 화면을 확대함 */
+  color: var(--ink);
+}
+
+.mobile-writer textarea {
+  height: 132px;
+  resize: none;
+  line-height: 1.6;
+}
+
+/* ---------- 엽서 고르기 ---------- */
+/* 엽서마다 다른 건 왼쪽 그림뿐이라, 그림 부분(세로 3:4)만 작게 보여 줌 */
+
+.picker {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.strip-item {
+  position: relative;
+  flex: 0 0 auto;
+  width: 64px;
+  aspect-ratio: 3 / 4;
+  padding: 0;
+  border: none;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--cloth);
+  cursor: pointer;
+  outline: 3px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 2px 6px rgba(40, 30, 15, 0.25);
+  transition: outline-color 0.15s ease;
+}
+
+.strip-item img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: left center;
+  pointer-events: none;   /* 끌어서 넘길 때 그림이 따로 끌려 나오지 않게 */
+}
+
+.strip-item[aria-pressed='true'] { outline-color: var(--pick); }
+.strip-item:focus-visible { outline-color: var(--ink); }
+
+/* 엽서 띠: 옆으로 넘기면 가운데에 멈추고, 가운데 그림이 크게 보임.
+   앞뒤 여백(50% - 그림 반 폭)이 있어서 첫 그림과 마지막 그림도 가운데까지 옴 */
+.carousel {
+  --item: 64px;
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 14px;
+  padding: 16px 0;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  cursor: grab;
+  outline: none;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 14%, #000 86%, transparent);
+}
+
+.carousel::-webkit-scrollbar { display: none; }
+
+/* 마우스로 끄는 동안과 놓은 뒤 미끄러지는 동안은 자석처럼 붙는 걸 잠시 끔 */
+.carousel.is-free { scroll-snap-type: none; }
+.carousel.is-dragging { cursor: grabbing; }
+
+.carousel:focus-visible { box-shadow: inset 0 0 0 2px var(--ink); border-radius: 4px; }
+
+.carousel .strip-item {
+  width: var(--item);
+  scroll-snap-align: center;
+  transform: scale(var(--s, 1));
+  opacity: var(--o, 1);
+  will-change: transform;
+}
+
+/* 내 사진 칸: 비어 있을 땐 바느질 점선 칸 */
+.strip-photo {
+  background: var(--grain), var(--cloth);
+  border: 2px dashed var(--thread);
+}
+
+.strip-photo img { object-position: center; }
+.strip-photo img[hidden] { display: none; }
+
+/* 사진 칸 + 그 밑 설명 */
+.photo-slot {
+  flex: 0 0 auto;
+  width: 84px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.photo-caption {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.35;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+.strip-photo-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-family: 'Gowun Batang', serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #6b4f35;
+}
+
+/* 사진을 넣은 뒤에는 사진 아래쪽에 '내 사진' 꼬리표 */
+.strip-photo-label b {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.strip-photo.has-photo { border-style: solid; }
+
+.strip-photo.has-photo .strip-photo-label {
+  inset: auto 0 0 0;
+  padding: 3px 0;
+  font-size: 11px;
+  color: #fff8ea;
+  background: rgba(59, 50, 38, 0.65);
+}
+
+/* ---------- 고친 글 알림 ---------- */
+
+.edit-alert {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  width: min(640px, 100%);
+  margin: 14px auto 0;
+  padding: 12px 16px;
+  border: 1px solid #e3b48f;
+  border-radius: 6px;
+  background: var(--grain), #fdf1e4;
+  box-shadow: 0 3px 8px rgba(60, 35, 15, 0.12);
+  animation: alert-in 0.25s ease-out;
+}
+
+.edit-alert[hidden] { display: none; }
+
+@keyframes alert-in {
+  from { opacity: 0; transform: translateY(-6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edit-alert { animation: none; }
+}
+
+.edit-alert-icon {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--cloth-orange);
+  color: #fff8ea;
+  font-family: 'Gowun Batang', serif;
+  font-weight: 700;
+}
+
+.edit-alert-body { flex: 1 1 260px; min-width: 0; }
+
+.edit-alert-title {
+  margin: 0;
+  font-family: 'Gowun Batang', serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #8a4520;
+}
+
+.edit-alert-text {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.edit-alert-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.edit-alert-dismiss {
+  padding: 6px 4px;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* 엽서 보내기 안: 아직 제주어로 안 바꿨을 때 */
+.send-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background: var(--grain), #fdf1e4;
+  border: 1px dashed #e3b48f;
+}
+
+.send-hint[hidden] { display: none; }
+
+.send-hint p {
+  margin: 0;
+  font-size: 14px;
+  color: #8a4520;
+}
+
+/* ---------- 버튼 두 개 ---------- */
+
+.main-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.main-actions .stitch-btn {
+  min-width: 170px;
+}
+
+.status {
+  min-height: 20px;
+  margin: 10px 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.status.is-warning { color: #c0562a; }
+
+/* ---------- 버튼 (손바느질한 천 조각) ---------- */
+/* 점선 outline을 안쪽으로 당겨 가장자리를 따라 박은 바늘땀처럼 보이게 함 */
+
+.stitch-btn {
+  min-height: 46px;
+  padding: 10px 22px;
+  border: none;
+  border-radius: 999px;
+  outline: 2px dashed var(--thread);
+  outline-offset: -6px;
+  background: var(--grain), var(--cloth);
+  color: #6b4f35;
+  font-family: 'Gowun Batang', serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 3px 7px rgba(60, 45, 20, 0.32), inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stitch-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(60, 45, 20, 0.34), inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+
+/* 바늘땀이 outline이라, 키보드 초점은 바깥 테두리로 따로 표시 */
+.stitch-btn:focus-visible {
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--ink);
+}
+
+.stitch-btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.stitch-btn.is-accent {
+  background: var(--grain), var(--cloth-orange);
+  color: #fff8ea;
+  outline-color: rgba(255, 244, 222, 0.9);
+}
+
+.stitch-btn.is-round {
+  flex: 0 0 auto;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  font-size: 18px;
+}
+
+/* ---------- 엽서 보내기 / 사용 방법 창 ---------- */
+
+.sheet {
+  width: min(420px, calc(100% - 32px));
+  padding: 26px 24px 22px;
+  border: none;
+  border-radius: 3px;
+  background: var(--grain), var(--paper);
+  color: var(--ink);
+  box-shadow: 0 20px 50px rgba(30, 22, 10, 0.45);
+}
+
+.sheet::backdrop {
+  background: rgba(30, 22, 10, 0.45);
+}
+
+.sheet h2 {
+  margin: 0 0 16px;
+  font-family: 'Gowun Batang', serif;
+  font-size: 20px;
+}
+
+.sheet ol {
+  margin: 0 0 14px;
+  padding-left: 20px;
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+.sheet-note {
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.mail-form[hidden] { display: none; }
+
+.sheet-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.mail-row {
+  display: flex;
+  gap: 8px;
+}
+
+.sheet-input {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 13px;
+  border: 1px solid #cdbf9f;
+  border-radius: 3px;
+  background: #fffdf7;
+  font: inherit;
+  font-size: 16px;
+  color: var(--ink);
+}
+
+/* ---------- 엽서 보내기 ---------- */
+/* 컴퓨터: 엽서 밑 버튼 줄이 보내기 버튼 줄로 바뀜 (창이 아니라 그 자리에 놓임)
+   휴대폰: 화면 아래에서 올라오는 판 (아래 @media 참고) */
+
+.panel.is-sending .main-actions,
+.panel.is-sending .picker,
+.panel.is-sending .mobile-writer { display: none; }
+
+.send-panel {
+  position: static;
+  width: 100%;
+  max-width: none;
+  margin: 16px 0 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+.send-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.send-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* 컴퓨터 순서: 고치기 | 저장(강조) · 메일 · 공유 */
+/* 컴퓨터 순서: 수정하기 | 저장(강조) · 공유 · 게시판 / 공유를 누르면 아래에 세 가지가 펼쳐짐 */
+.send-back { order: 0; }
+.send-save { order: 1; }
+.send-share { order: 2; }
+.send-board { order: 3; }
+.send-row .share-menu { order: 4; }
+.send-row .mail-form { order: 5; flex-basis: 100%; }
+
+.share-menu {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.share-menu[hidden] { display: none; }
+
+.stitch-btn.is-small {
+  min-height: 40px;
+  padding: 8px 16px;
+  font-size: 14px;
+  outline-offset: -5px;
+}
+
+.send-back {
+  background: none;
+  outline-color: transparent;
+  box-shadow: none;
+  color: var(--ink-soft);
+}
+
+.send-back:hover { box-shadow: none; color: var(--ink); }
+
+.send-save {
+  background: var(--grain), var(--cloth-orange);
+  color: #fff8ea;
+  outline-color: rgba(255, 244, 222, 0.9);
+}
+
+.send-share[aria-expanded='true'],
+#mailOption[aria-expanded='true'] { outline-color: var(--pick); }
+
+.only-narrow { display: none; }
+
+.mail-form {
+  max-width: 460px;
+  margin: 6px auto 0;
+  text-align: left;
+}
+
+.sheet-status {
+  min-height: 18px;
+  margin: 12px 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.sheet-status.is-warning { color: #c0562a; }
+
+.sheet-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.received-view .sheet-buttons { justify-content: center; }
+
+.sheet-close {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+/* ---------- 휴대폰 ---------- */
+
+/* ---------- 엽서 게시판 (코르크판) ---------- */
+
+.board {
+  width: min(1000px, 100%);
+  margin: 40px auto 0;
+  padding: 14px;
+  border-radius: 4px;
+  background: var(--grain), #d9c4a0;   /* 밝은 나무 틀 */
+  box-shadow: 0 14px 32px rgba(40, 30, 15, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.board-inner {
+  position: relative;
+  padding: clamp(30px, 4vw, 44px) clamp(14px, 3vw, 34px);
+  /* 코르크: 따뜻한 갈색 위에 잔 점 */
+  background:
+    radial-gradient(rgba(95, 58, 22, 0.22) 1px, transparent 1.6px) 0 0 / 7px 7px,
+    radial-gradient(rgba(255, 236, 200, 0.18) 1px, transparent 1.6px) 3px 4px / 9px 9px,
+    var(--grain),
+    #c9a272;
+  box-shadow: inset 0 2px 10px rgba(60, 35, 10, 0.45);
+}
+
+.board-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 30px 28px;
+}
+
+/* 게시판에 붙은 엽서 한 장 */
+.board-card {
+  position: relative;
+  width: clamp(150px, 20%, 200px);
+  padding: 0;
+  border: none;
+  background: #fff;
+  cursor: zoom-in;
+  box-shadow: 0 6px 12px rgba(50, 30, 10, 0.38);
+  transform: rotate(var(--r, 0deg));
+  transform-origin: 50% 10px;   /* 가운데 핀을 축으로 기울어진 것처럼 */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.board-card:hover,
+.board-card:focus-visible {
+  z-index: 2;
+  transform: rotate(0deg) translateY(-4px) scale(1.04);
+  box-shadow: 0 12px 22px rgba(50, 30, 10, 0.42);
+  outline: none;
+}
+
+.board-card:focus-visible { box-shadow: 0 0 0 3px #fffdf6, 0 0 0 5px var(--ink); }
+
+/* 엽서 위쪽 가운데에 꽂은 압정: 동그란 머리(::before) + 판에 비친 그림자(::after) */
+.board-card::before,
+.board-card::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.board-card::before {
+  top: 2px;
+  z-index: 4;
+  width: 15px;
+  height: 15px;
+  margin-left: -7.5px;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.85) 0 2px, transparent 3px), var(--pin, #d9533c);
+  box-shadow: inset -2px -2px 3px rgba(0, 0, 0, 0.28), 0 1px 1px rgba(40, 20, 5, 0.35);
+}
+
+.board-card::after {
+  top: 12px;
+  z-index: 3;
+  width: 13px;
+  height: 7px;
+  margin-left: -2px;
+  background: rgba(40, 20, 5, 0.35);
+  filter: blur(2px);
+}
+
+/* 엽서 모양 그대로 줄여서 보여 줌: .card-field 위치·글자 크기를 그대로 씀 */
+.mini-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  container-type: size;
+  text-align: left;
+}
+
+.mini-card img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 직접 넣은 사진으로 쓴 엽서: 그림 자리(왼쪽 절반)만 덮음 */
+.mini-card .mini-photo {
+  inset: 0 auto 0 0;
+  width: 50%;
+  object-fit: cover;
+}
+
+/* 방금 붙인 엽서는 위에서 툭 떨어져 꽂히는 것처럼 */
+.board-card.is-new { animation: pin-drop 0.6s ease-out; }
+
+@keyframes pin-drop {
+  from { transform: translateY(-40px) rotate(var(--r, 0deg)); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board-card.is-new { animation: none; }
+}
+
+/* 게시판에 붙이기 미리보기 */
+.board-post { width: min(460px, calc(100% - 32px)); }
+.board-post-preview { margin-bottom: 14px; box-shadow: 0 3px 10px rgba(40, 30, 15, 0.25); }
+
+.board-post-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.board-post-option input { width: 18px; height: 18px; accent-color: var(--cloth-orange); }
+
+/* 링크로 받은 엽서 */
+.received-title {
+  margin: 4px 4px 12px;
+  font-family: 'Gowun Batang', serif;
+  font-size: 20px;
+  text-align: center;
+}
+
+.mini-card .card-field {
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.mini-card .card-to,
+.mini-card .card-from {
+  white-space: nowrap;
+}
+
+/* 크게 보기 */
+.board-view {
+  /* 화면 높이 안에 엽서가 다 들어오도록 폭을 정함 */
+  width: min(960px, calc(100% - 24px), calc((100vh - 110px) * 1.5));
+  max-width: none;
+  padding: 14px 14px 12px;
+  border: none;
+  border-radius: 3px;
+  background: var(--grain), var(--paper);
+  box-shadow: 0 20px 50px rgba(30, 22, 10, 0.45);
+}
+
+.board-view::backdrop { background: rgba(30, 22, 10, 0.55); }
+
+.board-view-card { box-shadow: 0 2px 8px rgba(40, 30, 15, 0.22); }
+
+@media (max-width: 700px) {
+  .board { margin-top: 28px; padding: 9px; }
+  .board-inner { padding: 18px 12px 34px; }
+  .board-card { width: min(220px, 70%); }
+}
+
+@media (max-width: 700px) {
+  .topbar-desc { font-size: 13px; }
+
+  .card {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* 엽서 위 글씨는 보기만 하고, 쓰기는 아래 보통 크기 칸에서 */
+  .card-field { pointer-events: none; }
+
+  .mobile-writer {
+    display: block;
+    margin-top: 14px;
+  }
+
+  .picker { gap: 10px; margin-top: 12px; }
+  .strip-item { width: 54px; }
+  .carousel { --item: 54px; gap: 12px; }
+
+  /* 버튼은 화면 아래에 붙여 언제든 누를 수 있게 */
+  .main-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin: 12px -14px 0;
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+    background: var(--grain), var(--paper);
+    box-shadow: 0 -4px 10px rgba(40, 30, 15, 0.12);
+  }
+
+  .main-actions .stitch-btn {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 12px;
+  }
+
+  /* 엽서 보내기: 아래에서 올라오는 판 */
+  .send-panel:modal {
+    position: fixed;
+    inset: auto 0 0 0;
+    width: 100%;
+    max-width: none;
+    max-height: 88vh;
+    margin: 0;
+    padding: 26px 18px calc(18px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+    background: var(--grain), var(--paper);
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -10px 30px rgba(30, 22, 10, 0.35);
+    animation: sheet-up 0.28s ease-out;
+  }
+
+  /* 판 맨 위 손잡이 */
+  .send-panel:modal::before {
+    content: '';
+    position: absolute;
+    top: 9px;
+    left: 50%;
+    width: 40px;
+    height: 4px;
+    margin-left: -20px;
+    border-radius: 2px;
+    background: #cdbf9f;
+  }
+
+  .send-panel::backdrop { background: rgba(30, 22, 10, 0.45); }
+
+  .send-title {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    margin: 0 0 14px;
+    font-family: 'Gowun Batang', serif;
+    font-size: 18px;
+  }
+
+  .send-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* 휴대폰 순서: 카톡·문자 공유(강조) · 저장 · 메일 | 고치기 */
+  /* 휴대폰 순서: 공유(강조) → 펼친 세 가지 → 저장 · 게시판 | 수정하기 */
+  .send-share { order: 1; }
+  .send-row .share-menu { order: 2; flex-direction: column; align-items: stretch; }
+  .send-row .mail-form { order: 3; }
+  .send-save { order: 4; }
+  .send-board { order: 5; }
+  .send-back { order: 6; }
+
+  .send-share {
+    background: var(--grain), var(--cloth-orange);
+    color: #fff8ea;
+    outline-color: rgba(255, 244, 222, 0.9);
+  }
+
+  .send-save {
+    background: var(--grain), var(--cloth);
+    color: #6b4f35;
+    outline-color: var(--thread);
+  }
+
+  .only-wide { display: none; }
+  .only-narrow { display: inline; }
+}
+
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .send-panel:modal { animation: none; }
+}
+
+/* ---------- 2단계: 제주어로 변환하기 ----------
+   위: 하늘·바다 띠 제목(오른쪽에 돌하르방)
+   가운데: 표준어 편지 | 변환 버튼 → | 제주어 변환 결과 (휴대폰은 위아래로)
+   아래: 엽서 다시 쓰기 / 이 편지로 보내기 */
+
+.panel[hidden],
+.board[hidden] { display: none; }
+
+.translate-page {
+  --sea: #2f6694;
+  --sea-soft: #e3eff8;
+}
+
+.tr-head {
+  position: relative;
+  overflow: hidden;
+  padding: 20px 150px 30px;
+  border-radius: 14px;
+  text-align: center;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 40' preserveAspectRatio='none'%3E%3Cpath d='M0 22 Q50 12 100 22 T200 22 T300 22 T400 22 V40 H0Z' fill='%2397c5dc'/%3E%3Cpath d='M0 30 Q50 22 100 30 T200 30 T300 30 T400 30 V40 H0Z' fill='%236fa9c8'/%3E%3C/svg%3E") bottom / 100% 34px no-repeat,
+    linear-gradient(#d6ecf6, #f2f9fc 75%);
+  box-shadow: inset 0 0 0 1px rgba(47, 102, 148, 0.12);
+}
+
+.tr-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  font-family: 'Gowun Batang', serif;
+  font-weight: 700;
+  font-size: clamp(22px, 3vw, 28px);
+  color: #22476a;
+  outline: none;
+}
+
+.tr-title svg { width: 1.05em; height: 1.05em; color: #3f7fb3; }
+
+.tr-desc {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #4f6b80;
+}
+
+.tr-harubang {
+  position: absolute;
+  right: 26px;
+  bottom: -4px;
+  height: 118px;
+  filter: drop-shadow(0 3px 4px rgba(40, 60, 80, 0.2));
+}
+
+.tr-body {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 18px;
+  align-items: stretch;
+  margin-top: 18px;
+}
+
+/* 편지 칸: 바깥 색 테두리 없이 제목 + 편지 종이만 */
+.tr-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tr-label {
+  margin: 0 2px 8px;
+  font-family: 'Gowun Batang', serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: #5a4630;
+}
+
+.tr-jeju .tr-label { color: var(--sea); }
+
+/* 편지 종이: 엽서 글쓰기 면과 같은 모습 (To 줄 → 점선 줄 위의 글 → 날짜 · From) */
+.tr-paper {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+  padding: 16px 20px 14px;
+  border-radius: 10px;
+  background: #fffdf8;
+  box-shadow: inset 0 0 0 1px rgba(120, 95, 60, 0.14), 0 1px 3px rgba(40, 30, 15, 0.08);
+  font-family: var(--letter-font);
+  color: #6f6455;
+}
+
+.tr-jeju .tr-paper { box-shadow: inset 0 0 0 1px rgba(47, 102, 148, 0.18), 0 1px 3px rgba(40, 30, 15, 0.08); }
+.tr-paper:focus-within { box-shadow: inset 0 0 0 2px var(--pick); }
+.tr-jeju .tr-paper:focus-within { box-shadow: inset 0 0 0 2px #3f7fb3; }
+
+.tr-to,
+.tr-foot {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.tr-to { margin-bottom: 6px; }
+
+/* 받는 사람 · 보내는 사람: 점선 위에 이름 (비어 있으면 빈 줄) */
+.tr-name {
+  display: inline-block;
+  min-width: 96px;
+  margin: 0 6px;
+  padding: 0 4px;
+  border-bottom: 1px dotted #b3a891;
+  color: #2f2a22;
+  vertical-align: bottom;
+}
+
+.tr-foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.tr-date { font-size: 14px; white-space: nowrap; }
+.tr-from { white-space: nowrap; }
+.tr-from .tr-name { min-width: 72px; margin-left: 0; }
+
+/* 표준어를 고친 뒤: 결과가 예전 글이라는 표시 */
+.tr-jeju.is-stale .tr-text { opacity: 0.5; }
+
+/* 두 편지 아래 안내 (참고용 번역 / 다시 바꿔 달라는 알림) */
+.tr-note {
+  min-height: 20px;
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+  color: #4f6b80;
+}
+
+.tr-note.is-warning { color: #c0562a; }
+
+/* 글: 줄마다 점선 (엽서와 같은 줄글). 높이는 줄 단위로 늘어남 (app.js fitHeight) */
+.tr-text {
+  --line: 38px;
+  flex: 1 0 auto;
+  width: 100%;
+  min-height: calc(var(--line) * 8);
+  margin: 0;
+  padding: 0 2px;
+  border: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='38'%3E%3Crect y='37' width='3' height='1' fill='%23b3a891'/%3E%3C/svg%3E") 0 0 / 7px var(--line) repeat local;
+  font-family: var(--letter-font);
+  font-size: 18px;
+  line-height: var(--line);
+  color: #2f2a22;
+  resize: none;
+  overflow: hidden;
+  outline: none;
+}
+
+/* 가운데: 변환 버튼과 화살표 */
+.tr-middle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.tr-convert {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 104px;
+  height: 104px;
+  border: none;
+  border-radius: 50%;
+  background: #d5e7f4;
+  color: var(--sea);
+  font-family: 'Gowun Batang', serif;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1.35;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.75), 0 4px 10px rgba(47, 102, 148, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tr-convert svg { width: 32px; height: 32px; }
+.tr-convert:hover { transform: translateY(-2px); box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.75), 0 7px 14px rgba(47, 102, 148, 0.3); }
+.tr-convert:focus-visible { outline: 3px solid var(--sea); outline-offset: 3px; }
+.tr-convert.is-spinning svg { animation: tr-spin 0.6s ease; }
+
+@keyframes tr-spin {
+  to { transform: rotate(360deg); }
+}
+
+.tr-arrow {
+  font-size: 30px;
+  line-height: 1;
+  color: #3f7fb3;
+}
+
+.tr-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.tr-actions .stitch-btn { min-width: 190px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tr-convert.is-spinning svg { animation: none; }
+}
+
+@media (max-width: 700px) {
+  .tr-head { padding: 16px 92px 28px 14px; text-align: left; }
+  .tr-title { justify-content: flex-start; }
+  .tr-desc { font-size: 13px; }
+  .tr-harubang { right: 12px; height: 92px; }
+
+  .tr-body { grid-template-columns: 1fr; gap: 10px; }
+  .tr-paper { padding: 14px 14px 12px; }
+  .tr-text { --line: 34px; min-height: calc(var(--line) * 5); font-size: 17px; background-size: 7px var(--line); }
+
+  /* 가운데 버튼은 두 편지 사이 가로 줄로, 화살표는 아래로 */
+  .tr-middle { flex-direction: row; gap: 14px; }
+  .tr-convert { flex-direction: row; width: auto; height: 52px; padding: 0 20px; border-radius: 999px; gap: 8px; }
+  .tr-convert br { display: none; }
+  .tr-convert svg { width: 24px; height: 24px; }
+  .tr-arrow { transform: rotate(90deg); font-size: 26px; }
+
+  .tr-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin: 14px -14px 0;
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+    background: var(--grain), var(--paper);
+    box-shadow: 0 -4px 10px rgba(40, 30, 15, 0.12);
+  }
+
+  .tr-actions .stitch-btn { flex: 1; min-width: 0; padding: 10px 12px; }
+}
+
+/* ---------- 보내기 소인 ----------
+   엽서 그림에 원래 인쇄돼 있던 소인 자리(1920×1280 기준 지름 200px, 가운데 1627,211)에 그대로.
+   자리·크기는 app.js의 STAMP와 같게. 찍을 때: 위에서 크게 내려와 꾹 눌리고, 엽서가 살짝 눌림 */
+
+.card .card-stamp {
+  inset: auto;
+  left: 78.19%;
+  top: 6.94%;
+  width: 19.12cqh;
+  height: 19.12cqh;
+  opacity: 0.92;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.card .card-stamp[hidden] { display: none; }
+
+.card-stamp.is-stamping { animation: stamp-press 1.3s cubic-bezier(0.3, 0, 0.25, 1) both; }
+.card.is-thud { animation: card-thud 0.4s 0.62s ease-out; }
+
+/* 천천히 내려와(0~48%) 꾹 눌렸다가 살짝 튀어 자리 잡음 */
+@keyframes stamp-press {
+  0% { transform: scale(1.8) rotate(-8deg); opacity: 0; filter: blur(3px); }
+  20% { opacity: 0.5; }
+  48% { transform: scale(0.93) rotate(0deg); opacity: 1; filter: none; }
+  62% { transform: scale(1.04); }
+  78% { transform: scale(0.99); }
+  100% { transform: none; opacity: 0.92; }
+}
+
+@keyframes card-thud {
+  40% { transform: translateY(3px) scale(0.996); }
+  100% { transform: none; }
+}
+
+/* 게시판 · 받은 엽서는 이미 보낸 엽서라 늘 소인이 찍혀 있음 */
+.mini-card .mini-stamp {
+  inset: auto;
+  left: 78.19%;
+  top: 6.94%;
+  width: 12.74%;
+  height: auto;
+  opacity: 0.92;
+  mix-blend-mode: multiply;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-stamp.is-stamping,
+  .card.is-thud { animation: none; }
+}

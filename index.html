@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제주어로 엽서 적기 · 하영 고라보게</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=63">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-text">
+      <h1 class="topbar-title">제주어로 엽서 적기</h1>
+      <p class="topbar-desc">전하지 않으면 사라지는 말을 제주어로 적어 보세요</p>
+    </div>
+    <button type="button" class="stitch-btn is-round" id="helpBtn" aria-label="사용 방법">?</button>
+  </header>
+
+  <main class="stage">
+    <section class="panel" id="writePanel" aria-label="엽서 쓰기">
+
+      <!-- 1. 엽서: 가운데 크게. 입력칸 위치는 엽서 이미지(1920×1280)의 줄에 맞춰 style.css에서 %로 잡음 -->
+      <div class="card" id="card">
+        <img id="cardImage" src="images/card-01.webp?v=2" alt="해녀가 헤엄치는 바다 엽서">
+        <!-- 직접 넣은 사진은 엽서 왼쪽 그림 자리(960×1280)를 덮음 -->
+        <img id="cardPhoto" class="card-photo" alt="직접 넣은 사진" hidden>
+        <label class="card-field card-to">
+          <span class="sr-only">받는 사람</span>
+          <input type="text" id="cardTo" maxlength="10" autocomplete="off">
+        </label>
+        <textarea class="card-field card-message" id="cardMessage" aria-label="엽서 내용" placeholder="여기에 마음을 적어 보세요"></textarea>
+        <label class="card-field card-from">
+          <span class="sr-only">보내는 사람</span>
+          <input type="text" id="cardFrom" maxlength="10" autocomplete="off">
+        </label>
+        <div class="card-field card-date" id="cardDate" aria-label="쓴 날짜"></div>
+        <!-- 보내기 소인: 보내기 전에는 없고, '이 편지로 보내기'를 누르면 원래 소인 자리에 꾹 찍힘 -->
+        <img class="card-stamp" id="cardStamp" src="images/stamp-goraboge.png?v=2" alt="" aria-hidden="true" hidden>
+      </div>
+
+      <!-- 휴대폰에서만 보이는 보통 크기 글쓰기 칸. 쓰는 대로 위 엽서에 바로 옮겨짐 -->
+      <div class="mobile-writer">
+        <div class="mobile-names">
+          <label>To <input type="text" id="mobileTo" maxlength="10" autocomplete="off" placeholder="받는 사람"></label>
+          <label>From <input type="text" id="mobileFrom" maxlength="10" autocomplete="off" placeholder="보내는 사람"></label>
+        </div>
+        <textarea id="mobileMessage" aria-label="엽서 내용" placeholder="여기에 마음을 적어 보세요. 엽서에 바로 보여요."></textarea>
+      </div>
+
+      <!-- 2. 엽서 고르기: 왼쪽은 내 사진 칸, 오른쪽은 옆으로 넘기는 엽서 띠(가운데 온 그림이 골라짐) -->
+      <div class="picker">
+        <input type="file" id="photoInput" accept="image/*" hidden>
+        <div class="photo-slot">
+          <button type="button" class="strip-item strip-photo" id="photoTile" aria-pressed="false" aria-describedby="photoCaption">
+            <img id="photoThumb" alt="" hidden>
+            <span class="strip-photo-label" id="photoLabel"><b>+</b>내 사진</span>
+          </button>
+          <p class="photo-caption" id="photoCaption">직접 찍은 사진으로 엽서 만들기</p>
+        </div>
+        <div class="carousel" id="carousel" tabindex="0" aria-label="엽서 그림 고르기. 옆으로 넘기면 가운데 그림이 골라져요"></div>
+      </div>
+
+      <!-- 제주어로 바꾼 뒤(또는 엽서 보내기를 연 뒤) 글을 고치면 뜨는 알림 -->
+      <div class="edit-alert" id="editAlert" role="status" hidden>
+        <span class="edit-alert-icon" aria-hidden="true">!</span>
+        <div class="edit-alert-body">
+          <p class="edit-alert-title">고친 글은 아직 표준어예요</p>
+          <p class="edit-alert-text">엽서 글을 고치면 제주어로 저절로 바뀌지 않아요. 다 고친 다음 한 번 더 바꿔 주세요.</p>
+        </div>
+        <div class="edit-alert-actions">
+          <button type="button" class="stitch-btn is-small is-accent" id="editAlertTranslate">제주어로 다시 바꾸기</button>
+          <button type="button" class="edit-alert-dismiss" id="editAlertDismiss">이대로 둘게요</button>
+        </div>
+      </div>
+
+      <!-- 3. 제주어로 번역: 누르면 2단계 '제주어로 변환하기' 페이지로 -->
+      <div class="main-actions">
+        <button type="button" class="stitch-btn is-accent" id="translateBtn">제주어로 번역</button>
+      </div>
+      <!-- 엽서 보내기 (2단계 페이지의 '이 편지로 보내기'로 열림). 열리면 엽서 고르기 칸은 숨기고 세 버튼만:
+           컴퓨터에서는 위 버튼 줄 자리에 그대로 펼쳐지고, 휴대폰에서는 아래에서 올라오는 판.
+           버튼 순서는 기기마다 많이 쓰는 것부터 (style.css의 order) -->
+      <dialog class="send-panel" id="sendPanel" aria-labelledby="sendTitle">
+        <h2 class="send-title" id="sendTitle">엽서 보내기</h2>
+        <div class="send-hint" id="sendHint" hidden>
+          <p>아직 표준어 그대로예요. 제주어로 바꿔서 보낼까요?</p>
+          <button type="button" class="stitch-btn is-small is-accent" id="sendHintTranslate">제주어로 바꾸기</button>
+        </div>
+        <div class="send-row">
+          <button type="button" class="stitch-btn send-back" id="sendBack">← 뒤로</button>
+          <button type="button" class="stitch-btn send-save" id="saveBtn">이미지로 저장하기</button>
+          <button type="button" class="stitch-btn send-share" id="shareBtn" aria-expanded="false" aria-controls="shareMenu">공유하기</button>
+          <button type="button" class="stitch-btn send-board" id="boardBtn">게시판에 붙이기</button>
+          <!-- 공유하기를 누르면 펼쳐지는 세 가지 -->
+          <div class="share-menu" id="shareMenu" hidden>
+            <button type="button" class="stitch-btn is-small" id="copyLinkBtn">URL 복사</button>
+            <button type="button" class="stitch-btn is-small" id="mailOption" aria-expanded="false" aria-controls="mailForm">이메일로 보내기</button>
+            <button type="button" class="stitch-btn is-small" id="kakaoBtn">카카오톡으로 전송하기</button>
+          </div>
+          <form class="mail-form" id="mailForm" hidden>
+            <label class="sheet-label" for="mailInput">받는 사람 메일 주소</label>
+            <div class="mail-row">
+              <input type="email" id="mailInput" class="sheet-input" required placeholder="name@email.com">
+              <button type="submit" class="stitch-btn is-accent" id="mailSubmit">보내기</button>
+            </div>
+          </form>
+        </div>
+        <p class="sheet-status" id="sheetStatus" aria-live="polite"></p>
+      </dialog>
+
+      <p class="status" id="status" aria-live="polite"></p>
+
+    </section>
+
+    <!-- 2단계: 제주어로 변환하기. 표준어 편지와 제주어로 바꾼 편지를 나란히 보여 줌 -->
+    <section class="panel translate-page" id="translatePage" aria-labelledby="translateTitle" hidden>
+      <header class="tr-head">
+        <h2 class="tr-title" id="translateTitle" tabindex="-1">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 0 1-14.3 4.9M4 12a8 8 0 0 1 14.3-4.9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M18.8 3.2v4.2h-4.2M5.2 20.8v-4.2h4.2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          제주어로 변환하기
+        </h2>
+        <p class="tr-desc">작성한 편지를 제주어로 바꿨어요. 두 편지를 나란히 견주어 보세요.</p>
+        <img class="tr-harubang" src="images/harubang-deco.webp" alt="">
+      </header>
+
+      <div class="tr-body">
+        <!-- 두 편지 모두 엽서 글쓰기 면처럼: To 줄 → 점선 줄 위의 글 → 날짜 · From 줄 -->
+        <section class="tr-card tr-standard" aria-labelledby="trStandardLabel">
+          <h3 class="tr-label" id="trStandardLabel">표준어 편지</h3>
+          <div class="tr-paper">
+            <p class="tr-to">To <span class="tr-name" data-name="to"></span></p>
+            <textarea class="tr-text" id="trStandard" aria-labelledby="trStandardLabel"></textarea>
+            <p class="tr-foot"><span class="tr-date"></span><span class="tr-from"><span class="tr-name" data-name="from"></span>From</span></p>
+          </div>
+        </section>
+
+        <div class="tr-middle">
+          <button type="button" class="tr-convert" id="trConvert">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 0 1-14.3 4.9M4 12a8 8 0 0 1 14.3-4.9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M18.8 3.2v4.2h-4.2M5.2 20.8v-4.2h4.2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>제주어로 <br>변환하기</span>
+          </button>
+          <span class="tr-arrow" aria-hidden="true">→</span>
+        </div>
+
+        <section class="tr-card tr-jeju" aria-labelledby="trJejuLabel">
+          <h3 class="tr-label" id="trJejuLabel">제주어 변환 결과</h3>
+          <div class="tr-paper">
+            <p class="tr-to">To <span class="tr-name" data-name="to"></span></p>
+            <textarea class="tr-text" id="trJeju" aria-labelledby="trJejuLabel" aria-describedby="trNote"></textarea>
+            <p class="tr-foot"><span class="tr-date"></span><span class="tr-from"><span class="tr-name" data-name="from"></span>From</span></p>
+          </div>
+        </section>
+      </div>
+
+      <p class="tr-note" id="trNote" aria-live="polite"></p>
+
+      <div class="tr-actions">
+        <button type="button" class="stitch-btn" id="trBack">← 엽서 다시 쓰기</button>
+        <button type="button" class="stitch-btn is-accent" id="trNext">이 편지로 보내기 →</button>
+      </div>
+      <p class="status" id="trStatus" aria-live="polite"></p>
+    </section>
+
+    <!-- 엽서 게시판: 다른 사람들이 쓴 엽서를 코르크판에 붙여 보여 줌 (지금은 예시 3장, app.js의 BOARD_POSTCARDS) -->
+    <section class="board" id="boardSection" aria-label="엽서 게시판">
+      <div class="board-inner">
+        <div class="board-grid" id="boardGrid"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 게시판 엽서 크게 보기 -->
+  <dialog class="board-view" id="boardView" aria-label="엽서 크게 보기">
+    <div class="board-view-card mini-card" id="boardViewCard"></div>
+    <form method="dialog" class="sheet-close"><button class="stitch-btn">닫기</button></form>
+  </dialog>
+
+  <!-- 게시판에 붙이기 전 미리보기 -->
+  <dialog class="sheet board-post" id="boardPost" aria-labelledby="boardPostTitle">
+    <h2 id="boardPostTitle">게시판에 이렇게 붙어요</h2>
+    <div class="board-post-preview mini-card" id="boardPostCard"></div>
+    <label class="board-post-option"><input type="checkbox" id="hideNames" checked> 받는 사람·보내는 사람 이름 가리기</label>
+    <p class="sheet-note">게시판에 붙인 엽서는 이 사이트를 찾은 다른 사람들도 보게 돼요. 지금은 시험 단계라 이 기기에서만 보여요.</p>
+    <div class="sheet-buttons">
+      <button type="button" class="stitch-btn" id="boardPostCancel">취소</button>
+      <button type="button" class="stitch-btn is-accent" id="boardPostConfirm">붙이기</button>
+    </div>
+  </dialog>
+
+  <!-- 링크로 받은 엽서 -->
+  <dialog class="board-view received-view" id="receivedView" aria-labelledby="receivedTitle">
+    <h2 class="received-title" id="receivedTitle">제주에서 엽서가 도착했어요</h2>
+    <div class="board-view-card mini-card" id="receivedCard"></div>
+    <div class="sheet-buttons">
+      <button type="button" class="stitch-btn is-accent" id="writeBackBtn">나도 제주어 엽서 쓰기</button>
+    </div>
+  </dialog>
+
+  <dialog class="sheet" id="helpDialog" aria-labelledby="helpTitle">
+    <h2 id="helpTitle">이렇게 써 보세요</h2>
+    <ol>
+      <li>엽서 밑에서 마음에 드는 그림을 골라요. 맨 앞 <b>+ 사진</b>을 누르면 직접 찍은 사진을 넣을 수 있어요. 960×1280 세로 사진이 가장 잘 맞고, 다른 크기는 가운데를 기준으로 잘려요.</li>
+      <li>엽서에 받는 사람, 하고 싶은 말, 보내는 사람을 표준어로 적어요.</li>
+      <li><b>제주어로 번역</b>을 누르면 표준어 편지와 제주어로 바꾼 편지를 나란히 볼 수 있어요. 두 편지 모두 고칠 수 있고, 가운데 <b>제주어로 변환하기</b>를 누르면 다시 바꿔요.</li>
+      <li><b>이 편지로 보내기</b>를 누르고 이미지로 저장하기, 공유하기(URL 복사 · 이메일 · 카카오톡), 게시판에 붙이기 중에 골라요.</li>
+    </ol>
+    <p class="sheet-note">제주어 번역은 「개정증보 제주어사전」(2009)을 바탕으로 한 참고용 번역이에요.</p>
+    <form method="dialog" class="sheet-close"><button class="stitch-btn">닫기</button></form>
+  </dialog>
+
+  <script src="config.js?v=1"></script>
+  <script src="jeju-dict.js?v=1"></script>
+  <script src="translate.js?v=4"></script>
+  <script src="app.js?v=33"></script>
+</body>
+</html>
