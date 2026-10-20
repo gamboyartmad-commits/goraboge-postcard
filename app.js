@@ -1014,8 +1014,9 @@ mailForm.addEventListener('submit', async (e) => {
 });
 
 // ---------- 엽서 게시판 ----------
-// 다른 사람들이 쓴 엽서를 코르크판에 붙여 보여 줌. 누르면 크게 볼 수 있음.
-// 지금은 예시 3장. 실제로 사람들이 쓴 엽서를 모으려면 저장할 곳(서버나 구글 시트)이 필요함
+// 사람들이 붙인 엽서를 코르크판에 보여 줌. 누르면 크게 볼 수 있음.
+// config.js에 Supabase 주소·키가 있으면 모두가 같은 게시판을 봄 (supabase/board.sql).
+// 없으면 예전처럼 이 브라우저에만 저장됨. 붙인 엽서가 3장이 안 되면 예시 엽서를 함께 보여 줌
 
 const BOARD_POSTCARDS = [
   {
@@ -1107,8 +1108,68 @@ function saveMyPosts(list) {
   }
 }
 
-BOARD_POSTCARDS.forEach((post) => addBoardCard(post));
-loadMyPosts().forEach((post) => addBoardCard(post, { prepend: true }));
+// ---------- 모두가 보는 게시판 (Supabase) ----------
+// 데이터베이스 규칙: 누구나 붙이고 읽기만, 고치기·지우기·숨기기는 관리자만, 1분에 20장까지
+const BOARD_DB = {
+  url: ((window.POSTCARD_CONFIG || {}).SUPABASE_URL || '').replace(/\/+$/, ''),
+  key: (window.POSTCARD_CONFIG || {}).SUPABASE_KEY || '',
+};
+const BOARD_ONLINE = !!(BOARD_DB.url && BOARD_DB.key);
+const BOARD_LIMIT = 60;   // 최근 엽서 몇 장까지 보여 줄지
+
+function boardHeaders(extra = {}) {
+  const headers = { apikey: BOARD_DB.key, ...extra };
+  if (BOARD_DB.key.startsWith('eyJ')) headers.Authorization = `Bearer ${BOARD_DB.key}`;   // 예전 방식(anon) 키일 때
+  return headers;
+}
+
+async function fetchBoardPosts() {
+  const res = await fetch(
+    `${BOARD_DB.url}/rest/v1/board_posts?select=card,to_name,message,from_name,post_date,photo&order=created_at.desc&limit=${BOARD_LIMIT}`,
+    { headers: boardHeaders() },
+  );
+  if (!res.ok) throw new Error(`게시판을 불러오지 못했어요 (${res.status})`);
+  return (await res.json()).map((r) => ({
+    card: r.card, to: r.to_name, message: r.message, from: r.from_name, date: r.post_date, photo: r.photo || undefined,
+  }));
+}
+
+async function sendBoardPost(post) {
+  const res = await fetch(`${BOARD_DB.url}/rest/v1/board_posts`, {
+    method: 'POST',
+    headers: boardHeaders({ 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
+    body: JSON.stringify({
+      card: post.card,
+      to_name: post.to.slice(0, 20),
+      message: post.message.slice(0, 400),
+      from_name: post.from.slice(0, 20),
+      post_date: post.date,
+      photo: post.photo || null,
+    }),
+  });
+  if (!res.ok) {
+    let reason = '';
+    try { reason = (await res.json()).message || ''; } catch (e) { /* 내용 없음 */ }
+    throw new Error(reason.includes('잠시 뒤')
+      ? '지금 붙이는 사람이 많아요. 잠시 뒤에 다시 붙여 주세요.'
+      : '게시판에 붙이지 못했어요. 잠시 뒤에 다시 해 주세요.');
+  }
+}
+
+// 예시 엽서는 실제 엽서가 3장이 안 될 때만 (data-example로 표시해 두고 나중에 뺌)
+BOARD_POSTCARDS.forEach((post) => { addBoardCard(post).dataset.example = ''; });
+
+function showBoardPosts(posts) {
+  // 최신이 맨 앞에 오도록 오래된 것부터 앞에 붙임
+  [...posts].reverse().forEach((post) => addBoardCard(post, { prepend: true }));
+  if (posts.length >= 3) boardGrid.querySelectorAll('[data-example]').forEach((el) => el.remove());
+}
+
+if (BOARD_ONLINE) {
+  fetchBoardPosts().then(showBoardPosts).catch((e) => console.warn(e));
+} else {
+  showBoardPosts(loadMyPosts().reverse());
+}
 
 // 크게 보기 바깥(어두운 곳)을 누르면 닫힘
 boardView.addEventListener('click', (e) => { if (e.target === boardView) boardView.close(); });
@@ -1140,12 +1201,26 @@ function makePhotoThumb() {
   canvas.width = 480;
   canvas.height = 640;
   drawCover(canvas.getContext('2d'), cardPhoto, 480, 640);
-  return canvas.toDataURL('image/jpeg', 0.72);
+  // 게시판 데이터베이스는 사진 한 장을 20만 글자까지 받음 → 넘으면 화질을 낮춤
+  for (const quality of [0.72, 0.55, 0.4]) {
+    const url = canvas.toDataURL('image/jpeg', quality);
+    if (url.length <= 190000) return url;
+  }
+  return null;
+}
+
+const boardPostStatus = document.getElementById('boardPostStatus');
+const boardPostConfirm = document.getElementById('boardPostConfirm');
+if (BOARD_ONLINE) {
+  document.getElementById('boardPostNote').textContent =
+    '게시판에 붙인 엽서는 이 사이트를 찾은 모든 사람이 볼 수 있어요. 붙인 뒤에는 직접 지울 수 없으니 주소·전화번호 같은 개인정보는 적지 말아 주세요.';
 }
 
 document.getElementById('boardBtn').addEventListener('click', () => {
   pendingPhoto = photoActive ? makePhotoThumb() : null;
   fillMiniCard(boardPostCard, postForBoard());
+  boardPostStatus.textContent = '';
+  boardPostStatus.classList.remove('is-warning');
   boardPost.showModal();
 });
 
@@ -1153,17 +1228,41 @@ hideNames.addEventListener('change', () => fillMiniCard(boardPostCard, postForBo
 
 document.getElementById('boardPostCancel').addEventListener('click', () => boardPost.close());
 
-document.getElementById('boardPostConfirm').addEventListener('click', () => {
+boardPostConfirm.addEventListener('click', async () => {
   const post = postForBoard();
-  const list = loadMyPosts();
-  list.push(post);
-  const saved = saveMyPosts(list);
+  if (!post.message.trim()) {
+    boardPostStatus.textContent = '엽서에 내용이 있어야 게시판에 붙일 수 있어요.';
+    boardPostStatus.classList.add('is-warning');
+    return;
+  }
+
+  let message;
+  if (BOARD_ONLINE) {
+    boardPostConfirm.disabled = true;
+    boardPostStatus.classList.remove('is-warning');
+    boardPostStatus.textContent = '붙이는 중이에요...';
+    try {
+      await sendBoardPost(post);
+    } catch (e) {
+      boardPostStatus.textContent = e.message;
+      boardPostStatus.classList.add('is-warning');
+      return;
+    } finally {
+      boardPostConfirm.disabled = false;
+    }
+    message = '게시판에 엽서를 붙였어요. 이 사이트를 찾은 모든 사람이 볼 수 있어요.';
+  } else {
+    const list = loadMyPosts();
+    list.push(post);
+    message = saveMyPosts(list)
+      ? '게시판에 엽서를 붙였어요. (지금은 시험 단계라 이 기기에서만 보여요)'
+      : '게시판에 엽서를 붙였어요. (저장 공간이 막혀 있어서 새로고침하면 사라져요)';
+  }
+
   boardPost.close();
   closeSend();
   const card = addBoardCard(post, { prepend: true, fresh: true });
-  setStatus(saved
-    ? '게시판에 엽서를 붙였어요. (지금은 시험 단계라 이 기기에서만 보여요)'
-    : '게시판에 엽서를 붙였어요. (저장 공간이 막혀 있어서 새로고침하면 사라져요)');
+  setStatus(message);
   card.scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
 

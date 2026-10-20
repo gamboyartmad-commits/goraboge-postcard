@@ -192,7 +192,8 @@
     <h2 id="boardPostTitle">게시판에 이렇게 붙어요</h2>
     <div class="board-post-preview mini-card" id="boardPostCard"></div>
     <label class="board-post-option"><input type="checkbox" id="hideNames" checked> 받는 사람·보내는 사람 이름 가리기</label>
-    <p class="sheet-note">게시판에 붙인 엽서는 이 사이트를 찾은 다른 사람들도 보게 돼요. 지금은 시험 단계라 이 기기에서만 보여요.</p>
+    <p class="sheet-note" id="boardPostNote">게시판에 붙인 엽서는 이 사이트를 찾은 다른 사람들도 보게 돼요. 지금은 시험 단계라 이 기기에서만 보여요.</p>
+    <p class="sheet-status" id="boardPostStatus" aria-live="polite"></p>
     <div class="sheet-buttons">
       <button type="button" class="stitch-btn" id="boardPostCancel">취소</button>
       <button type="button" class="stitch-btn is-accent" id="boardPostConfirm">붙이기</button>
@@ -220,9 +221,9 @@
     <form method="dialog" class="sheet-close"><button class="stitch-btn">닫기</button></form>
   </dialog>
 
-  <script src="config.js?v=2"></script>
+  <script src="config.js?v=3"></script>
   <script src="jeju-dict.js?v=1"></script>
   <script src="translate.js?v=4"></script>
-  <script src="app.js?v=33"></script>
+  <script src="app.js?v=34"></script>
 </body>
 </html>
