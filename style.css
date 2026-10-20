@@ -898,13 +898,13 @@ body::after {
 
 .board-view-card { box-shadow: 0 2px 8px rgba(40, 30, 15, 0.22); }
 
-@media (max-width: 700px) {
+@media all   /* 모바일 전용: 늘 휴대폰 화면 규칙 */ {
   .board { margin-top: 28px; padding: 9px; }
   .board-inner { padding: 18px 12px 34px; }
   .board-card { width: min(220px, 70%); }
 }
 
-@media (max-width: 700px) {
+@media all   /* 모바일 전용: 늘 휴대폰 화면 규칙 */ {
   .topbar-desc { font-size: 13px; }
 
   .card {
@@ -1243,7 +1243,7 @@ body::after {
   .tr-convert.is-spinning svg { animation: none; }
 }
 
-@media (max-width: 700px) {
+@media all   /* 모바일 전용: 늘 휴대폰 화면 규칙 */ {
   .tr-head { padding: 16px 92px 28px 14px; text-align: left; }
   .tr-title { justify-content: flex-start; }
   .tr-desc { font-size: 13px; }
@@ -1324,3 +1324,311 @@ body::after {
   .card-stamp.is-stamping,
   .card.is-thud { animation: none; }
 }
+
+/* =====================================================================
+   모바일 전용 앱 (2026-10-20)
+   한 화면에 한 가지씩: 1 그림 → 2 쓰기 → 3 제주어 → 4 보내기, 게시판은 위 막대에서.
+   컴퓨터에서도 가운데 휴대폰 폭(480px)으로 보임. 위 '@media all' 규칙들이 늘 휴대폰 화면으로 적용됨
+   ===================================================================== */
+
+.topbar,
+.stage {
+  width: min(480px, 100%);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.stage { padding: 12px 12px 28px; }
+
+/* ---------- 위 막대: 제목 · 게시판 · 도움말 + 단계 ---------- */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: block;
+  padding: 10px 16px 12px;
+}
+
+.topbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.topbar-title { font-size: 19px; }
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.topbar-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid #d8cbb0;
+  border-radius: 999px;
+  background: #fffdf7;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.topbar-link svg { width: 18px; height: 18px; color: var(--cloth-orange); }
+.topbar-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.topbar .stitch-btn.is-round { width: 40px; min-height: 40px; }
+
+/* 1 그림 — 2 쓰기 — 3 제주어 — 4 보내기 */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.steps li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+/* 동그라미 사이를 잇는 선 */
+.steps li:not(:first-child)::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  right: 50%;
+  width: 100%;
+  height: 2px;
+  background: #ddd0b5;
+}
+
+.step-num {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #e9dfca;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.steps li.is-done .step-num { background: #f2cfb6; color: #8a4520; }
+.steps li.is-done:not(:first-child)::before,
+.steps li.is-current:not(:first-child)::before { background: #f0c09f; }
+
+.steps li.is-current { color: var(--ink); font-weight: 700; }
+.steps li.is-current .step-num {
+  background: var(--cloth-orange);
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(224, 139, 92, 0.22);
+}
+
+body[data-step='board'] .steps { display: none; }
+
+/* ---------- 단계 제목 ---------- */
+
+.panel { padding: 16px 14px 0; border-radius: 10px; }
+
+.step-head { margin: 0 2px 14px; }
+
+.step-title {
+  margin: 0;
+  font-family: 'Gowun Batang', serif;
+  font-size: 21px;
+  font-weight: 700;
+  outline: none;
+}
+
+.step-hint {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+/* ---------- 단계마다 보이는 칸 ---------- */
+
+body[data-step='pick'] .mobile-writer,
+body[data-step='pick'] #translateBtn,
+body[data-step='pick'] #writeBack,
+body[data-step='write'] .picker,
+body[data-step='write'] #pickNext { display: none; }
+
+body:not([data-step='write']) .edit-alert { display: none; }
+
+/* 1단계 그림: 엽서 띠를 크게 */
+.picker { margin-top: 16px; gap: 12px; }
+.carousel { --item: 76px; }
+.strip-item { width: 76px; }
+.photo-slot { width: 88px; }
+.photo-caption { font-size: 12px; }
+
+/* 2단계 쓰기: To → 편지 → From 순서로 큰 칸 */
+.mobile-writer {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.mobile-names { display: contents; }
+.mobile-names label:first-child { order: 1; }
+.mobile-writer textarea { order: 2; height: 176px; }
+.mobile-names label:last-child { order: 3; }
+
+.mobile-names label {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  align-items: center;
+  font-family: var(--letter-font);
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.mobile-writer input,
+.mobile-writer textarea {
+  padding: 12px 14px;
+  border-radius: 10px;
+}
+
+/* ---------- 아래 버튼 줄 ---------- */
+
+.main-actions { align-items: center; }
+.main-actions .stitch-btn { min-height: 54px; font-size: 17px; }
+
+.text-btn {
+  min-height: 44px;
+  padding: 8px 10px;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.text-btn:hover { color: var(--ink); }
+.text-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 6px; }
+
+.main-actions .step-back { flex: 0 0 auto; }
+
+/* ---------- 4단계 보내기: 큰 버튼 목록 ---------- */
+
+.send-panel { margin-top: 18px; padding-bottom: 18px; }
+
+.send-panel .send-title {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+  margin: 0 2px 12px;
+  font-family: 'Gowun Batang', serif;
+  font-size: 18px;
+}
+
+.send-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.send-row > .send-option,
+.send-row > .mail-form { order: 0; }
+
+.send-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 64px;
+  padding: 12px 16px;
+  border: 1px solid #e3d7bf;
+  border-radius: 14px;
+  background: #fffdf7;
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(40, 30, 15, 0.1);
+  transition: transform 0.1s ease, border-color 0.15s ease;
+}
+
+.send-option:active { transform: scale(0.985); }
+.send-option:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.send-option[aria-expanded='true'] { border-color: var(--pick); }
+.send-option svg { flex: 0 0 26px; width: 26px; height: 26px; color: var(--cloth-orange); }
+.send-option b { display: block; font-size: 16px; }
+.send-option small { display: block; margin-top: 2px; font-size: 12.5px; color: var(--ink-soft); }
+
+/* 카카오톡: 가장 많이 쓰는 방법이라 맨 위, 카카오 노란색 */
+.send-kakao { background: #fee500; border-color: #f2d900; }
+.send-kakao svg { color: #3a1d1d; }
+.send-kakao small { color: rgba(0, 0, 0, 0.6); }
+
+.send-row .mail-form { max-width: none; margin: -2px 0 2px; padding: 4px 4px 2px; }
+
+.send-done {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.send-done[hidden] { display: none; }
+.send-done .stitch-btn { min-height: 52px; font-size: 16px; }
+
+.send-panel .send-back { display: block; margin: 12px auto 0; }
+
+/* ---------- 게시판 화면 ---------- */
+
+.board { width: 100%; margin: 0; padding: 10px; border-radius: 10px; }
+
+.board-head {
+  padding: 4px 4px 14px;
+  text-align: center;
+}
+
+.board-head .text-btn { display: block; margin: 0 0 4px; color: #6b4f35; }
+
+.board-title {
+  margin: 0;
+  font-family: 'Gowun Batang', serif;
+  font-size: 21px;
+  color: #3b2a14;
+  outline: none;
+}
+
+.board-desc { margin: 4px 0 0; font-size: 13px; color: #6b5537; }
+
+.board-grid { gap: 26px; }
+.board-card { width: min(320px, 88%); }
+
+/* 3단계 제주어: 바뀐 제주어 편지가 먼저, 원래 쓴 편지는 그 아래 */
+.translate-page { padding-top: 14px; }
+.tr-head { padding: 12px 86px 22px 14px; }
+.tr-title { font-size: 20px; }
+.tr-harubang { height: 78px; right: 14px; }
+.tr-body { display: flex; flex-direction: column; gap: 12px; }
+.tr-jeju { order: 1; }
+.tr-middle { order: 2; }
+.tr-standard { order: 3; }
+.tr-arrow { display: none; }

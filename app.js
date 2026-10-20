@@ -26,7 +26,8 @@ const cardFrom = document.getElementById('cardFrom');
 const carousel = document.getElementById('carousel');
 const statusEl = document.getElementById('status');
 
-const narrowScreen = window.matchMedia('(max-width: 700px)');
+// 모바일 전용 사이트라 컴퓨터에서도 늘 휴대폰 화면처럼 동작 (가운데 휴대폰 폭으로 보임)
+const narrowScreen = window.matchMedia('all');
 
 let currentCard = 0;
 
@@ -345,29 +346,81 @@ const trNote = document.getElementById('trNote');
 const trStatus = document.getElementById('trStatus');
 const trJejuCard = trJeju.closest('.tr-card');
 
+// ---------- 보낼 수 없는 말 검사 (목록은 badwords.js) ----------
+// 욕설 · 성적인 말 · 혐오 표현이 있으면 '이 편지로 보내기'와 모든 보내기 버튼에서 막음
+const BAD_WORD_MESSAGE = '고운 말로 써 주세요. 욕설이나 야한 말, 남을 깎아내리는 말이 들어간 엽서는 보낼 수 없어요.';
+
+function badWordIn(...texts) {
+  if (!window.findBadWord) return null;
+  return texts.map((t) => window.findBadWord(t)).find(Boolean) || null;
+}
+
+const cardHasBadWord = () => badWordIn(cardMessage.value, cardTo.value, cardFrom.value);
+
 const TR_NOTE = '「개정증보 제주어사전」을 바탕으로 한 참고용 번역이에요. 어색한 곳은 고쳐도 돼요.';
 
 // 지금 편지의 두 모습. 엽서에 제주어 편지를 담은 뒤 글을 고치지 않았으면 그대로 다시 보여 줌
 let letter = { standard: '', jeju: '' };
 
-function showView(name) {
-  writePanelEl.hidden = name !== 'write';
-  boardSection.hidden = name !== 'write';
-  translatePage.hidden = name !== 'translate';
+// ---------- 단계: 그림 → 쓰기 → 제주어 → 보내기 (+ 게시판) ----------
+// 한 화면에 한 가지만. 위에는 지금 단계, 아래에는 '다음' 버튼 하나.
+// 앞으로 갈 때마다 브라우저 기록을 하나씩 쌓아서 휴대폰 뒤로 가기로 한 단계씩 돌아감
+const STEP_ORDER = ['pick', 'write', 'translate', 'send'];
+const STEP_TEXT = {
+  pick: ['엽서 그림을 골라 주세요', '옆으로 넘겨 마음에 드는 그림을 골라요. 내 사진도 넣을 수 있어요'],
+  write: ['마음을 적어 주세요', '평소 말투로 써도 돼요. 다음 단계에서 제주어로 바꿔 드려요'],
+  send: ['엽서를 보내 주세요', '하영고라보게 소인이 찍혔어요. 보낼 방법을 골라요'],
+};
+let step = 'pick';
+let stepDepth = 0;   // 이 사이트 안에서 앞으로 간 기록 수
+
+function renderStep(next) {
+  const prev = step;
+  step = next;
+  document.body.dataset.step = next;
+  writePanelEl.hidden = !['pick', 'write', 'send'].includes(next);
+  translatePage.hidden = next !== 'translate';
+  boardSection.hidden = next !== 'board';
+
+  // 보내기에서 앞 단계로 돌아가면 소인과 보내기 칸을 지움
+  if (prev === 'send' && ['pick', 'write', 'translate'].includes(next)) {
+    closeSend();
+    clearStamp();
+  }
+  if (next === 'send' && !sendPanel.open) openSend();
+
+  const at = STEP_ORDER.indexOf(next);
+  document.querySelectorAll('#steps li').forEach((li, i) => {
+    li.classList.toggle('is-done', at >= 0 && i < at);
+    li.classList.toggle('is-current', i === at);
+    if (i === at) li.setAttribute('aria-current', 'step');
+    else li.removeAttribute('aria-current');
+  });
+  if (STEP_TEXT[next]) {
+    document.getElementById('stepTitle').textContent = STEP_TEXT[next][0];
+    document.getElementById('stepHint').textContent = STEP_TEXT[next][1];
+  }
   window.scrollTo(0, 0);
+  if (next === 'translate') fitTrTexts();
 }
 
-// 브라우저의 뒤로 가기로도 엽서 쓰기로 돌아오게
+function goStep(next) {
+  if (next === step) return;
+  history.pushState({ step: next }, '');
+  stepDepth += 1;
+  renderStep(next);
+}
+
+// 사이트 안의 '뒤로' 버튼: 쌓아 둔 기록이 있으면 브라우저 뒤로 가기와 똑같이, 없으면 그 단계로 바로
+function backStep(fallback) {
+  if (stepDepth > 0) history.back();
+  else renderStep(fallback);
+}
+
 window.addEventListener('popstate', (e) => {
-  showView(e.state && e.state.view === 'translate' ? 'translate' : 'write');
+  stepDepth = Math.max(0, stepDepth - 1);
+  renderStep((e.state && e.state.step) || 'pick');
 });
-
-// 버튼으로 돌아갈 때는 history.back()을 쓰지 않음: 브라우저가 이 기록을 건너뛰면 사이트 밖으로 나가 버림.
-// 지금 기록을 '쓰기'로 바꿔 두면, 나중에 뒤로 가기를 눌러도 엽서 쓰기 화면이 그대로 보임
-function leaveTranslate() {
-  showView('write');
-  if (history.state && history.state.view === 'translate') history.replaceState({ view: 'write' }, '');
-}
 
 function setTrStatus(text, warning) {
   trStatus.textContent = text;
@@ -432,9 +485,7 @@ translateBtn.addEventListener('click', () => {
   } else {
     convertLetter();
   }
-  showView('translate');
-  fitTrTexts();
-  history.pushState({ view: 'translate' }, '');
+  goStep('translate');
   document.getElementById('translateTitle').focus({ preventScroll: true });
 });
 
@@ -458,7 +509,7 @@ trStandard.addEventListener('input', () => {
   fitHeight(trStandard);
   if (trStandard.value !== letter.standard) {
     markStale(true);
-    trNote.textContent = '표준어 편지를 고쳤어요. 가운데 \u2018제주어로 변환하기\u2019를 누르면 다시 바뀌어요.';
+    trNote.textContent = '원래 편지를 고쳤어요. ‘원래 편지로 다시 바꾸기’를 누르면 제주어 편지도 바뀌어요.';
   }
 });
 
@@ -494,8 +545,7 @@ document.getElementById('trBack').addEventListener('click', () => {
   letter.standard = trStandard.value;
   jejuApplied = false;
   hideEditAlert();
-  leaveTranslate();
-  writingBox().focus({ preventScroll: true });
+  backStep('write');
 });
 
 // ---------- 보내기 소인 ----------
@@ -530,7 +580,11 @@ cardMessage.addEventListener('input', clearStamp);
 // 이 편지로 보내기: 제주어 편지를 엽서에 담고, 도장을 찍은 뒤 보내기를 엶
 document.getElementById('trNext').addEventListener('click', () => {
   if (!trJeju.value.trim()) {
-    setTrStatus('제주어 편지가 비어 있어요. 가운데 버튼을 눌러 바꿔 주세요.', true);
+    setTrStatus('제주어 편지가 비어 있어요. ‘원래 편지로 다시 바꾸기’를 눌러 주세요.', true);
+    return;
+  }
+  if (badWordIn(trJeju.value, trStandard.value, cardTo.value, cardFrom.value)) {
+    setTrStatus(BAD_WORD_MESSAGE, true);
     return;
   }
   if (!putOnCard(trJeju.value)) {
@@ -542,11 +596,8 @@ document.getElementById('trNext').addEventListener('click', () => {
   jejuApplied = true;
   editAlertDismissed = false;
   hideEditAlert();
-  leaveTranslate();
-  stampCard();
-  // 휴대폰은 아래에서 올라오는 판이 엽서를 어둡게 덮으므로 도장을 다 찍은 뒤에 엶
-  if (narrowScreen.matches && !reduceMotion.matches) setTimeout(openSend, 1500);
-  else openSend();
+  stampCard();   // 소인을 먼저 찍어 두어야 미리 올리는 카카오톡용 엽서 그림에도 소인이 들어감
+  goStep('send');
 });
 
 // ---------- 고친 글 알림 ----------
@@ -719,8 +770,8 @@ const sendHint = document.getElementById('sendHint');
 
 function openSend() {
   sendHint.hidden = jejuApplied || !/[가-힣]/.test(cardMessage.value);
-  shareMenu.hidden = true;
-  shareBtn.setAttribute('aria-expanded', 'false');
+  sendDone.hidden = true;
+  viewBoardBtn.hidden = true;
   mailForm.hidden = true;
   mailOption.setAttribute('aria-expanded', 'false');
   setSheetStatus('');
@@ -728,13 +779,7 @@ function openSend() {
   // 보내기를 여는 동안 엽서 고르기 칸과 쓰기 칸은 숨기고 저장 · 공유 · 게시판 버튼만
   writePanel.classList.add('is-sending');
   if (KAKAO_JS_KEY) uploadCardImage().catch(() => {});   // 카카오톡 공유에 쓸 엽서 이미지를 미리 올려 둠
-  if (narrowScreen.matches) {
-    sendPanel.showModal();
-    document.getElementById('shareBtn').focus();
-  } else {
-    sendPanel.show();
-    document.getElementById('saveBtn').focus();
-  }
+  sendPanel.show();   // 창이 아니라 엽서 아래에 펼쳐지는 버튼 목록
 }
 
 function closeSend() {
@@ -746,19 +791,39 @@ sendPanel.addEventListener('close', () => {
   translateBtn.focus({ preventScroll: true });
 });
 
-// 보내기를 마치면 닫고 결과는 엽서 아래에 알려 줌
+// 보내기를 마치면 결과를 알려 주고, 다른 방법으로도 더 보낼 수 있게 버튼 목록은 그대로 둠
+const sendDone = document.getElementById('sendDone');
+const viewBoardBtn = document.getElementById('viewBoardBtn');
+
 function finishSend(text) {
-  closeSend();
-  setStatus(text);
+  setSheetStatus(text || '보냈어요!');
+  sendDone.hidden = false;
 }
 
-
-// 뒤로: 도장을 지우고 2단계 '제주어로 변환하기' 페이지로 돌아감
-document.getElementById('sendBack').addEventListener('click', () => {
+// 새 엽서 쓰기: 다 비우고 1단계(그림)로
+document.getElementById('newCardBtn').addEventListener('click', () => {
+  cardTo.value = '';
+  cardFrom.value = '';
+  cardMessage.value = '';
+  syncMobile();
+  letter = { standard: '', jeju: '' };
+  jejuApplied = false;
+  hideEditAlert();
   closeSend();
   clearStamp();
-  translateBtn.click();
+  setSheetStatus('');
+  if (stepDepth > 0) {
+    history.go(-stepDepth);   // popstate에서 1단계로 돌아감
+  } else {
+    renderStep('pick');
+  }
 });
+
+viewBoardBtn.addEventListener('click', () => goStep('board'));
+
+
+// 뒤로: 소인을 지우고 제주어 단계로 (renderStep이 지움)
+document.getElementById('sendBack').addEventListener('click', () => backStep('translate'));
 
 // 아직 표준어면 2단계 페이지로 가서 바꿈
 document.getElementById('sendHintTranslate').addEventListener('click', () => {
@@ -766,37 +831,27 @@ document.getElementById('sendHintTranslate').addEventListener('click', () => {
   translateBtn.click();
 });
 
-// 컴퓨터에서 펼친 줄은 창이 아니라서 Esc를 직접 받아 닫음
-sendPanel.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !narrowScreen.matches) closeSend();
-});
-
-// 휴대폰 판 바깥(어두운 곳)을 누르면 닫힘
-sendPanel.addEventListener('click', (e) => {
-  if (e.target === sendPanel && narrowScreen.matches) closeSend();
-});
-
-// 펼친 채로 화면 폭이 바뀌면(컴퓨터 ↔ 휴대폰 크기) 일단 닫음
-narrowScreen.addEventListener('change', closeSend);
+// 펼쳐 둔 버튼 목록은 Esc로 닫히지 않게 (닫히면 4단계 화면이 비어 버림)
+sendPanel.addEventListener('cancel', (e) => e.preventDefault());
 
 // 저장
 document.getElementById('saveBtn').addEventListener('click', async () => {
-  download(await toBlob(await renderCard(), 'image/png'));
+  const blob = await toBlob(await renderCard(), 'image/png');
+  const file = new File([blob], FILE_NAME, { type: 'image/png' });
+  // 휴대폰: 공유 창에서 '이미지 저장'을 누르면 사진첩에 들어감
+  if (window.matchMedia('(pointer: coarse)').matches && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file] });
+      finishSend('엽서 그림을 저장하거나 보냈어요.');
+      return;
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+    }
+  }
+  download(blob);
   finishSend('엽서를 이미지로 저장했어요.');
 });
 
-// 공유하기: 누르면 아래에 URL 복사 / 이메일로 보내기 / 카카오톡으로 전송하기가 펼쳐짐
-const shareBtn = document.getElementById('shareBtn');
-const shareMenu = document.getElementById('shareMenu');
-
-shareBtn.addEventListener('click', () => {
-  shareMenu.hidden = !shareMenu.hidden;
-  shareBtn.setAttribute('aria-expanded', String(!shareMenu.hidden));
-  if (!shareMenu.hidden) {   // 공유 칸을 펼치면 메일 칸은 접음
-    mailForm.hidden = true;
-    mailOption.setAttribute('aria-expanded', 'false');
-  }
-});
 
 // ---------- 엽서를 링크에 담기 ----------
 // 받는 칸·내용·보내는 칸·엽서 번호를 주소 끝(#p=...)에 담아서, 링크를 연 사람에게 그 엽서를 보여 줌.
@@ -858,6 +913,7 @@ async function copyText(text) {
 
 // URL 복사
 document.getElementById('copyLinkBtn').addEventListener('click', async () => {
+  if (cardHasBadWord()) { setSheetStatus(BAD_WORD_MESSAGE, true); return; }
   if (await copyText(postUrl())) {
     finishSend('엽서 링크를 복사했어요. 받는 사람에게 붙여 넣어 보내 주세요.' + PHOTO_NOTE() + LOCAL_NOTE);
   } else {
@@ -945,6 +1001,7 @@ async function shareToKakao() {
 }
 
 document.getElementById('kakaoBtn').addEventListener('click', async () => {
+  if (cardHasBadWord()) { setSheetStatus(BAD_WORD_MESSAGE, true); return; }
   const url = postUrl();
   if (KAKAO_JS_KEY) {
     const btn = document.getElementById('kakaoBtn');
@@ -977,20 +1034,17 @@ document.getElementById('kakaoBtn').addEventListener('click', async () => {
 // 메일 (Google Apps Script 웹앱)
 const MAIL_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby2mo6dZ-DAXsN1JRdb_V3DSTdGFMb9gOLi55IOgX94NL0KjVg5dgI7SXld9qquKC05/exec';
 
-// 메일로 보내기: 누르면 받는 사람 메일 주소 칸이 펼쳐짐 (공유 칸은 접음)
+// 메일로 보내기: 누르면 바로 아래에 받는 사람 메일 주소 칸이 펼쳐짐
 mailOption.addEventListener('click', () => {
   mailForm.hidden = !mailForm.hidden;
   mailOption.setAttribute('aria-expanded', String(!mailForm.hidden));
-  if (!mailForm.hidden) {
-    shareMenu.hidden = true;
-    shareBtn.setAttribute('aria-expanded', 'false');
-    mailInput.focus();
-  }
+  if (!mailForm.hidden) mailInput.focus();
 });
 
 mailForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!mailForm.reportValidity()) return;
+  if (cardHasBadWord()) { setSheetStatus(BAD_WORD_MESSAGE, true); return; }
 
   mailSubmit.disabled = true;
   mailSubmit.textContent = '보내는 중...';
@@ -1003,6 +1057,9 @@ mailForm.addEventListener('submit', async (e) => {
       body: JSON.stringify({
         email: mailInput.value.trim(),
         imageBase64: canvas.toDataURL('image/jpeg', 0.9),
+        toName: cardTo.value.trim(),
+        fromName: cardFrom.value.trim(),
+        message: cardMessage.value,
         filename: 'jeju-postcard.jpg',
       }),
     });
@@ -1155,6 +1212,7 @@ async function sendBoardPost(post) {
   if (!res.ok) {
     let reason = '';
     try { reason = (await res.json()).message || ''; } catch (e) { /* 내용 없음 */ }
+    if (reason.includes('고운 말')) throw new Error(BAD_WORD_MESSAGE);
     throw new Error(reason.includes('잠시 뒤')
       ? '지금 붙이는 사람이 많아요. 잠시 뒤에 다시 붙여 주세요.'
       : '게시판에 붙이지 못했어요. 잠시 뒤에 다시 해 주세요.');
@@ -1235,6 +1293,11 @@ document.getElementById('boardPostCancel').addEventListener('click', () => board
 
 boardPostConfirm.addEventListener('click', async () => {
   const post = postForBoard();
+  if (cardHasBadWord()) {
+    boardPostStatus.textContent = BAD_WORD_MESSAGE;
+    boardPostStatus.classList.add('is-warning');
+    return;
+  }
   if (!post.message.trim()) {
     boardPostStatus.textContent = '엽서에 내용이 있어야 게시판에 붙일 수 있어요.';
     boardPostStatus.classList.add('is-warning');
@@ -1265,10 +1328,9 @@ boardPostConfirm.addEventListener('click', async () => {
   }
 
   boardPost.close();
-  closeSend();
-  const card = addBoardCard(post, { prepend: true, fresh: true });
-  setStatus(message);
-  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  addBoardCard(post, { prepend: true, fresh: true });
+  finishSend(message);
+  viewBoardBtn.hidden = false;
 });
 
 // ---------- 링크로 받은 엽서 보여 주기 ----------
@@ -1284,10 +1346,7 @@ function clearReceived() {
   history.replaceState(null, '', location.pathname + (query ? `?${query}` : ''));
 }
 
-document.getElementById('writeBackBtn').addEventListener('click', () => {
-  receivedView.close();
-  writingBox().focus();
-});
+document.getElementById('writeBackBtn').addEventListener('click', () => receivedView.close());
 receivedView.addEventListener('close', clearReceived);
 
 const receivedCode = location.hash.startsWith('#p=') ? location.hash.slice(3) : new URLSearchParams(location.search).get('p');
@@ -1302,3 +1361,14 @@ if (received) {
 document.getElementById('helpBtn').addEventListener('click', () => {
   document.getElementById('helpDialog').showModal();
 });
+
+// ---------- 단계 버튼 ----------
+
+document.getElementById('pickNext').addEventListener('click', () => goStep('write'));
+document.getElementById('writeBack').addEventListener('click', () => backStep('pick'));
+document.getElementById('boardNavBtn').addEventListener('click', () => goStep('board'));
+document.getElementById('boardBack').addEventListener('click', () => backStep('pick'));
+
+// 처음에는 1단계(그림)
+if (!history.state || !history.state.step) history.replaceState({ step: 'pick' }, '', location.href);
+renderStep('pick');

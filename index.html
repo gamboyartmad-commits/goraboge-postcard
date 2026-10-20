@@ -16,20 +16,36 @@
 <meta property="og:image:height" content="800">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=64">
+<link rel="stylesheet" href="style.css?v=71">
 </head>
 <body>
 
+  <!-- 위 막대: 제목 · 게시판 · 도움말, 그 아래 지금 몇 번째 단계인지 -->
   <header class="topbar">
-    <div class="topbar-text">
+    <div class="topbar-row">
       <h1 class="topbar-title">제주어로 엽서 적기</h1>
-      <p class="topbar-desc">전하지 않으면 사라지는 말을 제주어로 적어 보세요</p>
+      <div class="topbar-actions">
+        <button type="button" class="topbar-link" id="boardNavBtn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 9h6M7 13h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="17" cy="8" r="1.6" fill="currentColor"/></svg>
+          게시판
+        </button>
+        <button type="button" class="stitch-btn is-round" id="helpBtn" aria-label="사용 방법">?</button>
+      </div>
     </div>
-    <button type="button" class="stitch-btn is-round" id="helpBtn" aria-label="사용 방법">?</button>
+    <ol class="steps" id="steps" aria-label="엽서 쓰는 순서">
+      <li data-step="pick"><span class="step-num">1</span><span class="step-name">그림</span></li>
+      <li data-step="write"><span class="step-num">2</span><span class="step-name">쓰기</span></li>
+      <li data-step="translate"><span class="step-num">3</span><span class="step-name">제주어</span></li>
+      <li data-step="send"><span class="step-num">4</span><span class="step-name">보내기</span></li>
+    </ol>
   </header>
 
   <main class="stage">
-    <section class="panel" id="writePanel" aria-label="엽서 쓰기">
+    <section class="panel" id="writePanel" aria-labelledby="stepTitle">
+      <div class="step-head">
+        <h2 class="step-title" id="stepTitle" tabindex="-1">엽서 그림을 골라 주세요</h2>
+        <p class="step-hint" id="stepHint"></p>
+      </div>
 
       <!-- 1. 엽서: 가운데 크게. 입력칸 위치는 엽서 이미지(1920×1280)의 줄에 맞춰 style.css에서 %로 잡음 -->
       <div class="card" id="card">
@@ -50,16 +66,7 @@
         <img class="card-stamp" id="cardStamp" src="images/stamp-goraboge.png?v=2" alt="" aria-hidden="true" hidden>
       </div>
 
-      <!-- 휴대폰에서만 보이는 보통 크기 글쓰기 칸. 쓰는 대로 위 엽서에 바로 옮겨짐 -->
-      <div class="mobile-writer">
-        <div class="mobile-names">
-          <label>To <input type="text" id="mobileTo" maxlength="10" autocomplete="off" placeholder="받는 사람"></label>
-          <label>From <input type="text" id="mobileFrom" maxlength="10" autocomplete="off" placeholder="보내는 사람"></label>
-        </div>
-        <textarea id="mobileMessage" aria-label="엽서 내용" placeholder="여기에 마음을 적어 보세요. 엽서에 바로 보여요."></textarea>
-      </div>
-
-      <!-- 2. 엽서 고르기: 왼쪽은 내 사진 칸, 오른쪽은 옆으로 넘기는 엽서 띠(가운데 온 그림이 골라짐) -->
+      <!-- 1단계 그림 고르기: 왼쪽은 내 사진 칸, 오른쪽은 옆으로 넘기는 엽서 띠(가운데 온 그림이 골라짐) -->
       <div class="picker">
         <input type="file" id="photoInput" accept="image/*" hidden>
         <div class="photo-slot">
@@ -70,6 +77,15 @@
           <p class="photo-caption" id="photoCaption">직접 찍은 사진으로 엽서 만들기</p>
         </div>
         <div class="carousel" id="carousel" tabindex="0" aria-label="엽서 그림 고르기. 옆으로 넘기면 가운데 그림이 골라져요"></div>
+      </div>
+
+      <!-- 2단계 쓰기: 보통 크기 글쓰기 칸. 쓰는 대로 위 엽서에 바로 옮겨짐 -->
+      <div class="mobile-writer">
+        <div class="mobile-names">
+          <label>To <input type="text" id="mobileTo" maxlength="10" autocomplete="off" placeholder="받는 사람"></label>
+          <label>From <input type="text" id="mobileFrom" maxlength="10" autocomplete="off" placeholder="보내는 사람"></label>
+        </div>
+        <textarea id="mobileMessage" aria-label="엽서 내용" placeholder="여기에 마음을 적어 보세요. 엽서에 바로 보여요."></textarea>
       </div>
 
       <!-- 제주어로 바꾼 뒤(또는 엽서 보내기를 연 뒤) 글을 고치면 뜨는 알림 -->
@@ -85,39 +101,54 @@
         </div>
       </div>
 
-      <!-- 3. 제주어로 번역: 누르면 2단계 '제주어로 변환하기' 페이지로 -->
+      <!-- 화면 아래 버튼 줄: 단계마다 '다음'이 하나씩 (그림 → 쓰기 → 제주어) -->
       <div class="main-actions">
-        <button type="button" class="stitch-btn is-accent" id="translateBtn">제주어로 번역</button>
+        <button type="button" class="text-btn step-back" id="writeBack">← 그림</button>
+        <button type="button" class="stitch-btn is-accent" id="pickNext">이 그림으로 쓰기 →</button>
+        <button type="button" class="stitch-btn is-accent" id="translateBtn">제주어로 바꾸기 →</button>
       </div>
-      <!-- 엽서 보내기 (2단계 페이지의 '이 편지로 보내기'로 열림). 열리면 엽서 고르기 칸은 숨기고 세 버튼만:
-           컴퓨터에서는 위 버튼 줄 자리에 그대로 펼쳐지고, 휴대폰에서는 아래에서 올라오는 판.
-           버튼 순서는 기기마다 많이 쓰는 것부터 (style.css의 order) -->
+      <!-- 4단계 보내기: 소인이 찍힌 엽서 아래에 보낼 방법을 큰 버튼으로 -->
       <dialog class="send-panel" id="sendPanel" aria-labelledby="sendTitle">
-        <h2 class="send-title" id="sendTitle">엽서 보내기</h2>
+        <h3 class="send-title" id="sendTitle">어떻게 보낼까요?</h3>
         <div class="send-hint" id="sendHint" hidden>
           <p>아직 표준어 그대로예요. 제주어로 바꿔서 보낼까요?</p>
           <button type="button" class="stitch-btn is-small is-accent" id="sendHintTranslate">제주어로 바꾸기</button>
         </div>
         <div class="send-row">
-          <button type="button" class="stitch-btn send-back" id="sendBack">← 뒤로</button>
-          <button type="button" class="stitch-btn send-save" id="saveBtn">이미지로 저장하기</button>
-          <button type="button" class="stitch-btn send-share" id="shareBtn" aria-expanded="false" aria-controls="shareMenu">공유하기</button>
-          <button type="button" class="stitch-btn send-mail" id="mailOption" aria-expanded="false" aria-controls="mailForm">메일로 보내기</button>
-          <button type="button" class="stitch-btn send-board" id="boardBtn">게시판에 붙이기</button>
-          <!-- 공유하기를 누르면 펼쳐지는 두 가지 -->
-          <div class="share-menu" id="shareMenu" hidden>
-            <button type="button" class="stitch-btn is-small" id="copyLinkBtn">URL 복사</button>
-            <button type="button" class="stitch-btn is-small" id="kakaoBtn">카카오톡으로 전송하기</button>
-          </div>
+          <button type="button" class="send-option send-kakao" id="kakaoBtn">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4C7 4 3 7.1 3 11c0 2.5 1.7 4.7 4.2 5.9l-1 3.7a.3.3 0 0 0 .4.3l4.4-2.9h1c5 0 9-3.1 9-7s-4-7-9-7z" fill="currentColor"/></svg>
+            <span><b>카카오톡으로 보내기</b><small>친구를 골라 엽서를 보내요</small></span>
+          </button>
+          <button type="button" class="send-option" id="mailOption" aria-expanded="false" aria-controls="mailForm">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+            <span><b>메일로 보내기</b><small>엽서 그림이 메일에 바로 보여요</small></span>
+          </button>
           <form class="mail-form" id="mailForm" hidden>
             <label class="sheet-label" for="mailInput">받는 사람 메일 주소</label>
             <div class="mail-row">
-              <input type="email" id="mailInput" class="sheet-input" required placeholder="name@email.com">
+              <input type="email" id="mailInput" class="sheet-input" required placeholder="name@email.com" autocomplete="email" inputmode="email">
               <button type="submit" class="stitch-btn is-accent" id="mailSubmit">보내기</button>
             </div>
           </form>
+          <button type="button" class="send-option" id="copyLinkBtn">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span><b>링크 복사하기</b><small>문자나 SNS에 붙여 넣어 보내요</small></span>
+          </button>
+          <button type="button" class="send-option" id="saveBtn">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span><b>이미지로 저장하기</b><small>휴대폰에 엽서 그림을 저장해요</small></span>
+          </button>
+          <button type="button" class="send-option" id="boardBtn">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 10.5V21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span><b>게시판에 붙이기</b><small>모두가 보는 게시판에 남겨요</small></span>
+          </button>
         </div>
         <p class="sheet-status" id="sheetStatus" aria-live="polite"></p>
+        <div class="send-done" id="sendDone" hidden>
+          <button type="button" class="stitch-btn is-accent" id="newCardBtn">새 엽서 쓰기</button>
+          <button type="button" class="text-btn" id="viewBoardBtn" hidden>게시판에서 보기</button>
+        </div>
+        <button type="button" class="text-btn send-back" id="sendBack">← 제주어 편지 고치기</button>
       </dialog>
 
       <p class="status" id="status" aria-live="polite"></p>
@@ -131,7 +162,7 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 0 1-14.3 4.9M4 12a8 8 0 0 1 14.3-4.9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M18.8 3.2v4.2h-4.2M5.2 20.8v-4.2h4.2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
           제주어로 변환하기
         </h2>
-        <p class="tr-desc">작성한 편지를 제주어로 바꿨어요. 두 편지를 나란히 견주어 보세요.</p>
+        <p class="tr-desc">제주어로 바꿨어요. 어색한 곳은 눌러서 고쳐도 돼요.</p>
         <img class="tr-harubang" src="images/harubang-deco.webp" alt="">
       </header>
 
@@ -149,7 +180,7 @@
         <div class="tr-middle">
           <button type="button" class="tr-convert" id="trConvert">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 0 1-14.3 4.9M4 12a8 8 0 0 1 14.3-4.9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M18.8 3.2v4.2h-4.2M5.2 20.8v-4.2h4.2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span>제주어로 <br>변환하기</span>
+            <span>원래 편지로 <br>다시 바꾸기</span>
           </button>
           <span class="tr-arrow" aria-hidden="true">→</span>
         </div>
@@ -174,7 +205,12 @@
     </section>
 
     <!-- 엽서 게시판: 다른 사람들이 쓴 엽서를 코르크판에 붙여 보여 줌 (지금은 예시 3장, app.js의 BOARD_POSTCARDS) -->
-    <section class="board" id="boardSection" aria-label="엽서 게시판">
+    <section class="board" id="boardSection" aria-labelledby="boardTitle" hidden>
+      <div class="board-head">
+        <button type="button" class="text-btn" id="boardBack">← 엽서 쓰기</button>
+        <h2 class="board-title" id="boardTitle" tabindex="-1">모두의 엽서 게시판</h2>
+        <p class="board-desc">엽서를 누르면 크게 볼 수 있어요</p>
+      </div>
       <div class="board-inner">
         <div class="board-grid" id="boardGrid"></div>
       </div>
@@ -212,10 +248,10 @@
   <dialog class="sheet" id="helpDialog" aria-labelledby="helpTitle">
     <h2 id="helpTitle">이렇게 써 보세요</h2>
     <ol>
-      <li>엽서 밑에서 마음에 드는 그림을 골라요. 맨 앞 <b>+ 사진</b>을 누르면 직접 찍은 사진을 넣을 수 있어요. 960×1280 세로 사진이 가장 잘 맞고, 다른 크기는 가운데를 기준으로 잘려요.</li>
-      <li>엽서에 받는 사람, 하고 싶은 말, 보내는 사람을 표준어로 적어요.</li>
-      <li><b>제주어로 번역</b>을 누르면 표준어 편지와 제주어로 바꾼 편지를 나란히 볼 수 있어요. 두 편지 모두 고칠 수 있고, 가운데 <b>제주어로 변환하기</b>를 누르면 다시 바꿔요.</li>
-      <li><b>이 편지로 보내기</b>를 누르고 이미지로 저장하기, 공유하기(URL 복사 · 이메일 · 카카오톡), 게시판에 붙이기 중에 골라요.</li>
+      <li><b>그림</b>: 옆으로 넘겨 엽서 그림을 골라요. 맨 앞 <b>+ 내 사진</b>을 누르면 직접 찍은 사진을 넣을 수 있어요.</li>
+      <li><b>쓰기</b>: 받는 사람, 하고 싶은 말, 보내는 사람을 평소 말투로 적어요.</li>
+      <li><b>제주어</b>: 표준어 편지와 제주어로 바꾼 편지를 함께 보여 줘요. 제주어 편지는 눌러서 고칠 수 있어요.</li>
+      <li><b>보내기</b>: 하영고라보게 소인이 찍히면 카카오톡 · 메일 · 링크 · 이미지 저장 · 게시판 중에 골라 보내요.</li>
     </ol>
     <p class="sheet-note">제주어 번역은 「개정증보 제주어사전」(2009)을 바탕으로 한 참고용 번역이에요.</p>
     <form method="dialog" class="sheet-close"><button class="stitch-btn">닫기</button></form>
@@ -224,6 +260,7 @@
   <script src="config.js?v=3"></script>
   <script src="jeju-dict.js?v=1"></script>
   <script src="translate.js?v=4"></script>
-  <script src="app.js?v=35"></script>
+  <script src="badwords.js?v=1"></script>
+  <script src="app.js?v=71"></script>
 </body>
 </html>
