@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 420" width="1600" height="420" preserveAspectRatio="xMidYMax slice">
+<defs>
+<linearGradient id="m1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a9c196"/><stop offset="1" stop-color="#94b083"/></linearGradient>
+<linearGradient id="m2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9bb889"/><stop offset="1" stop-color="#86a677"/></linearGradient>
+</defs>
+
+<path d="M-40 420 L-40 230 C80 150 220 120 360 150 C470 175 540 230 640 260 L640 420 Z" fill="url(#m1)"/>
+<path d="M520 420 L520 300 C640 250 760 160 930 150 C1100 142 1210 210 1330 250 C1430 284 1540 280 1640 270 L1640 420 Z" fill="url(#m2)"/>
+<!-- 분화구처럼 살짝 파인 오름 꼭대기 -->
+<path d="M860 156 C900 170 960 170 1000 154" stroke="#7e9d6f" stroke-width="5" fill="none" stroke-linecap="round" opacity=".6"/>
+<!-- 오름을 오르는 오솔길 -->
+<path d="M700 420 C760 360 820 300 900 250 C940 226 980 204 1010 182" stroke="#d9cfae" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="2 12" opacity=".8"/>
+<ellipse cx="959" cy="262" rx="8.3" ry="6.6" fill="#6f8f69" opacity=".55"/><ellipse cx="758" cy="293" rx="6.8" ry="5.5" fill="#6f8f69" opacity=".55"/><ellipse cx="746" cy="291" rx="5.2" ry="4.1" fill="#6f8f69" opacity=".55"/><ellipse cx="1047" cy="256" rx="5.5" ry="4.4" fill="#6f8f69" opacity=".55"/><ellipse cx="1040" cy="316" rx="5.6" ry="4.5" fill="#6f8f69" opacity=".55"/><ellipse cx="879" cy="300" rx="9.7" ry="7.8" fill="#6f8f69" opacity=".55"/><ellipse cx="1162" cy="282" rx="9.9" ry="7.9" fill="#6f8f69" opacity=".55"/><ellipse cx="737" cy="319" rx="6.4" ry="5.2" fill="#6f8f69" opacity=".55"/><ellipse cx="815" cy="259" rx="6.5" ry="5.2" fill="#6f8f69" opacity=".55"/><ellipse cx="1353" cy="264" rx="7.9" ry="6.3" fill="#6f8f69" opacity=".55"/><ellipse cx="1211" cy="280" rx="7.7" ry="6.2" fill="#6f8f69" opacity=".55"/><ellipse cx="750" cy="255" rx="6.0" ry="4.8" fill="#6f8f69" opacity=".55"/><ellipse cx="1244" cy="284" rx="6.6" ry="5.3" fill="#6f8f69" opacity=".55"/><ellipse cx="1168" cy="286" rx="6.5" ry="5.2" fill="#6f8f69" opacity=".55"/><ellipse cx="1336" cy="306" rx="6.2" ry="5.0" fill="#6f8f69" opacity=".55"/><ellipse cx="1160" cy="292" rx="9.4" ry="7.5" fill="#6f8f69" opacity=".55"/><ellipse cx="1284" cy="273" rx="9.9" ry="7.9" fill="#6f8f69" opacity=".55"/><ellipse cx="794" cy="283" rx="8.8" ry="7.0" fill="#6f8f69" opacity=".55"/><ellipse cx="822" cy="289" rx="5.2" ry="4.2" fill="#6f8f69" opacity=".55"/><ellipse cx="1235" cy="311" rx="7.9" ry="6.3" fill="#6f8f69" opacity=".55"/><ellipse cx="1400" cy="275" rx="8.5" ry="6.8" fill="#6f8f69" opacity=".55"/><ellipse cx="1175" cy="296" rx="7.3" ry="5.8" fill="#6f8f69" opacity=".55"/><ellipse cx="1372" cy="326" rx="7.4" ry="5.9" fill="#6f8f69" opacity=".55"/><ellipse cx="1231" cy="255" rx="8.5" ry="6.8" fill="#6f8f69" opacity=".55"/><ellipse cx="1218" cy="329" rx="9.1" ry="7.3" fill="#6f8f69" opacity=".55"/><ellipse cx="928" cy="281" rx="8.3" ry="6.7" fill="#6f8f69" opacity=".55"/>
+
+</svg>
