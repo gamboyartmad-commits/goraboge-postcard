@@ -106,6 +106,7 @@ function scrollToSlot(k, behavior) {
 let painting = false;
 function paint() {
   painting = false;
+  if (!carousel.clientWidth) return;   // 첫 화면 등으로 띠가 숨어 있을 때는 잴 수 없음
   const mid = carousel.scrollLeft + carousel.clientWidth / 2;
   const step = tileCenter(1) - tileCenter(0);
   const first = Math.max(0, slotAt(carousel.scrollLeft) - 8);
@@ -337,6 +338,8 @@ const writingBox = () => (narrowScreen.matches ? mobileMessage : cardMessage);
 // 두 편지 모두 고칠 수 있고, 가운데 버튼으로 다시 바꿈. '이 편지로 보내기'를 누르면 제주어 편지를 엽서에 담아 보내기를 엶
 
 const translateBtn = document.getElementById('translateBtn');
+const introPage = document.getElementById('introPage');
+const introFloat = document.getElementById('introFloat');
 const writePanelEl = document.getElementById('writePanel');
 const boardSection = document.getElementById('boardSection');
 const translatePage = document.getElementById('translatePage');
@@ -388,6 +391,7 @@ function renderStep(next) {
     clearStamp();
   }
   if (next === 'send' && !sendPanel.open) openSend();
+  if (next === 'pick') scrollToSlot(centerSlot, 'instant');   // 숨어 있던 띠를 지금 그림에 맞춰 다시 놓음
 
   const at = STEP_ORDER.indexOf(next);
   document.querySelectorAll('#steps li').forEach((li, i) => {
@@ -406,8 +410,8 @@ function renderStep(next) {
 
 function goStep(next) {
   if (next === step) return;
-  history.pushState({ step: next }, '');
   stepDepth += 1;
+  history.pushState({ step: next, depth: stepDepth }, '');
   renderStep(next);
 }
 
@@ -418,8 +422,9 @@ function backStep(fallback) {
 }
 
 window.addEventListener('popstate', (e) => {
-  stepDepth = Math.max(0, stepDepth - 1);
-  renderStep((e.state && e.state.step) || 'pick');
+  const state = e.state || {};
+  stepDepth = state.depth || 0;
+  renderStep(state.step || 'pick');
 });
 
 function setTrStatus(text, warning) {
@@ -812,6 +817,7 @@ document.getElementById('newCardBtn').addEventListener('click', () => {
   closeSend();
   clearStamp();
   setSheetStatus('');
+  // 맨 처음(1단계)까지 기록을 되감음 (뒤로 가기를 눌러도 보낸 엽서로 돌아가지 않게)
   if (stepDepth > 0) {
     history.go(-stepDepth);   // popstate에서 1단계로 돌아감
   } else {
@@ -1343,7 +1349,7 @@ function clearReceived() {
   const params = new URLSearchParams(location.search);
   params.delete('p');
   const query = params.toString();
-  history.replaceState(null, '', location.pathname + (query ? `?${query}` : ''));
+  history.replaceState(history.state, '', location.pathname + (query ? `?${query}` : ''));
 }
 
 document.getElementById('writeBackBtn').addEventListener('click', () => receivedView.close());
@@ -1369,6 +1375,39 @@ document.getElementById('writeBack').addEventListener('click', () => backStep('p
 document.getElementById('boardNavBtn').addEventListener('click', () => goStep('board'));
 document.getElementById('boardBack').addEventListener('click', () => backStep('pick'));
 
-// 처음에는 1단계(그림)
-if (!history.state || !history.state.step) history.replaceState({ step: 'pick' }, '', location.href);
+// ---------- 안내 팝업 ----------
+// 처음 들어오면 1단계(그림) 위에 뜸. X나 '엽서 쓰러 가기'를 눌러 닫아야 엽서를 쓸 수 있음
+// 팝업 안의 위 · 아래 버튼이 둘 다 안 보이면 팝업 아래에 떠 있는 버튼을 보여 줌
+
+function closeIntro() {
+  if (introPage.open) introPage.close();
+}
+
+document.getElementById('introClose').addEventListener('click', closeIntro);
+['introStart', 'introStart2', 'introStart3'].forEach((id) => {
+  document.getElementById(id).addEventListener('click', closeIntro);
+});
+document.getElementById('introBoard').addEventListener('click', () => {
+  closeIntro();
+  goStep('board');
+});
+introPage.addEventListener('close', () => { introFloat.hidden = true; });
+
+if ('IntersectionObserver' in window) {
+  const seen = new Map();
+  const watch = new IntersectionObserver((entries) => {
+    entries.forEach((en) => seen.set(en.target, en.isIntersecting));
+    introFloat.hidden = !introPage.open || [...seen.values()].some(Boolean);
+  });
+  ['introStart', 'introStart2'].forEach((id) => {
+    const el = document.getElementById(id);
+    seen.set(el, true);
+    watch.observe(el);
+  });
+}
+
+// 처음에는 1단계(그림) 위에 안내 팝업. 링크로 받은 엽서가 있으면 그걸 먼저 보고, 닫으면 안내가 뜸
+history.replaceState({ step: 'pick', depth: 0 }, '', location.href);
 renderStep('pick');
+if (received) receivedView.addEventListener('close', () => introPage.showModal(), { once: true });
+else introPage.showModal();

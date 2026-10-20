@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#e1653a">
 <title>제주어로 엽서 적기 · 하영 고라보게</title>
 <meta name="description" content="전하지 않으면 사라지는 말을 제주어로 적어 보세요. 표준어로 쓴 엽서를 제주어로 바꿔 보낼 수 있어요.">
 <!-- 카카오톡 · 문자에 링크를 붙여 넣으면 보이는 미리보기 (이미지 주소는 인터넷에 올린 주소여야 함) -->
@@ -15,8 +16,11 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="800">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=71">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+<!-- 웹진 '하영 고라보게'와 같은 글꼴: 프리텐다드(본문 · 제목). 손글씨(가람연꽃)는 style.css 에서 -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=75">
 </head>
 <body>
 
@@ -217,6 +221,124 @@
     </section>
   </main>
 
+  <!-- 처음 들어오면 1단계(그림) 화면 위에 뜨는 안내 팝업.
+       웹진 메인 'NO.03 · WRITE'와 같은 모습으로 무엇을 하는 곳인지 · 어떻게 쓰는지 · 어디로 보낼 수 있는지 알려 줌.
+       X(또는 '엽서 쓰러 가기')를 눌러 닫아야 엽서를 쓸 수 있음 -->
+  <dialog class="intro-pop" id="introPage" aria-labelledby="introTitle">
+    <button type="button" class="intro-close" id="introClose" aria-label="안내 닫고 엽서 쓰기">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
+    </button>
+    <div class="intro-scroll">
+      <div class="intro-frame">
+        <header class="intro-hero">
+          <p class="intro-kicker">NO.03 · WRITE</p>
+          <h2 class="intro-title" id="introTitle" tabindex="-1" autofocus>제주어로<br>내 마음 전하기</h2>
+          <p class="intro-lead">지금 전하지 않으면 사라지는 말,<br>엽서에 적어 제주어로 전해 보세요.</p>
+          <p class="intro-text">하고 싶은 말을 평소 말투로 쓰면 제주어로 바꿔 드려요. 이미지로 저장하거나 카카오톡 · 메일로 보낼 수 있어요.</p>
+          <ol class="intro-chips" aria-label="엽서 쓰는 순서">
+            <li><b>1</b>글을 쓰고</li>
+            <li><b>2</b>제주어로 바꾸고</li>
+            <li><b>3</b>저장하거나 메일 · 카톡으로</li>
+          </ol>
+          <button type="button" class="chunky-btn" id="introStart">엽서 쓰러 가기 <span aria-hidden="true">→</span></button>
+          <p class="intro-small">회원가입 없이 바로 쓸 수 있어요 · 3분이면 충분해요</p>
+          <img class="intro-harubang" src="images/harubang-deco.webp" alt="">
+        </header>
+
+        <section class="intro-block" aria-labelledby="exTitle">
+          <h3 class="intro-h" id="exTitle"><span>EXAMPLE</span>이런 엽서를 써 볼 수 있어요</h3>
+          <p class="intro-p">누구에게 보내도 좋아요. 표준어로 쓰면 제주어로 바뀌어요.</p>
+          <ul class="ex-list" id="exList" tabindex="0" aria-label="예시 엽서. 옆으로 넘겨 보세요">
+          <li class="ex-item">
+            <article class="ex-card is-red">
+              <img class="ex-stamp" src="images/postage-stamp.webp" alt="">
+              <img class="ex-postmark" src="images/stamp-goraboge.png?v=2" alt="">
+              <p class="ex-to">To. 엄마</p>
+              <p class="ex-jeju" lang="ko">어멍, 폭삭 속았수다.</p>
+              <p class="ex-std"><span>표준어</span>엄마, 정말 수고 많으셨어요.</p>
+            </article>
+            <p class="ex-caption"><b>가족에게</b>쑥스러워서 못 한 고맙다는 말을 전해요</p>
+          </li>
+          <li class="ex-item">
+            <article class="ex-card is-blue">
+              <img class="ex-stamp" src="images/postage-stamp.webp" alt="">
+              <img class="ex-postmark" src="images/stamp-goraboge.png?v=2" alt="">
+              <p class="ex-to">To. 오늘의 나</p>
+              <p class="ex-jeju" lang="ko">잘도 요망지다이!</p>
+              <p class="ex-std"><span>표준어</span>아주 야무지고 똑똑해!</p>
+            </article>
+            <p class="ex-caption"><b>지친 나에게</b>오늘 애쓴 나를 칭찬해 줘요</p>
+          </li>
+          <li class="ex-item">
+            <article class="ex-card is-red">
+              <img class="ex-stamp" src="images/postage-stamp.webp" alt="">
+              <img class="ex-postmark" src="images/stamp-goraboge.png?v=2" alt="">
+              <p class="ex-to">To. 10년 뒤의 우리</p>
+              <p class="ex-jeju" lang="ko">너우렁 나우렁</p>
+              <p class="ex-std"><span>표준어</span>너랑 나랑</p>
+            </article>
+            <p class="ex-caption"><b>10년 뒤의 우리에게</b>함께한 오늘을 엽서에 남겨요</p>
+          </li>
+          </ul>
+          <p class="ex-hint" aria-hidden="true">← 옆으로 넘겨 보세요 →</p>
+        </section>
+
+        <section class="intro-block" aria-labelledby="howTitle">
+          <h3 class="intro-h" id="howTitle"><span>HOW TO</span>이렇게 만들어요</h3>
+          <ol class="how-list">
+            <li>
+              <b class="how-num">1</b>
+              <div><p class="how-name">엽서 그림 고르기</p><p class="how-desc">해녀, 돌하르방, 오름, 돌담길… 제주 그림 12장 중에 골라요. 내가 찍은 사진을 넣어도 돼요.</p></div>
+            </li>
+            <li>
+              <b class="how-num">2</b>
+              <div><p class="how-name">평소 말투로 쓰기</p><p class="how-desc">받는 사람, 하고 싶은 말, 보내는 사람을 적어요. 제주어를 몰라도 괜찮아요.</p></div>
+            </li>
+            <li>
+              <b class="how-num">3</b>
+              <div><p class="how-name">제주어로 바꾸기</p><p class="how-desc">표준어 편지와 제주어 편지를 함께 보여 드려요. 어색한 곳은 눌러서 고칠 수 있어요.</p></div>
+            </li>
+            <li>
+              <b class="how-num">4</b>
+              <div><p class="how-name">소인 찍고 보내기</p><p class="how-desc">하영고라보게 소인이 꾹 찍히면 보낼 방법을 골라요.</p></div>
+            </li>
+          </ol>
+        </section>
+
+        <section class="intro-block" aria-labelledby="sendWaysTitle">
+          <h3 class="intro-h" id="sendWaysTitle"><span>SEND</span>이렇게 보낼 수 있어요</h3>
+          <ul class="way-list">
+            <li class="is-kakao"><b>카카오톡</b>친구를 골라 엽서를 보내요</li>
+            <li><b>메일</b>엽서 그림이 메일에 바로 보여요</li>
+            <li><b>링크 복사</b>문자 · SNS에 붙여 넣어요</li>
+            <li><b>이미지 저장</b>휴대폰 사진첩에 저장해요</li>
+            <li class="is-wide"><b>모두의 게시판</b>다른 사람들이 볼 수 있게 붙여요. 이름은 가려서 붙일 수 있어요</li>
+          </ul>
+        </section>
+
+        <section class="intro-block intro-why" aria-labelledby="whyTitle">
+          <h3 class="intro-h" id="whyTitle"><span>WHY</span>왜 제주어일까요?</h3>
+          <p class="intro-p">제주어는 유네스코가 ‘아주 심각한 소멸 위기 언어’로 정한 말이에요. 쓰는 사람이 줄면 말도 함께 사라져요.</p>
+          <p class="intro-p">엽서 한 장에 제주어 한 마디를 담아 보내면, 그 말이 한 사람에게 더 전해져요.</p>
+          <p class="why-word"><b>하영 고라보게</b><span>많이 말해 보자</span></p>
+        </section>
+
+        <div class="intro-end">
+          <button type="button" class="chunky-btn" id="introStart2">엽서 쓰러 가기 <span aria-hidden="true">→</span></button>
+          <button type="button" class="text-btn" id="introBoard">다른 사람들이 쓴 엽서 구경하기</button>
+          <p class="intro-note">제주어 번역은 「개정증보 제주어사전」(2009)을 바탕으로 한 참고용이에요.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 위 · 아래 버튼이 둘 다 안 보이면 팝업 아래에 붙는 버튼 -->
+    <div class="intro-float" id="introFloat" hidden>
+      <button type="button" class="chunky-btn" id="introStart3">제주어 엽서 쓰러 가기 <span aria-hidden="true">→</span></button>
+    </div>
+  </dialog>
+
+
   <!-- 게시판 엽서 크게 보기 -->
   <dialog class="board-view" id="boardView" aria-label="엽서 크게 보기">
     <div class="board-view-card mini-card" id="boardViewCard"></div>
@@ -261,6 +383,6 @@
   <script src="jeju-dict.js?v=1"></script>
   <script src="translate.js?v=4"></script>
   <script src="badwords.js?v=1"></script>
-  <script src="app.js?v=71"></script>
+  <script src="app.js?v=74"></script>
 </body>
 </html>
