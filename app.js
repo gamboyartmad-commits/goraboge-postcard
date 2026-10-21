@@ -924,7 +924,6 @@ const SPOTS = {
 // 원래 엽서에 인쇄돼 있던 소인과 같은 자리·크기 (style.css의 .card-stamp)
 const STAMP = { left: 0.7819, top: 0.0694, size: 0.1912, angle: 0 };
 // 귤 우표: 엽서 그림에 인쇄된 우표(1662,90 ~ 1846,334)를 덮는 자리
-const TANGERINE = { left: 0.864, top: 0.0688, width: 0.099, height: 0.192 };
 
 const segmenter = window.Intl && Intl.Segmenter ? new Intl.Segmenter('ko', { granularity: 'grapheme' }) : null;
 const graphemes = (s) => (segmenter ? Array.from(segmenter.segment(s), (g) => g.segment) : Array.from(s));
@@ -990,18 +989,7 @@ async function renderCard() {
   const dDescent = dm.fontBoundingBoxDescent || DATE_PX * 0.2;
   ctx.fillText(TODAY, SPOTS.date.x, SPOTS.date.top + (LINE - (dAscent + dDescent)) / 2 + dAscent);
 
-  // 귤 우표 (style.css의 .final-tangerine과 같은 자리·크기) → 그 위에 보내기 소인
-  if (stamped) {
-    const tangerine = document.getElementById('finalTangerine');
-    if (!tangerine.complete) await tangerine.decode();
-    ctx.save();
-    ctx.shadowColor = 'rgba(40, 30, 15, 0.25)';
-    ctx.shadowBlur = 6;
-    ctx.shadowOffsetY = 2;
-    ctx.drawImage(tangerine, CARD_W * TANGERINE.left, CARD_H * TANGERINE.top, CARD_W * TANGERINE.width, CARD_H * TANGERINE.height);
-    ctx.restore();
-  }
-
+  // 우표는 엽서 그림(card-01~12)에 인쇄된 감귤 우표(R.P. ROMÎNA · CITRUS UNSHIU)를 그대로 씀 → 그 위에 보내기 소인
   // 보내기 소인 (style.css의 .card-stamp와 같은 자리·크기)
   if (stamped) {
     const ink = cardStamp;
@@ -1077,10 +1065,10 @@ sendPanel.addEventListener('close', () => {
 const sendDone = document.getElementById('sendDone');
 const viewBoardBtn = document.getElementById('viewBoardBtn');
 
+// 보낸 뒤에도 다른 화면으로 넘어가지 않고 이 보내기 화면에 그대로 머묾 (엔딩 · '새 엽서 쓰기'는 쓰지 않음).
+// 다시 쓰려면 '← 편지 다시 쓰기'로 돌아감
 function finishSend(text) {
   setSheetStatus(text || '보냈어요!');
-  sendDone.hidden = false;
-  showEnding();
 }
 
 // 엔딩: 편지가 제주 바람을 타고 하늘로 날아가고, 마지막 문장과 로고. 보낸 뒤 한 번만 저절로 내려감
@@ -1306,12 +1294,9 @@ async function shareToKakao() {
       imageUrl,
       imageWidth: 1920,
       imageHeight: 1280,
-      link: { mobileWebUrl: url, webUrl: url },
+      link: { mobileWebUrl: url, webUrl: url },   // 카드를 누르면 편지 사이트에서 받은 엽서가 열림 (답장하기 단추가 있음)
     },
-    buttons: [
-      { title: '엽서 열어 보기', link: { mobileWebUrl: url, webUrl: url } },
-      { title: '나도 엽서 쓰기', link: { mobileWebUrl: siteUrl(), webUrl: siteUrl() } },   // 편지 사이트 첫 화면
-    ],
+    buttons: [],   // 아래 단추는 두지 않음
   });
 }
 
@@ -1646,6 +1631,7 @@ boardPostConfirm.addEventListener('click', async () => {
   boardPost.close();
   addBoardCard(post, { prepend: true, fresh: true });
   finishSend(message);
+  sendDone.hidden = false;   // 게시판에 붙였을 때만 '게시판에서 보기' 글자 단추를 보여 줌
   viewBoardBtn.hidden = false;
 });
 
@@ -1662,7 +1648,17 @@ function clearReceived() {
   history.replaceState(history.state, '', location.pathname + (query ? `?${query}` : ''));
 }
 
-document.getElementById('writeBackBtn').addEventListener('click', () => receivedView.close());
+// 답장하기: 받은 엽서의 보낸 사람 → 내 엽서의 받는 사람, 받은 사람 → 보내는 사람으로 채우고 엽서 쓰는 곳으로
+document.getElementById('writeBackBtn').addEventListener('click', () => {
+  receivedView.close();
+  if (!received) return;
+  [['mobileTo', received.from], ['mobileFrom', received.to]].forEach(([id, name]) => {
+    const input = document.getElementById(id);
+    input.value = name.slice(0, input.maxLength > 0 ? input.maxLength : 10);
+    input.dispatchEvent(new Event('input', { bubbles: true }));   // 엽서에도 옮김
+  });
+  openWritePage();
+});
 receivedView.addEventListener('close', clearReceived);
 
 const receivedCode = location.hash.startsWith('#p=') ? location.hash.slice(3) : new URLSearchParams(location.search).get('p');
