@@ -18,9 +18,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="images/tale/prologue-sky.webp">
-<link rel="preload" as="font" type="font/woff2" href="fonts/BookkMyungjo-Bold.woff2?v=182" crossorigin>
-<link rel="preload" as="font" type="font/woff2" href="fonts/Griun-NeatHandwriting.woff2?v=182" crossorigin>
-<link rel="stylesheet" href="style.css?v=184">
+<link rel="preload" as="font" type="font/woff2" href="fonts/BookkMyungjo-Bold.woff2?v=193" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/Griun-NeatHandwriting.woff2?v=193" crossorigin>
+<link rel="stylesheet" href="style.css?v=199">
 </head>
 <body>
   <a class="skip-link" href="#scene2">바로 편지 쓰기로 건너뛰기</a>
@@ -30,9 +30,9 @@
     <div class="tale-bar-start">
       <a class="tale-logo" href="#story"><img src="images/logo-goraboge.png" alt="하영고라보게 · 제주어로 엽서 적기" width="398" height="259"></a>
       <!-- 홈: 웹진 '하영 고라보게' 첫 화면 -->
-      <a class="bar-btn bar-home" href="https://claude.ai/artifact/3EHktt3KU8zWRdGv1MFnvC" aria-label="웹진 하영 고라보게 홈으로">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5M6.5 9.8V19h4v-5h3v5h4V9.8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        홈
+      <a class="bar-btn bar-home" href="https://claude.ai/artifact/3EHktt3KU8zWRdGv1MFnvC" aria-label="웹진 하영 고라보게에서 기사 보러가기">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h11.5a1 1 0 0 1 1 1V18a1.5 1.5 0 0 0 3 0V8.5h-3M5 4.5v13.5A1.5 1.5 0 0 0 6.5 19.5h14.5M8 8.5h6.5M8 12h6.5M8 15.5h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        기사 보러가기
       </a>
     </div>
     <div class="tale-bar-actions">
@@ -260,6 +260,18 @@
                 </div>
                 <button type="button" class="text-btn send-back" id="sendBack">← 편지 다시 쓰기</button>
               </dialog>
+
+        <!-- 맨 끝: 웹진 하영 고라보게 홍보 띠 (간단하게 한 줄). 누르면 웹진이 새 탭으로.
+             그림은 웹진 인터뷰 그림 (_tools/build_promo_assets.py → images/promo/) -->
+        <a class="webzine-promo" href="https://claude.ai/artifact/3EHktt3KU8zWRdGv1MFnvC" target="_blank" rel="noopener">
+          <img class="promo-thumb" src="images/promo/interview-02.webp" width="720" height="540" loading="lazy" alt="">
+          <span class="promo-text">
+            <span class="promo-eyebrow">웹진 하영 고라보게</span>
+            <b>제주어 이야기, 더 읽어 볼까요?</b>
+            <span class="promo-sub">인터뷰 · 목소리 · <span class="nowrap">상호 지도 100곳</span></span>
+          </span>
+          <span class="promo-go" aria-hidden="true">→</span>
+        </a>
       </section>
 
       </div>
@@ -285,6 +297,7 @@
         <section class="board" id="boardSection" aria-labelledby="boardTitle" hidden>
           <div class="board-head">
             <button type="button" class="text-btn" id="boardBack">← 엽서 쓰러 가기</button>
+            <!-- 숨은 관리자 입구: 이 제목을 2초 안에 3번 누르면 admin.html (app.js '게시판 관리자 입구') -->
             <h2 class="board-title" id="boardTitle" tabindex="-1">모두의 엽서 게시판</h2>
             <p class="board-desc">엽서를 누르면 크게 볼 수 있어요</p>
           </div>
@@ -374,7 +387,7 @@
   <script src="jeju-dict.js?v=1"></script>
   <script src="translate.js?v=4"></script>
   <script src="badwords.js?v=1"></script>
-  <script src="app.js?v=188"></script>
+  <script src="app.js?v=196"></script>
 </body>
 
 </html>

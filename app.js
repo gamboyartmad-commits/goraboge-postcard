@@ -337,6 +337,39 @@ function syncMobile() {
   PAIRS.forEach(([mobile, card]) => { mobile.value = card.value; });
 }
 
+// ---------- 엽서 위 줄글(To · 편지 · From)을 누르면 아래 편지 쓰는 곳으로 ----------
+// 엽서 칸에 바로 쓰지 않고, 화면을 '당신의 마음을 들려주세요.'까지 내려 그 칸(받는 사람 · 하고 싶은 말 · 보내는 사람)에 커서를 둠
+const CARD_TO_WRITER = [
+  [cardTo, 'mobileTo'],
+  [cardMessage, 'mobileMessage'],
+  [document.getElementById('cardFrom'), 'mobileFrom'],
+];
+
+function goWriteField(id) {
+  const heading = document.getElementById('writeTitle');
+  const bar = document.querySelector('.tale-bar');
+  const top = heading.getBoundingClientRect().top + window.scrollY - (bar ? bar.offsetHeight : 0) - 16;
+  window.scrollTo({ top, behavior: smoothScroll() });
+  document.getElementById(id).focus({ preventScroll: true });
+}
+
+// 엽서 칸들은 손가락 · 마우스를 그냥 통과시키므로(pointer-events: none) 엽서 전체에서 받아, 오른쪽 글 쓰는 면을 눌렀을 때만.
+// 누른 높이에 가장 가까운 칸(To · 편지 · From)으로 감
+document.getElementById('card').addEventListener('click', (e) => {
+  const writeFace = cardMessage.getBoundingClientRect();
+  if (e.clientX < writeFace.left - 12) return;   // 왼쪽 그림 쪽은 그대로
+  let best = null;
+  CARD_TO_WRITER.forEach(([field, id]) => {
+    const r = field.getBoundingClientRect();
+    const d = e.clientY < r.top ? r.top - e.clientY : e.clientY > r.bottom ? e.clientY - r.bottom : 0;
+    if (!best || d < best.d) best = { d, id };
+  });
+  goWriteField(best.id);
+});
+CARD_TO_WRITER.forEach(([field, id]) => {
+  field.addEventListener('focus', () => goWriteField(id));   // 키보드(Tab)로 들어와도 아래 쓰는 곳으로
+});
+
 // ---------- 편지 템플릿: 쓰기 어려운 사람을 위한 예시 글 ----------
 // 누르면 '하고 싶은 말' 칸에 써짐(엽서에도 바로). 직접 쓴 글이 있으면 바꿔도 되는지 먼저 물어봄
 const LETTER_TEMPLATES = {
@@ -1703,7 +1736,11 @@ introPop.addEventListener('close', () => {
   document.documentElement.classList.remove('intro-open');
 });
 document.getElementById('introClose').addEventListener('click', () => introPop.close());
-document.getElementById('introStart').addEventListener('click', () => introPop.close());
+// X(또는 바깥)는 팝업만 닫고 첫 화면 그대로, '제주어 엽서 써보기'는 닫고 바로 풍경 고르기(SCENE 02)로
+document.getElementById('introStart').addEventListener('click', () => {
+  introPop.close();
+  openWritePage();
+});
 introPop.addEventListener('click', (e) => { if (e.target === introPop) introPop.close(); });   // 바깥(어두운 곳)을 눌러도 닫힘
 document.getElementById('helpBtn').addEventListener('click', openIntro);
 
@@ -1716,6 +1753,18 @@ function openWritePage() {
   if (view !== 'flow') renderView('flow');
   window.scrollTo(0, scene2.getBoundingClientRect().top + window.scrollY);
 }
+
+// 게시판 관리자 입구 (숨은 단추): '모두의 엽서 게시판' 제목을 2초 안에 3번 누르면 관리자 페이지로.
+// 들어가도 관리자 계정으로 로그인해야 숨기기 · 삭제가 됨 (supabase/board_admin.sql)
+let titleTaps = [];
+document.getElementById('boardTitle').addEventListener('click', () => {
+  const now = Date.now();
+  titleTaps = titleTaps.filter((t) => now - t < 2000).concat(now);
+  if (titleTaps.length >= 3) {
+    titleTaps = [];
+    location.href = 'admin.html';
+  }
+});
 
 document.getElementById('boardNavBtn').addEventListener('click', goBoard);
 document.getElementById('boardBack').addEventListener('click', leaveBoard);

@@ -13,7 +13,7 @@
    한 굵기뿐이라 굵게 · 보통 모두 이 파일을 씀 (가짜 굵게 처리 없이). 아래아가 필요한 엽서 글씨는 나눔명조 옛한글 */
 @font-face {
   font-family: 'Bookk Myungjo';
-  src: url('fonts/BookkMyungjo-Bold.woff2?v=182') format('woff2');
+  src: url('fonts/BookkMyungjo-Bold.woff2?v=193') format('woff2');
   font-weight: 100 900;
   font-display: swap;
 }
@@ -21,7 +21,7 @@
 /* 손글씨 자막: 그리운 단정한손글씨 (첫 화면의 작은 글: 전하지 못한 마음이 있다면 …) */
 @font-face {
   font-family: 'Griun Neat Handwriting';
-  src: url('fonts/Griun-NeatHandwriting.woff2?v=182') format('woff2');
+  src: url('fonts/Griun-NeatHandwriting.woff2?v=193') format('woff2');
   font-display: swap;
 }
 
@@ -2869,3 +2869,77 @@ html.intro-open { overflow: hidden; }
 .scene-pick .mobile-writer .letter-templates { min-width: 0; }
 /* 엽서 둘레 바람 선(.wind)이 화면 오른쪽 밖으로 나가 옆 스크롤이 생기지 않게 가로만 잘라 냄 (위로 겹치는 찢긴 종이 가장자리는 그대로) */
 .scene-pick { overflow-x: clip; }
+
+/* 게시판 제목 = 숨은 관리자 입구(2초 안에 3번). 연달아 눌러도 글자가 선택되거나 화면이 확대되지 않게 */
+.board-title {
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---------- 맨 끝: 웹진 하영 고라보게 홍보 띠 ('← 편지 다시 쓰기' 아래, 간단하게 한 줄) ---------- */
+.webzine-promo {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  max-width: 680px;
+  margin: -8px auto 0;   /* '← 편지 다시 쓰기' 바로 아래에 붙여, 보내기 화면에서 바로 보이게 */
+  padding: 14px 22px 14px 14px;
+  border: 1px solid var(--tale-line);
+  border-radius: 20px;
+  background: rgb(255 250 241 / 0.8);
+  color: var(--tale-ink);
+  text-align: left;
+  text-decoration: none;
+  box-shadow: 0 12px 24px -16px rgb(50 40 28 / 0.45);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.webzine-promo:hover { background: #fffaf1; transform: translateY(-2px); }
+.webzine-promo:focus-visible { outline: 3px solid var(--tale-tangerine); outline-offset: 3px; }
+
+.promo-thumb {
+  flex: none;
+  width: 150px;
+  height: 112px;
+  border-radius: 14px;
+  object-fit: cover;
+}
+
+.promo-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.promo-eyebrow { font-size: 13px; font-weight: 700; color: #b5532e; }
+.promo-text b { font-family: var(--story-font); font-size: 22px; line-height: 1.35; }
+.promo-sub { font-size: 14.5px; color: var(--tale-soft); }
+
+.promo-go {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: var(--tale-dark);
+  font-size: 20px;
+  color: #fbf3e4;
+}
+
+@media (max-width: 440px) {
+  .webzine-promo { gap: 14px; padding: 12px 14px 12px 12px; border-radius: 18px; }
+  .promo-thumb { width: 104px; height: 92px; border-radius: 12px; }
+  .promo-eyebrow { font-size: 12px; }
+  .promo-text b { font-size: 18px; }
+  .promo-sub { font-size: 12.5px; }
+  .promo-go { width: 34px; height: 34px; font-size: 17px; }
+}
+
+/* 엽서 위 줄글은 누르면 아래 편지 쓰는 곳으로 내려감 (app.js '엽서 위 줄글') */
+.scene-pick .card { cursor: pointer; }
+.promo-sub .nowrap { white-space: nowrap; }
