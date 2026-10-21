@@ -1,5 +1,6 @@
 // ---------- 엽서 목록 ----------
-// 12장 모두 같은 틀(1920×1280, 오른쪽 절반에 To / 8줄 / From)이라 쓰는 자리가 같음
+// 16장 모두 같은 틀(1920×1280, 오른쪽 절반에 To / 8줄 / From)이라 쓰는 자리가 같음
+// hidden: true 인 그림은 고르기 띠에서 뺌. 번호(순서)는 그대로 두어야 예전에 보낸 엽서 링크 · 게시판 엽서가 같은 그림으로 열림
 
 // 그림을 고치면 IMG_V를 올려서 브라우저에 남은 예전 그림 대신 새 그림을 받게 함
 const IMG_V = '?v=2';   // v2: 미리 찍혀 있던 소인을 지운 그림
@@ -8,14 +9,19 @@ const CARDS = [
   { src: `images/card-02.webp${IMG_V}`, alt: '비 오는 창밖의 꽃밭' },
   { src: `images/card-03.webp${IMG_V}`, alt: '노을 진 바닷가의 돌하르방' },
   { src: `images/card-04.webp${IMG_V}`, alt: '오름 길에서 내려다본 바닷가 마을' },
-  { src: `images/card-05.webp${IMG_V}`, alt: '협재 바닷가 모래언덕' },
-  { src: `images/card-06.webp${IMG_V}`, alt: '바위 위로 쏟아지는 폭포' },
+  { src: `images/card-05.webp${IMG_V}`, alt: '협재 바닷가 모래언덕', hidden: true },
+  { src: `images/card-06.webp${IMG_V}`, alt: '바위 위로 쏟아지는 폭포', hidden: true },
   { src: `images/card-07.webp${IMG_V}`, alt: '물웅덩이가 고인 현무암 바닷가' },
   { src: `images/card-08.webp${IMG_V}`, alt: '창문 너머 들판의 말' },
   { src: `images/card-09.webp${IMG_V}`, alt: '고글을 쓰고 오토바이에 탄 강아지' },
   { src: `images/card-10.webp${IMG_V}`, alt: '해녀의 숨비소리 벽화 앞을 걷는 해녀' },
-  { src: `images/card-11.webp${IMG_V}`, alt: '돌담 사이 바다로 난 길' },
+  { src: `images/card-11.webp${IMG_V}`, alt: '돌담 사이 바다로 난 길', hidden: true },
   { src: `images/card-12.webp${IMG_V}`, alt: '돌집 옆 들판에 선 말' },
+  // 13~16: 2026-10-21 추가 (원본 _tools/assets/cards/, 미리 찍힌 소인은 _tools/clean_card_postmark.py로 지움)
+  { src: `images/card-13.webp${IMG_V}`, alt: '바닷가 모래밭을 뛰어가는 하얀 강아지' },
+  { src: `images/card-14.webp${IMG_V}`, alt: '현무암 바닷가에서 책을 보는 사람' },
+  { src: `images/card-15.webp${IMG_V}`, alt: '오름 위에 나란히 앉아 들판을 바라보는 두 사람' },
+  { src: `images/card-16.webp${IMG_V}`, alt: '돌집 앞 분홍 벤치에 앉은 노부부' },
 ];
 
 const cardImage = document.getElementById('cardImage');
@@ -43,14 +49,16 @@ function setStatus(text, warning) {
 
 const COPIES = 5;                       // 한 번 휙 밀어도 끝에 닿지 않을 만큼
 const MIDDLE = Math.floor(COPIES / 2);  // 늘 이 벌 근처에 머무름
-const N = CARDS.length;
+const PICK = CARDS.map((card, index) => index).filter((index) => !CARDS[index].hidden);   // 띠에 보이는 그림 번호
+const N = PICK.length;
 
 const GAP = () => parseFloat(getComputedStyle(carousel).columnGap) || 14;
 
 const cardTiles = [];
 for (let copy = 0; copy < COPIES; copy++) {
-  CARDS.forEach((card, index) => {
-    const slot = copy * N + index;
+  PICK.forEach((index, pos) => {
+    const card = CARDS[index];
+    const slot = copy * N + pos;
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'strip-item';
@@ -74,11 +82,15 @@ function markPicked() {
   photoTile.setAttribute('aria-pressed', String(photoActive));
 }
 
+let onCardChange = null;   // 엽서를 바꾸면 그 엽서의 템플릿 글로 (아래 '엽서 템플릿')
+
 function selectCard(index) {
+  const changed = index !== currentCard;
   currentCard = index;
   cardImage.src = CARDS[index].src;
   cardImage.alt = CARDS[index].alt + ' 엽서';
   showPhoto(false);
+  if (changed && onCardChange) onCardChange(index);
 }
 
 // 고른 그림을 동화 속 봉투 안 엽서에도 똑같이
@@ -88,7 +100,7 @@ function syncPreview() {
 }
 
 const tileCenter = (k) => cardTiles[k].offsetLeft + cardTiles[k].offsetWidth / 2;
-const setWidth = () => tileCenter(N) - tileCenter(0);   // 한 벌(12장)의 길이
+const setWidth = () => tileCenter(N) - tileCenter(0);   // 한 벌(띠에 보이는 그림 수)의 길이
 
 // 띠가 그 위치에 있을 때 가운데에 오는 칸
 function slotAt(scrollLeft) {
@@ -125,7 +137,7 @@ function paint() {
   const slot = slotAt(carousel.scrollLeft);
   if (slot !== centerSlot) {
     centerSlot = slot;
-    if (slot % N !== currentCard) selectCard(slot % N);
+    if (PICK[slot % N] !== currentCard) selectCard(PICK[slot % N]);
     else markPicked();
   }
 }
@@ -168,7 +180,7 @@ let suppressClick = false;   // 끌어서 넘긴 직후의 클릭은 무시
 
 function onTileClick(k) {
   if (suppressClick) return;
-  if (k === centerSlot) selectCard(k % N);   // 내 사진이 올라가 있었다면 이 그림으로 되돌림
+  if (k === centerSlot) selectCard(PICK[k % N]);   // 내 사진이 올라가 있었다면 이 그림으로 되돌림
   else scrollToSlot(k, 'smooth');
 }
 
@@ -345,7 +357,30 @@ const CARD_TO_WRITER = [
   [document.getElementById('cardFrom'), 'mobileFrom'],
 ];
 
+// 마음 쓰기 칸('당신의 마음을 들려주세요.' · To · 하고 싶은 말 · From)은 처음엔 숨겨 두고(엽서 템플릿 글만),
+// 'T 내 편지 쓰기' · 엽서 위 줄글을 누르면 열림
+const writerPanel = document.getElementById('writerPanel');
+const writeOpenBtn = document.getElementById('writeOpenBtn');
+function openWriter() {
+  if (!writerPanel.hidden) return;
+  writerPanel.hidden = false;
+  writeOpenBtn.setAttribute('aria-expanded', 'true');
+}
+// 'T 내 편지 쓰기': 엽서 템플릿 글(To · 편지)을 지우고 빈칸으로 열어 직접 쓰게 함.
+// 이미 직접 쓴 글은 지우지 않음. 이때부터는 엽서를 바꿔도 템플릿 글이 다시 써지지 않음(그 엽서 글은 단추로만)
+let writingOwn = false;
+writeOpenBtn.addEventListener('click', () => {
+  writingOwn = true;
+  const text = mobileMessage.value.trim();
+  if (!text || isTemplateText(text)) writeField(mobileMessage, '');
+  if (TEMPLATE_TOS.has(mobileTo.value.trim())) writeField(mobileTo, '');
+  hideTemplateUndo();
+  onCardTemplate(currentCard);
+  goWriteField('mobileTo');
+});
+
 function goWriteField(id) {
+  openWriter();
   const heading = document.getElementById('writeTitle');
   const bar = document.querySelector('.tale-bar');
   const top = heading.getBoundingClientRect().top + window.scrollY - (bar ? bar.offsetHeight : 0) - 16;
@@ -370,69 +405,144 @@ CARD_TO_WRITER.forEach(([field, id]) => {
   field.addEventListener('focus', () => goWriteField(id));   // 키보드(Tab)로 들어와도 아래 쓰는 곳으로
 });
 
-// ---------- 편지 템플릿: 쓰기 어려운 사람을 위한 예시 글 ----------
-// 누르면 '하고 싶은 말' 칸에 써짐(엽서에도 바로). 직접 쓴 글이 있으면 바꿔도 되는지 먼저 물어봄
-const LETTER_TEMPLATES = {
-  parents: '늘 곁에 있어 줘서 고마워. 평소엔 쑥스러워서 말하지 못했지만 많이 사랑해.',
-  love: '너와 함께하는 평범한 하루가 나에겐 가장 특별해. 앞으로도 오래오래 서로의 곁에 있자.',
-  cheer: '지금도 충분히 잘하고 있어. 네가 걸어가는 모든 순간을 진심으로 응원할게.',
-  friend: '별것 아닌 일에도 함께 웃을 수 있는 네가 있어서 참 좋아. 앞으로도 우리 재미있는 추억 많이 만들자!',
-  birthday: '생일 진심으로 축하해! 오늘 하루가 너에게 오래도록 기억될 행복한 날이길 바라.',
-  miss: '잘 지내고 있지? 함께했던 시간들이 문득 떠올라 네가 보고 싶어졌어.',
+// ---------- 엽서 템플릿: 엽서(그림)마다 어울리는 To · 편지 글 ----------
+// 엽서를 고르면 그 엽서의 To와 편지 글이 바로 써짐(엽서에도). 단, 직접 쓴 글이 있으면 지우지 않고
+// 아래 '이 엽서에 어울리는 글' 단추로만 보여 줌(누르면 바꾸고 '되돌리기' 8초).
+// 노부부 엽서(16번)처럼 글이 두 가지인 엽서는 단추로 골라 씀.
+// jeju = 미리 다듬은 제주어 문장(번역 규칙에 맡기면 어색해지는 곳이 있어서). 낱말은 jeju-dict.js(『개정증보 제주어사전』)의
+// 짝(ᄒᆞᆫ듸 · 하영 · ᄉᆞ랑 · 느 · ᄀᆞ장 · ᄒᆞᆼ상 …)과 웹진 · 예시 엽서의 말끝(-난, -멍, -으민 좋으키여, -고정 ᄒᆞ다, -덴)을 따름.
+// Claude가 만든 문장이라 제주어를 아는 분의 확인이 필요함 (HISTORY.md)
+const CARD_TEMPLATES = {
+  0: [{ to: '제주에서 보내는 편지',
+    text: '제주의 바람을 맞으며 걷다가 네가 생각났어. 이곳의 아름다운 풍경처럼 너의 하루도 평온하고 따뜻하길 바라.',
+    jeju: '제주 ᄇᆞ름 맞으멍 걷단 느 셍각이 낫어. 이디 곱닥ᄒᆞᆫ 풍경추룩 느 ᄒᆞ루도 펜안ᄒᆞ곡 ᄃᆞᄉᆞᄒᆞ민 좋으키여.' }],
+  1: [{ to: '오랜만의 안부',
+    text: '잘 지내고 있어? 특별한 일이 있는 건 아니지만 문득 네 생각이 나서 이렇게 편지를 써.',
+    jeju: '잘 지냄시냐? 벨 일 이신 건 아니주마는 문득 느 셍각이 나난 영 펜지 쓴다.' }],
+  2: [{ to: '새로운 시작',
+    text: '새로운 길을 향해 나아가는 너의 용기가 참 멋져. 앞으로 마주할 모든 순간이 너에게 좋은 기억으로 남길 바라.',
+    jeju: '새 질로 나아가는 느 용기가 ᄎᆞᆷ 멋지다. 앞으로 만날 모든 순간이 느안티 좋은 기억으로 남으민 좋으키여.' }],
+  3: [{ to: '고마운 사람에게',
+    text: '당연하게 여겼던 순간들에도 늘 네 따뜻한 마음이 있었더라. 지금이라도 꼭 고맙다는 말을 전하고 싶어.',
+    jeju: '당연ᄒᆞ게 여겨난 순간들에도 늘 느 ᄃᆞᄉᆞᄒᆞᆫ ᄆᆞ음이 이서라. 이제라도 꼭 고맙덴 말 전ᄒᆞ고정 ᄒᆞ다.' }],
+  6: [{ to: '사과하고 싶은 사람에게',
+    text: '그때는 내 마음만 앞서서 네 마음을 미처 헤아리지 못했어. 늦었지만 진심으로 미안하다는 말을 전하고 싶어.',
+    jeju: '그때는 나 ᄆᆞ음만 앞산 느 ᄆᆞ음을 미처 헤아리지 못ᄒᆞ엿어. 늦어시주마는 진심으로 미안ᄒᆞ덴 말 전ᄒᆞ고정 ᄒᆞ다.' }],
+  7: [{ to: '고백하고 싶은 사람에게',
+    text: '언제부터인지 너와 함께하는 시간이 자꾸 기다려져. 이제는 내 마음을 솔직하게 전하고 싶어. 나 너 좋아해.',
+    jeju: '어느제부터인지 느영 ᄒᆞᆫ듸ᄒᆞ는 시간이 자꾸 지드려져. 이제랑 나 ᄆᆞ음을 솔직ᄒᆞ게 전ᄒᆞ고정 ᄒᆞ다. 나 느 좋아ᄒᆞ여.' }],
+  8: [{ to: '응원하고 싶은 사람에게',
+    text: '지금도 충분히 잘하고 있어. 네가 걸어가는 모든 순간을 진심으로 응원할게.',
+    jeju: '지금도 충분히 잘ᄒᆞ염저. 느가 걸어가는 모든 순간을 진심으로 응원ᄒᆞ크라.' }],
+  9: [{ to: '그리운 이에게',
+    text: '잘 지내고 있지? 가끔 너와 함께 웃던 날들이 떠올라. 언젠가 다시 만나 못다 한 이야기들을 나누고 싶어.',
+    jeju: '잘 지냄시냐? 간간 느영 ᄒᆞᆫ듸 웃엇던 날들이 셍각나. 어느제랑 ᄐᆞ시 만난 못다 ᄒᆞᆫ 이야기덜 ᄀᆞᆯ아보고정 ᄒᆞ다.' }],
+  11: [{ to: '여행의 기록',
+    text: '낯선 길을 걷다가 우연히 만난 풍경이 오래 마음에 남았어. 언젠가 이 여행을 떠올렸을 때, 오늘 느낀 설렘과 행복이 다시 생각났으면 좋겠어.',
+    jeju: '낯선 질 걷단 우연히 만난 풍경이 오래 ᄆᆞ음에 남앗어. 어느제 이 여행 셍각ᄒᆞᆯ 때, 오늘 느낀 설렘이영 행복이 ᄐᆞ시 셍각나시민 좋으키여.' }],
+  12: [{ to: '생일 축하',
+    text: '태어나 줘서 고마워, 생일 진심으로 축하해! 오늘 하루가 너에게 오래도록 기억될 행복한 날이길 바라.',
+    jeju: '태어나 주난 고마워, 생일 진심으로 축하ᄒᆞ여! 오늘 ᄒᆞ루가 느안티 오래오래 기억될 행복ᄒᆞᆫ 날이 되민 좋으키여.' }],
+  13: [{ to: '위로하고 싶은 사람에게',
+    text: '매일 괜찮을 필요는 없어. 힘든 날에는 잠시 쉬어가도 괜찮으니까, 너무 애쓰지 않았으면 좋겠어. 언제나 네 편이 되어줄게.',
+    jeju: '날마다 괜찮을 필요는 엇어. 심든 날엔 ᄌᆞᆷ시 쉬어가도 괜찮으난, 너미 애쓰지 말아시민 좋으키여. 어느 때나 느 펜 되어 주크라.' }],
+  14: [{ to: '친구에게',
+    text: '별것 아닌 일에도 함께 웃을 수 있는 네가 있어서 참 좋아. 앞으로도 우리 재미있는 추억 많이 만들자!',
+    jeju: '벨것 아닌 일에도 ᄒᆞᆫ듸 웃을 수 잇는 느가 이시난 막 좋다. 앞으로도 우리 재미난 추억 하영 만들게!' }],
+  15: [
+    { to: '엄마에게',
+      text: '엄마, 늘 내 곁에서 든든한 힘이 되어줘서 고마워. 평소엔 쑥스러워서 말하지 못했지만 많이 사랑해.',
+      jeju: '어멍, 늘 나 옆이서 든든ᄒᆞᆫ 심이 되어 주난 고마워. 펭소엔 쑥스러완 말 못 ᄒᆞ엿주마는 하영 ᄉᆞ랑ᄒᆞ여.' },
+    { to: '아빠에게',
+      text: '아빠, 말로 표현한 적은 별로 없지만 항상 고마운 마음이야. 묵묵히 내 편이 되어주는 아빠가 있어 참 든든해.',
+      jeju: '아방, 말로 ᄀᆞᆯ아 본 적은 벨로 엇주마는 ᄒᆞᆼ상 고마운 ᄆᆞ음이라. 묵묵히 나 펜 되어 주는 아방이 이시난 ᄎᆞᆷ 든든ᄒᆞ다.' },
+  ],
 };
-// 템플릿의 제주어 문장: 번역 규칙에 맡기면 어색해지는 곳이 있어 미리 다듬어 둠.
-// 낱말은 jeju-dict.js(『개정증보 제주어사전』)의 짝(ᄒᆞᆫ듸 · 하영 · ᄉᆞ랑 · 느 · ᄀᆞ장 …)을 따르고,
-// 말끝은 웹진 예시 엽서와 같은 꼴(-난 = -니까/-서, -으민 좋으키여 = -면 좋겠어, -게 = -자)
-const TEMPLATE_JEJU = {
-  [LETTER_TEMPLATES.parents]: '늘 옆이 이서 주난 고마워. 펭소엔 쑥스러완 말 못 ᄒᆞ엿주마는 하영 ᄉᆞ랑ᄒᆞ여.',
-  [LETTER_TEMPLATES.love]: '느광 ᄒᆞᆫ듸ᄒᆞ는 펭범ᄒᆞᆫ ᄒᆞ루가 나안티는 ᄀᆞ장 특벨ᄒᆞ여. 앞으로도 오래오래 서로 옆이 이시게.',
-  [LETTER_TEMPLATES.cheer]: '지금도 충분히 잘ᄒᆞ염저. 느가 걸어가는 모든 순간을 진심으로 응원ᄒᆞ크라.',
-  [LETTER_TEMPLATES.friend]: '벨것 아닌 일에도 ᄒᆞᆫ듸 웃을 수 잇는 느가 이시난 막 좋다. 앞으로도 우리 재미난 추억 하영 만들게!',
-  [LETTER_TEMPLATES.birthday]: '생일 진심으로 축하ᄒᆞ여! 오늘 ᄒᆞ루가 느안티 오래오래 기억될 행복ᄒᆞᆫ 날이 되민 좋으키여.',
-  [LETTER_TEMPLATES.miss]: '잘 지냄시냐? ᄒᆞᆫ듸ᄒᆞ엿던 시간들이 문득 셍각나난 느가 막 보고정ᄒᆞ여.',
-};
-const templateChips = [...document.querySelectorAll('.template-chip')];
+const ALL_TEMPLATES = Object.values(CARD_TEMPLATES).flat();
+const TEMPLATE_JEJU = Object.fromEntries(ALL_TEMPLATES.map((t) => [t.text, t.jeju]));
+const TEMPLATE_TOS = new Set(ALL_TEMPLATES.map((t) => t.to));
+const isTemplateText = (text) => ALL_TEMPLATES.some((t) => t.text === text.trim());
+
+const mobileTo = document.getElementById('mobileTo');
+const templateRow = document.querySelector('.letter-templates');
+const templateList = document.getElementById('templateList');
+let templateChips = [];
+const cardToBox = document.querySelector('#card .card-to');
+const syncToScale = () => requestAnimationFrame(() => fitToField(cardToBox, cardTo.value));
+mobileTo.addEventListener('input', syncToScale);
+cardTo.addEventListener('input', syncToScale);
 
 function markTemplate() {
   const now = mobileMessage.value.trim();
-  templateChips.forEach((chip) => chip.setAttribute('aria-pressed', String(LETTER_TEMPLATES[chip.dataset.template] === now)));
+  templateChips.forEach((chip) => chip.setAttribute('aria-pressed', String(chip.dataset.text === now)));
 }
 
-// 직접 쓴 글이 있을 때 템플릿을 누르면: 묻지 않고 바로 바꾸고, 아래에 '방금 쓴 글로 되돌리기'를 8초 동안 보여 줌
+// 직접 쓴 글이 있을 때 템플릿 단추를 누르면: 묻지 않고 바로 바꾸고, 아래에 '방금 쓴 글로 되돌리기'를 8초 동안 보여 줌
 const templateUndo = document.getElementById('templateUndo');
-let undoText = '';
+let undo = null;   // { to, text }
 let undoTimer = null;
 
 function hideTemplateUndo() {
   clearTimeout(undoTimer);
   templateUndo.hidden = true;
-  undoText = '';
+  undo = null;
 }
 
-function writeMessage(text) {
-  mobileMessage.value = text;
-  mobileMessage.dispatchEvent(new Event('input', { bubbles: true }));   // 엽서에도 옮김
+function writeField(input, value) {
+  input.value = value;
+  input.dispatchEvent(new Event('input', { bubbles: true }));   // 엽서에도 옮김
+}
+
+function writeTemplate(t) {
+  writeField(mobileTo, t.to);
+  writeField(mobileMessage, t.text);
   markTemplate();
 }
 
-templateChips.forEach((chip) => chip.addEventListener('click', () => {
-  const text = LETTER_TEMPLATES[chip.dataset.template];
-  const now = mobileMessage.value.trim();
-  const isOwnText = now && !Object.values(LETTER_TEMPLATES).includes(now);
-  if (isOwnText) undoText = mobileMessage.value;   // 템플릿끼리 바꿀 때는 처음 직접 쓴 글을 계속 기억
-  writeMessage(text);
-  if (undoText) {
-    templateUndo.hidden = false;
-    clearTimeout(undoTimer);
-    undoTimer = setTimeout(hideTemplateUndo, 8000);
-  }
-  chip.scrollIntoView({ block: 'nearest', inline: 'center', behavior: smoothScroll() });   // 옆으로 미는 줄에서 고른 단추가 보이게
-}));
+// 지금 칸에 사람이 직접 쓴 글이 있는지 (비었거나 템플릿 글 그대로면 아님)
+const hasOwnText = () => {
+  const text = mobileMessage.value.trim();
+  const to = mobileTo.value.trim();
+  return (text && !isTemplateText(text)) || (to && !TEMPLATE_TOS.has(to));
+};
+
+// 엽서를 바꿀 때: 직접 쓴 글이 없으면 그 엽서 글로 바로 채우고, 단추 줄은 글이 두 가지이거나 직접 쓴 글이 있을 때만 보임
+function onCardTemplate(index) {
+  const list = CARD_TEMPLATES[index] || [];
+  const own = hasOwnText();
+  if (list.length && !own && !writingOwn && !list.some((t) => t.text === mobileMessage.value.trim())) writeTemplate(list[0]);
+  templateList.textContent = '';
+  templateChips = list.map((t) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'template-chip';
+    chip.dataset.text = t.text;
+    chip.textContent = t.to;
+    chip.addEventListener('click', () => {
+      if (hasOwnText() && !undo) undo = { to: mobileTo.value, text: mobileMessage.value };   // 처음 직접 쓴 글을 기억
+      writeTemplate(t);
+      if (undo) {
+        templateUndo.hidden = false;
+        clearTimeout(undoTimer);
+        undoTimer = setTimeout(hideTemplateUndo, 8000);
+      }
+    });
+    templateList.appendChild(chip);
+    return chip;
+  });
+  templateRow.hidden = !(list.length > 1 || (list.length && (own || writingOwn)));
+  markTemplate();
+}
+onCardChange = onCardTemplate;
+onCardTemplate(currentCard);   // 첫 엽서(해녀 바다)의 글로 시작
 
 document.getElementById('templateUndoBtn').addEventListener('click', () => {
-  const text = undoText;
+  const back = undo;
   hideTemplateUndo();
-  writeMessage(text);
+  if (!back) return;
+  writeField(mobileTo, back.to);
+  writeField(mobileMessage, back.text);
+  markTemplate();
   mobileMessage.focus({ preventScroll: true });
 });
 
@@ -527,7 +637,10 @@ function renderView(next) {
   if (next === 'flow' && jejuApplied) backToStandard();   // 쓰는 곳은 늘 평소 말로
   let y = scrollMemory[next] || 0;
   if (y === 'pick') y = scene2.getBoundingClientRect().top + window.scrollY;
-  if (y === 'write') y = document.getElementById('writeTitle').getBoundingClientRect().top + window.scrollY - 90;
+  if (y === 'write') {
+    openWriter();   // 편지 쓰는 자리로 돌아올 때는 쓰는 칸을 열어 둠
+    y = document.getElementById('writeTitle').getBoundingClientRect().top + window.scrollY - 90;
+  }
   window.scrollTo(0, y);
   updateFloatCta();
   if (next === 'flow') {
@@ -641,7 +754,7 @@ translateBtn.addEventListener('click', () => {
   const text = cardMessage.value;
   if (!text.trim()) {
     setStatus('먼저 엽서에 마음을 적어 주세요.', true);
-    writingBox().focus();
+    goWriteField('mobileMessage');
     return;
   }
   setStatus('');
@@ -949,7 +1062,7 @@ const FONT_PX = CARD_H * 0.038;        // style.css의 font-size: 3.8cqh
 const FONT = `${FONT_PX}px "NanumMyeongjo YetHangul", "Malgun Gothic", "Apple SD Gothic Neo", serif`;
 const SPOTS = {
   message: { x: 1064, top: 313, width: 727, lines: 8 },
-  to: { x: 1130, top: 221, width: 265 },
+  to: { x: 1130, top: 221, width: 370 },   // 소인 자리(1500) 앞까지. 긴 To는 글자를 줄여서 (toScale)
   from: { x: 1405, top: 1049, width: 270 },
   date: { x: 1064, top: 1049 },            // style.css의 .card-date (글자는 3.1cqh)
 };
@@ -957,6 +1070,18 @@ const SPOTS = {
 // 원래 엽서에 인쇄돼 있던 소인과 같은 자리·크기 (style.css의 .card-stamp)
 const STAMP = { left: 0.7819, top: 0.0694, size: 0.1912, angle: 0 };
 // 귤 우표: 엽서 그림에 인쇄된 우표(1662,90 ~ 1846,334)를 덮는 자리
+
+// 긴 To(예: 사과하고 싶은 사람에게)는 소인 앞까지 들어가게 글자 크기를 줄임: 1 = 그대로, 0.7 = 70%
+const measureCtx = document.createElement('canvas').getContext('2d');
+function toScale(text) {
+  measureCtx.font = FONT;
+  const w = measureCtx.measureText(text || '').width;
+  return w > SPOTS.to.width ? Math.max(0.5, SPOTS.to.width / w) : 1;
+}
+// 엽서 · 작은 엽서의 To 칸에도 같은 비율 (style.css의 --to-scale)
+function fitToField(el, text) {
+  if (el) el.style.setProperty('--to-scale', toScale(text).toFixed(3));
+}
 
 const segmenter = window.Intl && Intl.Segmenter ? new Intl.Segmenter('ko', { granularity: 'grapheme' }) : null;
 const graphemes = (s) => (segmenter ? Array.from(segmenter.segment(s), (g) => g.segment) : Array.from(s));
@@ -1010,7 +1135,10 @@ async function renderCard() {
 
   const lines = wrapLines(ctx, cardMessage.value, SPOTS.message.width).slice(0, SPOTS.message.lines);
   lines.forEach((line, i) => ctx.fillText(line, SPOTS.message.x, SPOTS.message.top + i * LINE + baseline));
+  const toFit = toScale(cardTo.value);
+  if (toFit < 1) ctx.font = FONT.replace(`${FONT_PX}px`, `${FONT_PX * toFit}px`);
   ctx.fillText(cardTo.value, SPOTS.to.x, SPOTS.to.top + baseline, SPOTS.to.width);
+  ctx.font = FONT;
   ctx.fillText(cardFrom.value, SPOTS.from.x, SPOTS.from.top + baseline, SPOTS.from.width);
 
   // 날짜는 조금 작고 옅게
@@ -1306,6 +1434,15 @@ function kakaoUrl() {
   return `${location.origin}${location.pathname}?p=${encodePost(currentPost())}`;
 }
 
+// 받는 사람 칸으로 '○○에게 제주어 엽서가 도착했어요'를 만듦. 템플릿의 To(예: 엄마에게 · 오랜만의 안부)도 자연스럽게
+function arrivalTitle(to) {
+  if (!to) return '제주어 엽서가 도착했어요';
+  if (/에게$/.test(to)) return `${to} 제주어 엽서가 도착했어요`;
+  if (TEMPLATE_TOS.has(to)) return `${to} · 제주어 엽서가 도착했어요`;
+  return `${to}에게 제주어 엽서가 도착했어요`;
+}
+const mailToName = (to) => (/에게$/.test(to) ? to.replace(/에게$/, '') : TEMPLATE_TOS.has(to) ? '' : to);
+
 async function shareToKakao() {
   const K = await kakao();
   const url = kakaoUrl();
@@ -1322,7 +1459,7 @@ async function shareToKakao() {
   K.Share.sendDefault({
     objectType: 'feed',
     content: {
-      title: post.to ? `${post.to}에게 제주어 엽서가 도착했어요` : '제주어 엽서가 도착했어요',
+      title: arrivalTitle(post.to),
       description: `제주어로 엽서 적기 ▸ ${siteLabel}`,
       imageUrl,
       imageWidth: 1920,
@@ -1391,7 +1528,7 @@ mailForm.addEventListener('submit', async (e) => {
       body: JSON.stringify({
         email: mailInput.value.trim(),
         imageBase64: canvas.toDataURL('image/jpeg', 0.9),
-        toName: cardTo.value.trim(),
+        toName: mailToName(cardTo.value.trim()),   // 메일 서버가 뒤에 '에게'를 붙이므로 겹치지 않게
         fromName: cardFrom.value.trim(),
         message: cardMessage.value,
         filename: 'jeju-postcard.jpg',
@@ -1424,7 +1561,7 @@ const BOARD_POSTCARDS = [
     message: '어멍, ᄎᆞᆷ말 고맙수다.\n늘 건강ᄒᆞᆸ서. ᄉᆞ랑ᄒᆞᆸ네다.',
   },
   {
-    card: 4, to: '지수', from: '하은', date: '2026.10.17', tilt: -2, pin: '#e8b62f',
+    card: 3, to: '지수', from: '하은', date: '2026.10.17', tilt: -2, pin: '#e8b62f',
     message: '친구광 ᄒᆞᆫ듸 ᄇᆞ름 부는 ᄆᆞ을을 걸엇수다. 늴 ᄒᆞᆨ교에서 만나게!',
   },
 ];
@@ -1441,6 +1578,7 @@ function fillMiniCard(el, post) {
     <img class="mini-stamp" src="images/stamp-goraboge.png?v=2" alt="">`;
   // 글은 textContent로 넣어서 나중에 사람들이 쓴 글이 들어와도 HTML로 해석되지 않게 함
   el.querySelector('.card-to').textContent = post.to;
+  fitToField(el.querySelector('.card-to'), post.to);
   el.querySelector('.card-message').textContent = post.message;
   el.querySelector('.card-from').textContent = post.from;
   el.querySelector('.card-date').textContent = post.date || '';
@@ -1690,6 +1828,7 @@ document.getElementById('writeBackBtn').addEventListener('click', () => {
     input.value = name.slice(0, input.maxLength > 0 ? input.maxLength : 10);
     input.dispatchEvent(new Event('input', { bubbles: true }));   // 엽서에도 옮김
   });
+  openWriter();   // 채운 이름이 보이게 쓰는 칸을 열어 둠
   openWritePage();
 });
 receivedView.addEventListener('close', clearReceived);

@@ -18,9 +18,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="images/tale/prologue-sky.webp">
-<link rel="preload" as="font" type="font/woff2" href="fonts/BookkMyungjo-Bold.woff2?v=193" crossorigin>
-<link rel="preload" as="font" type="font/woff2" href="fonts/Griun-NeatHandwriting.woff2?v=193" crossorigin>
-<link rel="stylesheet" href="style.css?v=201">
+<link rel="preload" as="font" type="font/woff2" href="fonts/BookkMyungjo-Bold.woff2?v=206" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/Griun-NeatHandwriting.woff2?v=206" crossorigin>
+<link rel="stylesheet" href="style.css?v=207">
 </head>
 <body>
   <a class="skip-link" href="#scene2">바로 편지 쓰기로 건너뛰기</a>
@@ -84,6 +84,10 @@
         <div class="paper-edge" aria-hidden="true"><i></i></div>
         <h2 class="scene-title" id="pickTitle" data-chars>어떤 풍경에 마음을 담아볼까요?</h2>
         <p class="scene-sub">제주 풍경을 옆으로 넘겨 고르거나, 직접 찍은 사진을 넣어 보세요.</p>
+        <!-- 내 편지 쓰기: 누르면 아래에 편지 쓰는 칸(받는 사람 · 하고 싶은 말 · 보내는 사람)이 생김. 처음에는 엽서 템플릿 글만 -->
+        <div class="pick-tools">
+          <button type="button" class="write-open-btn" id="writeOpenBtn" aria-controls="writerPanel" aria-expanded="false"><span class="write-open-t" aria-hidden="true">T</span>내 편지 쓰기</button>
+        </div>
         <!-- 고른 엽서: 입력칸 위치는 엽서 이미지(1920×1280)의 줄에 맞춰 style.css에서 %로 잡음.
              '제주어로 바꾸기'를 누르면 엽서 위로 바람(.wind)이 스치고 글이 제주어로 바뀜 -->
         <div class="write-card" id="writeCard">
@@ -93,7 +97,7 @@
                     <img id="cardPhoto" class="card-photo" alt="직접 넣은 사진" hidden>
                     <label class="card-field card-to">
                       <span class="sr-only">받는 사람</span>
-                      <input type="text" id="cardTo" maxlength="10" autocomplete="off">
+                      <input type="text" id="cardTo" maxlength="14" autocomplete="off">
                     </label>
                     <textarea class="card-field card-message" id="cardMessage" aria-label="엽서 내용" placeholder="여기에 마음을 적어 보세요"></textarea>
                     <label class="card-field card-from">
@@ -122,31 +126,27 @@
                 <div class="carousel" id="carousel" tabindex="0" aria-label="엽서 그림 고르기. 옆으로 넘기면 가운데 그림이 골라져요"></div>
               </div>
 
+        <!-- 엽서 템플릿 단추 줄: 엽서를 고르면 그 엽서의 To · 편지 글이 바로 써짐(app.js CARD_TEMPLATES).
+             이 줄은 글이 두 가지인 엽서(노부부: 엄마에게 · 아빠에게)이거나, 직접 쓴 글이 있을 때만 보임 -->
+        <div class="letter-templates" role="group" aria-labelledby="templateLabel" hidden>
+          <p class="letter-templates-label" id="templateLabel">이 엽서에 어울리는 글</p>
+          <div class="letter-templates-list" id="templateList"></div>
+        </div>
+        <!-- 마음 쓰기 칸: 'T 내 편지 쓰기'(또는 엽서 위 줄글)를 누르면 열림 (app.js openWriter) -->
+        <div class="writer-panel" id="writerPanel" hidden>
         <!-- 마음 쓰기: 받는 사람 · 하고 싶은 말 · 보내는 사람. 쓰는 대로 위 엽서에 옮겨짐 -->
         <h2 class="scene-title write-heading" id="writeTitle" tabindex="-1" data-chars>당신의 마음을 들려주세요.</h2>
         <p class="scene-sub">평소 쓰던 말 그대로 적어주세요.<br>당신의 마음을 제주어로 전해드릴게요.</p>
         <div class="mobile-writer">
                 <div class="mobile-names">
-                  <label>To <input type="text" id="mobileTo" maxlength="10" autocomplete="off" placeholder="받는 사람"></label>
+                  <label>To <input type="text" id="mobileTo" maxlength="14" autocomplete="off" placeholder="받는 사람"></label>
                   <label>From <input type="text" id="mobileFrom" maxlength="10" autocomplete="off" placeholder="보내는 사람"></label>
-                </div>
-                <!-- 편지 템플릿: To 칸과 하고 싶은 말 칸 사이(CSS order). 누르면 바로 아래 칸에 예시 글이 써짐 (글은 app.js의 LETTER_TEMPLATES).
-                     휴대폰에서는 한 줄로 두고 옆으로 밀어 봄 -->
-                <div class="letter-templates" role="group" aria-labelledby="templateLabel">
-                  <p class="letter-templates-label" id="templateLabel">무슨 말을 쓸지 고민된다면, 골라 보세요</p>
-                  <div class="letter-templates-list" id="templateList">
-                    <button type="button" class="template-chip" data-template="parents" aria-pressed="false">부모님에게</button>
-                    <button type="button" class="template-chip" data-template="love" aria-pressed="false">연인에게</button>
-                    <button type="button" class="template-chip" data-template="cheer" aria-pressed="false">응원과 격려</button>
-                    <button type="button" class="template-chip" data-template="friend" aria-pressed="false">친구에게</button>
-                    <button type="button" class="template-chip" data-template="birthday" aria-pressed="false">생일 축하</button>
-                    <button type="button" class="template-chip" data-template="miss" aria-pressed="false">그리운 사람에게</button>
-                  </div>
                 </div>
                 <textarea id="mobileMessage" aria-label="엽서 내용" placeholder="여기에 마음을 적어 보세요. 엽서에 바로 보여요."></textarea>
                 <!-- 템플릿으로 바꾸기 전 글로 되돌리기 (직접 쓴 글이 있었을 때만 잠깐 보임) -->
                 <p class="template-undo" id="templateUndo" role="status" hidden><button type="button" class="text-btn" id="templateUndoBtn">← 방금 쓴 글로 되돌리기</button></p>
               </div>
+        </div>
 
       
         <!-- 제주어로 바꾼 뒤(또는 엽서 보내기를 연 뒤) 글을 고치면 뜨는 알림 -->
@@ -402,7 +402,7 @@
   <script src="jeju-dict.js?v=1"></script>
   <script src="translate.js?v=4"></script>
   <script src="badwords.js?v=1"></script>
-  <script src="app.js?v=196"></script>
+  <script src="app.js?v=208"></script>
 </body>
 
 </html>

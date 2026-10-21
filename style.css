@@ -13,7 +13,7 @@
    한 굵기뿐이라 굵게 · 보통 모두 이 파일을 씀 (가짜 굵게 처리 없이). 아래아가 필요한 엽서 글씨는 나눔명조 옛한글 */
 @font-face {
   font-family: 'Bookk Myungjo';
-  src: url('fonts/BookkMyungjo-Bold.woff2?v=193') format('woff2');
+  src: url('fonts/BookkMyungjo-Bold.woff2?v=206') format('woff2');
   font-weight: 100 900;
   font-display: swap;
 }
@@ -21,7 +21,7 @@
 /* 손글씨 자막: 그리운 단정한손글씨 (첫 화면의 작은 글: 전하지 못한 마음이 있다면 …) */
 @font-face {
   font-family: 'Griun Neat Handwriting';
-  src: url('fonts/Griun-NeatHandwriting.woff2?v=193') format('woff2');
+  src: url('fonts/Griun-NeatHandwriting.woff2?v=206') format('woff2');
   font-display: swap;
 }
 
@@ -3051,3 +3051,69 @@ html.intro-open { overflow: hidden; }
   .flow-bubble { font-size: 14px; }
 }
 .intro-pop-flow + .intro-pop-examples { margin-top: 26px; }
+.letter-templates[hidden] { display: none; }
+
+/* 엽서 To 칸: 소인 자리 앞까지 넓히고, 긴 To(템플릿의 '사과하고 싶은 사람에게' 등)는 글자를 줄임 (app.js toScale → --to-scale) */
+.card .card-to,
+.mini-card .card-to { width: 19.3%; }
+.card .card-to input,
+.mini-card .card-to { font-size: calc(3.8cqh * var(--to-scale, 1)); }
+
+/* ---------- 'T 내 편지 쓰기' 단추 (풍경 고르기 설명 아래 오른쪽, 엽서 바로 위) ---------- */
+.pick-tools {
+  display: flex;
+  justify-content: flex-end;
+  max-width: 640px;
+  margin: 14px auto 10px;
+}
+
+.write-open-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 16px 8px 12px;
+  border: 1px solid var(--tale-line);
+  border-radius: 12px;
+  background: #fffdf8;
+  box-shadow: 0 4px 12px -6px rgb(50 40 28 / 0.25);
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--tale-ink);
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.write-open-btn:hover { background: #fff; transform: translateY(-1px); }
+.write-open-btn:focus-visible { outline: 3px solid var(--tale-tangerine); outline-offset: 3px; }
+
+.write-open-t {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.writer-panel[hidden] { display: none; }
+.scene-pick .write-card { margin-top: 0; }
+.scene-pick > .letter-templates { margin-top: 16px; }
+
+/* 'T 내 편지 쓰기' = '← 뒤로' 단추와 같은 크림색 알약 */
+.write-open-btn {
+  gap: 6px;
+  min-height: 46px;
+  padding: 0 20px 0 16px;
+  border: 1px solid var(--tale-line);
+  border-radius: 999px;
+  background: rgb(255 250 241 / 0.7);
+  box-shadow: 0 6px 16px rgb(50 40 28 / 0.14);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--tale-ink);
+}
+
+.write-open-btn:hover { background: rgb(255 250 241 / 0.92); transform: translateY(-2px); }
+.write-open-t { font-size: 16px; }
