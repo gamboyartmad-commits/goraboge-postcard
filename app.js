@@ -1116,6 +1116,12 @@ function postUrl() {
   return `${location.origin}${location.pathname}#p=${encodePost(currentPost())}`;
 }
 
+// 편지 사이트 첫 화면 주소: 받은 사람도 '나도 엽서 쓰기'로 바로 들어올 수 있게 공유할 때 함께 보냄
+function siteUrl() {
+  return `${location.origin}${location.pathname}`;
+}
+const shareText = (postLink) => `제주어 엽서가 도착했어요.\n엽서 보기: ${postLink}\n나도 제주어 엽서 쓰기: ${siteUrl()}`;
+
 // 지금은 내 컴퓨터(localhost)에서 열고 있어서, 사이트를 인터넷에 올려야 다른 사람도 링크를 열 수 있음
 const LOCAL_ONLY = ['localhost', '127.0.0.1', ''].includes(location.hostname);
 const LOCAL_NOTE = LOCAL_ONLY ? ' (지금 주소는 이 컴퓨터에서만 열려요. 사이트를 인터넷에 올린 뒤에 다른 사람도 열 수 있어요.)' : '';
@@ -1152,7 +1158,8 @@ document.getElementById('copyLinkBtn').addEventListener('click', async () => {
 
 // 카카오톡으로 전송하기
 // config.js에 카카오 JavaScript 키를 넣으면 카카오톡 공유 창이 열려 친구를 고르고 보낼 수 있음.
-// 메시지에는 지금 엽서를 그린 이미지(제주어 편지 + 소인)가 들어가고, '엽서 열어 보기'를 누르면 이 사이트에서 그 엽서가 열림.
+// 메시지에는 지금 엽서를 그린 이미지(제주어 편지 + 소인)가 들어가고, '엽서 열어 보기'를 누르면 이 사이트에서 그 엽서가,
+// '나도 엽서 쓰기'를 누르면 편지 사이트 첫 화면이 열림.
 // 엽서 이미지는 카카오 서버에 올려서 씀(Kakao.Share.uploadImage) → 사이트를 아직 인터넷에 안 올렸어도 이미지는 보임.
 // 키가 없을 때는 휴대폰 공유 창(카카오톡 선택 가능)이나 링크 복사로 대신함
 const KAKAO_JS_KEY = ((window.POSTCARD_CONFIG || {}).KAKAO_JS_KEY || '').trim();
@@ -1225,7 +1232,10 @@ async function shareToKakao() {
       imageHeight: 1280,
       link: { mobileWebUrl: url, webUrl: url },
     },
-    buttons: [{ title: '엽서 열어 보기', link: { mobileWebUrl: url, webUrl: url } }],
+    buttons: [
+      { title: '엽서 열어 보기', link: { mobileWebUrl: url, webUrl: url } },
+      { title: '나도 엽서 쓰기', link: { mobileWebUrl: siteUrl(), webUrl: siteUrl() } },   // 편지 사이트 첫 화면
+    ],
   });
 }
 
@@ -1248,7 +1258,8 @@ document.getElementById('kakaoBtn').addEventListener('click', async () => {
   }
   if (navigator.share) {
     try {
-      await navigator.share({ title: '제주어 엽서', text: '제주어 엽서가 도착했어요', url });
+      // 카카오톡은 text와 url을 이어 붙여 보여 줌 → 엽서 링크(url) 앞에 사이트 주소도 함께
+      await navigator.share({ title: '제주어 엽서', text: `제주어 엽서가 도착했어요.\n나도 제주어 엽서 쓰기: ${siteUrl()}\n엽서 보기:`, url });
       finishSend('');
     } catch (err) {
       if (err.name !== 'AbortError') setSheetStatus('공유 창을 열지 못했어요. URL 복사로 보내 주세요.', true);
@@ -1256,12 +1267,12 @@ document.getElementById('kakaoBtn').addEventListener('click', async () => {
     return;
   }
   // 키도 공유 창도 없는 PC 브라우저: 링크를 복사해 두고 카카오톡에 붙여 넣게 안내
-  await copyText(url);
-  finishSend('엽서 링크를 복사했어요. 카카오톡 대화창에 붙여 넣어 보내 주세요.' + PHOTO_NOTE() + LOCAL_NOTE);
+  await copyText(shareText(url));
+  finishSend('엽서 링크와 편지 사이트 주소를 복사했어요. 카카오톡 대화창에 붙여 넣어 보내 주세요.' + PHOTO_NOTE() + LOCAL_NOTE);
 });
 
 // 메일 (Google Apps Script 웹앱)
-const MAIL_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby2mo6dZ-DAXsN1JRdb_V3DSTdGFMb9gOLi55IOgX94NL0KjVg5dgI7SXld9qquKC05/exec';
+const MAIL_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzpLphT_IqCJ44mhGqcK3vAKMa1fH-Ea9U5Kntagxw1l-eHo41vVgpdFXvBxcVSBNf5zw/exec';
 
 // 메일로 보내기: 누르면 바로 아래에 받는 사람 메일 주소 칸이 펼쳐짐
 mailOption.addEventListener('click', () => {
