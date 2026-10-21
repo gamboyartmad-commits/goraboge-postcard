@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>게시판 관리 · 하영고라보게</title>
+<!-- 엽서 게시판 관리자 페이지. 사이트 어디에도 링크하지 않음.
+     숨기기 · 삭제 권한은 데이터베이스 규칙(supabase/board_admin.sql)이 지킴: 관리자 계정으로 로그인해야만 됨 -->
+<style>
+  :root {
+    --paper: #f6eddd;
+    --ink: #3e3832;
+    --soft: #85796a;
+    --line: #dccfb8;
+    --dark: #3f3a34;
+    --red: #b8452c;
+    --font: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    --letter: 'NanumMyeongjo YetHangul', 'Gowun Batang', serif;
+  }
+  @font-face {
+    font-family: 'NanumMyeongjo YetHangul';
+    src: url('https://cdn.jsdelivr.net/npm/@kfonts/nanum-myeongjo-yet-hangul@0.2.0/NanumMyeongjo-YetHangul.woff2') format('woff2');
+    font-display: swap;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font); }
+  [hidden] { display: none !important; }
+  main { max-width: 1100px; margin: 0 auto; padding: 28px 16px 60px; }
+  h1 { margin: 0 0 4px; font-size: 24px; }
+  .sub { margin: 0 0 24px; color: var(--soft); font-size: 14px; }
+  .btn {
+    min-height: 40px; padding: 8px 16px; border: 0; border-radius: 999px;
+    background: var(--dark); color: #fbf3e4; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .btn.light { background: #fffaf1; color: var(--ink); border: 1px solid var(--line); }
+  .btn.danger { background: var(--red); }
+  .btn:disabled { opacity: 0.5; cursor: progress; }
+  .login { max-width: 360px; padding: 22px; border: 1px solid var(--line); border-radius: 16px; background: #fffaf1; }
+  .login label { display: block; margin: 0 0 12px; font-size: 14px; color: var(--soft); }
+  .login input {
+    display: block; width: 100%; margin-top: 6px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px;
+    background: #fff; font: inherit; font-size: 16px; color: var(--ink);
+  }
+  .status { min-height: 20px; margin: 12px 0 0; font-size: 14px; color: var(--soft); }
+  .status.warn { color: var(--red); }
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 18px; }
+  .bar .count { margin-right: auto; font-size: 14px; color: var(--soft); }
+  .filter { display: inline-flex; padding: 3px; border: 1px solid var(--line); border-radius: 999px; background: #fffaf1; }
+  .filter button { padding: 6px 12px; border: 0; border-radius: 999px; background: none; font: inherit; font-size: 13px; color: var(--ink); cursor: pointer; }
+  .filter button[aria-pressed='true'] { background: var(--dark); color: #fbf3e4; }
+  .list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+  .item { display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: #fffdf8; }
+  .item.is-hidden { opacity: 0.6; border-style: dashed; }
+  .item-art { display: grid; grid-template-columns: 38% 1fr; aspect-ratio: 3 / 2; background: #fff; }
+  .item-art img { width: 100%; height: 100%; object-fit: cover; }
+  .item-text { padding: 10px 12px; overflow: hidden; font-family: var(--letter); font-size: 13px; line-height: 1.6; }
+  .item-text .to, .item-text .from { color: var(--soft); }
+  .item-text .msg { margin: 4px 0; white-space: pre-wrap; word-break: break-all; }
+  .item-meta { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--line); font-size: 12px; color: var(--soft); }
+  .badge { padding: 2px 8px; border-radius: 999px; background: #efe4cf; color: var(--ink); font-weight: 700; }
+  .item.is-hidden .badge { background: var(--red); color: #fff; }
+  .item-actions { display: flex; gap: 6px; margin-left: auto; }
+  .item-actions .btn { min-height: 32px; padding: 4px 12px; font-size: 13px; }
+  .empty { padding: 40px 0; text-align: center; color: var(--soft); }
+</style>
+</head>
+<body>
+<main>
+  <h1>엽서 게시판 관리</h1>
+  <p class="sub">하영고라보게 · 제주어로 엽서 적기 — 관리자만 쓰는 페이지예요.</p>
+
+  <!-- 로그인 -->
+  <form class="login" id="loginForm">
+    <label>관리자 이메일 <input type="email" id="email" autocomplete="username" required></label>
+    <label>비밀번호 <input type="password" id="password" autocomplete="current-password" required></label>
+    <button type="submit" class="btn" id="loginBtn">로그인</button>
+    <p class="status" id="loginStatus" role="status"></p>
+  </form>
+
+  <!-- 관리 화면 -->
+  <section id="panel" hidden>
+    <div class="bar">
+      <span class="count" id="count"></span>
+      <div class="filter" role="group" aria-label="보기">
+        <button type="button" data-filter="all" aria-pressed="true">전체</button>
+        <button type="button" data-filter="shown" aria-pressed="false">보이는 엽서</button>
+        <button type="button" data-filter="hidden" aria-pressed="false">숨긴 엽서</button>
+      </div>
+      <button type="button" class="btn light" id="reloadBtn">새로고침</button>
+      <button type="button" class="btn light" id="logoutBtn">로그아웃</button>
+    </div>
+    <p class="status" id="panelStatus" role="status"></p>
+    <div class="list" id="list"></div>
+  </section>
+</main>
+
+<script src="config.js"></script>
+<script>
+(() => {
+  const CFG = window.POSTCARD_CONFIG || {};
+  const URL_BASE = (CFG.SUPABASE_URL || '').replace(/\/+$/, '');
+  const KEY = CFG.SUPABASE_KEY || '';
+  const SESSION_KEY = 'postcard-admin-session';
+  const $ = (id) => document.getElementById(id);
+
+  let session = null;   // { token, email, expires }
+  let posts = [];
+  let filter = 'all';
+
+  function saveSession(s) {
+    session = s;
+    try { s ? sessionStorage.setItem(SESSION_KEY, JSON.stringify(s)) : sessionStorage.removeItem(SESSION_KEY); } catch (e) { /* 저장 못 하는 브라우저 */ }
+  }
+  function loadSession() {
+    try {
+      const s = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+      return s && s.expires > Date.now() + 30000 ? s : null;
+    } catch (e) { return null; }
+  }
+
+  function setStatus(el, text, warn) {
+    el.textContent = text;
+    el.classList.toggle('warn', !!warn);
+  }
+
+  // 데이터베이스에 묻기 (로그인한 관리자 토큰으로)
+  async function api(path, options = {}) {
+    const res = await fetch(`${URL_BASE}${path}`, {
+      ...options,
+      headers: { apikey: KEY, Authorization: `Bearer ${session.token}`, 'Content-Type': 'application/json', ...(options.headers || {}) },
+    });
+    if (res.status === 401) {
+      logout('로그인이 끝났어요. 다시 로그인해 주세요.');
+      throw new Error('로그인이 끝났어요');
+    }
+    if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
+  }
+
+  // ---------- 로그인 ----------
+  $('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = $('loginBtn');
+    btn.disabled = true;
+    setStatus($('loginStatus'), '로그인하는 중...');
+    try {
+      const res = await fetch(`${URL_BASE}/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: { apikey: KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: $('email').value.trim(), password: $('password').value }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.access_token) throw new Error('이메일이나 비밀번호가 맞지 않아요.');
+      saveSession({ token: data.access_token, email: data.user && data.user.email, expires: Date.now() + (data.expires_in || 3600) * 1000 });
+      $('password').value = '';
+      await enter();
+    } catch (err) {
+      setStatus($('loginStatus'), err.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  function logout(message) {
+    saveSession(null);
+    posts = [];
+    $('panel').hidden = true;
+    $('loginForm').hidden = false;
+    setStatus($('loginStatus'), message || '');
+  }
+  $('logoutBtn').addEventListener('click', () => logout('로그아웃했어요.'));
+
+  async function enter() {
+    // 관리자 목록(board_admins)에 있는 계정인지 먼저 확인
+    const isAdmin = await api('/rest/v1/rpc/is_board_admin', { method: 'POST', body: '{}' });
+    if (isAdmin !== true) {
+      logout(`${session ? session.email : '이 계정'}은(는) 관리자로 등록되지 않았어요.`);
+      return;
+    }
+    $('loginForm').hidden = true;
+    $('panel').hidden = false;
+    await reload();
+  }
+
+  // ---------- 목록 ----------
+  async function reload() {
+    setStatus($('panelStatus'), '불러오는 중...');
+    try {
+      posts = await api('/rest/v1/board_posts?select=id,card,to_name,message,from_name,post_date,photo,hidden,created_at&order=created_at.desc&limit=500');
+      setStatus($('panelStatus'), '');
+      render();
+    } catch (err) {
+      setStatus($('panelStatus'), `불러오지 못했어요. (${err.message})`, true);
+    }
+  }
+  $('reloadBtn').addEventListener('click', reload);
+
+  document.querySelectorAll('[data-filter]').forEach((b) => b.addEventListener('click', () => {
+    filter = b.dataset.filter;
+    document.querySelectorAll('[data-filter]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    render();
+  }));
+
+  const cardSrc = (n) => `images/card-${String((Number(n) || 0) + 1).padStart(2, '0')}.webp?v=2`;
+  const when = (iso) => new Date(iso).toLocaleString('ko-KR', { dateStyle: 'short', timeStyle: 'short' });
+
+  function render() {
+    const hiddenCount = posts.filter((p) => p.hidden).length;
+    $('count').textContent = `전체 ${posts.length}장 · 보이는 엽서 ${posts.length - hiddenCount}장 · 숨긴 엽서 ${hiddenCount}장`;
+    const list = $('list');
+    list.textContent = '';
+    const shown = posts.filter((p) => (filter === 'all' ? true : filter === 'hidden' ? p.hidden : !p.hidden));
+    if (!shown.length) {
+      list.innerHTML = '<p class="empty">엽서가 없어요.</p>';
+      return;
+    }
+    shown.forEach((p) => {
+      const item = document.createElement('article');
+      item.className = `item${p.hidden ? ' is-hidden' : ''}`;
+      item.innerHTML = `
+        <div class="item-art">
+          <img alt="">
+          <div class="item-text"><div class="to"></div><div class="msg"></div><div class="from"></div></div>
+        </div>
+        <div class="item-meta">
+          <span class="badge"></span><span class="time"></span>
+          <div class="item-actions">
+            <button type="button" class="btn light" data-act="toggle"></button>
+            <button type="button" class="btn danger" data-act="delete">삭제</button>
+          </div>
+        </div>`;
+      // 사람들이 쓴 글은 textContent로만 넣음 (HTML로 해석되지 않게)
+      item.querySelector('img').src = p.photo || cardSrc(p.card);
+      item.querySelector('.to').textContent = `To. ${p.to_name || ''}`;
+      item.querySelector('.msg').textContent = p.message;
+      item.querySelector('.from').textContent = `From. ${p.from_name || ''} · ${p.post_date}`;
+      item.querySelector('.badge').textContent = p.hidden ? '숨김' : '보임';
+      item.querySelector('.time').textContent = `${when(p.created_at)} 붙임 · #${p.id}`;
+      item.querySelector('[data-act="toggle"]').textContent = p.hidden ? '다시 보이기' : '숨기기';
+      item.querySelector('[data-act="toggle"]').addEventListener('click', (e) => setHidden(p, !p.hidden, e.currentTarget));
+      item.querySelector('[data-act="delete"]').addEventListener('click', (e) => remove(p, e.currentTarget));
+      list.appendChild(item);
+    });
+  }
+
+  // ---------- 숨기기 · 삭제 ----------
+  async function setHidden(p, hidden, btn) {
+    btn.disabled = true;
+    try {
+      const rows = await api(`/rest/v1/board_posts?id=eq.${p.id}`, {
+        method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ hidden }),
+      });
+      if (!rows || !rows.length) throw new Error('권한이 없어요');
+      p.hidden = hidden;
+      setStatus($('panelStatus'), hidden ? `#${p.id} 엽서를 숨겼어요. 사이트 게시판에서 보이지 않아요.` : `#${p.id} 엽서를 다시 보이게 했어요.`);
+      render();
+    } catch (err) {
+      setStatus($('panelStatus'), `바꾸지 못했어요. (${err.message})`, true);
+      btn.disabled = false;
+    }
+  }
+
+  async function remove(p, btn) {
+    if (!window.confirm(`#${p.id} 엽서를 완전히 지울까요?\n지우면 되돌릴 수 없어요. (잠깐 안 보이게만 하려면 '숨기기')`)) return;
+    btn.disabled = true;
+    try {
+      const rows = await api(`/rest/v1/board_posts?id=eq.${p.id}`, { method: 'DELETE', headers: { Prefer: 'return=representation' } });
+      if (!rows || !rows.length) throw new Error('권한이 없어요');
+      posts = posts.filter((x) => x.id !== p.id);
+      setStatus($('panelStatus'), `#${p.id} 엽서를 지웠어요.`);
+      render();
+    } catch (err) {
+      setStatus($('panelStatus'), `지우지 못했어요. (${err.message})`, true);
+      btn.disabled = false;
+    }
+  }
+
+  // 같은 탭에서 새로 고치면 로그인 유지 (탭을 닫으면 끝)
+  if (!URL_BASE || !KEY) {
+    setStatus($('loginStatus'), 'config.js에 Supabase 주소 · 키가 없어요.', true);
+  } else {
+    const saved = loadSession();
+    if (saved) { session = saved; enter().catch(() => {}); }
+  }
+})();
+</script>
+</body>
+</html>
