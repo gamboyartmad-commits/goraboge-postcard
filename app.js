@@ -1295,11 +1295,14 @@ async function shareToKakao() {
     imageUrl = new URL(CARDS[currentCard].src, location.href).href;   // 올리기에 실패하면 엽서 그림만
   }
   const post = currentPost();
+  // 카카오톡 그림 카드에는 주소가 따로 보이지 않아서, 설명 줄에 편지 사이트 주소를 글자로 적어 둠
+  // (편지 글은 엽서 그림 안에 이미 보임. 누르는 곳은 카드 · 아래 두 단추)
+  const siteLabel = siteUrl().replace(/^https?:\/\//, '').replace(/\/$/, '');
   K.Share.sendDefault({
     objectType: 'feed',
     content: {
       title: post.to ? `${post.to}에게 제주어 엽서가 도착했어요` : '제주어 엽서가 도착했어요',
-      description: post.message.replace(/\s+/g, ' ').trim().slice(0, 60) || '하영고라보게 · 제주어로 엽서 적기',
+      description: `제주어로 엽서 적기 ▸ ${siteLabel}`,
       imageUrl,
       imageWidth: 1920,
       imageHeight: 1280,
