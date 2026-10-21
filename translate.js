@@ -234,12 +234,13 @@
 
   // ---------- 용언 ----------
 
-  function translateVerb(word, ctx) {
+  // stems: 찾아볼 어간 (제주어 → 표준어 풀이에서 후보 어간만 넘김)
+  function translateVerb(word, ctx, stems = STEMS) {
     const j = toJamo(word);
 
     // 1) 사전에 있는 어간
     let best = null;
-    for (const stem of STEMS) {
+    for (const stem of stems) {
       const variants = [];
       for (const [prefix, implied, flag] of stemForms(stem.s)) {
         variants.push([prefix, implied, flag, stem.g]);
@@ -420,4 +421,248 @@
   }
 
   window.translateToJeju = translate;
+
+  // ---------- 제주어 → 표준어 (대략 풀이) ----------
+  // 게시판에 표준어 글 없이 저장된 엽서를 '표준어로 보기' 할 때 씀.
+  // 낱말마다 표준어 후보(사전을 거꾸로 찾은 낱말 + 흔한 말끝)를 만들어 위의 번역기로 다시 바꿔 보고,
+  // 똑같이 나오는 후보를 고른다. 못 찾은 낱말은 아래아만 'ㅏ'로 읽기 쉽게 바꿈. 참고용 풀이.
+
+  // 제주어 체언 → 표준어. 한 글자 말(잘, 영, 새 …)은 표준어와 겹쳐 헷갈리니 아래 WORDS에 적은 것만
+  const RN = {};
+  for (const [std, jeju] of Object.entries(N)) {
+    if (jeju && jeju.length > 1 && !(jeju in RN) && !(jeju in N)) RN[jeju] = std;
+  }
+  // 사전을 거꾸로 찾으면 엉뚱해지는 말 · 자주 쓰는 제주어 낱말
+  const WORDS = {
+    'ᄎᆞᆷ말': '정말', 'ᄒᆞᆫ듸': '함께', 'ᄒᆞᆫ저': '어서', 느: '너', 늴: '내일', 질: '길', 심: '힘', 펜: '편',
+    이디: '여기', 거디: '거기', 영: '이렇게', 경: '그렇게', 막: '아주', 셍각: '생각', 어느제: '언제', 간간: '가끔',
+    벨로: '별로', 펭소: '평소', 'ᄐᆞ시': '다시', 너미: '너무', 심든: '힘든', 엇어: '없어', 엇다: '없다',
+    이신: '있는', 잇는: '있는', 이시난: '있으니까', 이서: '있어', 이서라: '있었어', 'ᄒᆞᆫ': '한',
+    아니주마는: '아니지만', 엇주마는: '없지만', 'ᄒᆞ루': '하루', 'ᄆᆞ음': '마음',
+    펜안: '편안', 'ᄃᆞᄉᆞ': '따뜻', '곱닥ᄒᆞᆫ': '고운', 벨: '별', 벨것: '별것', 펭소: '평소', 지드려져: '기다려져',
+  };
+  const KEEP = new Set(['제주', '오늘', '시험', '엽서', '사랑']);   // 표준어와 같은 말(사전 거꾸로 찾기 안 함)
+  // 제주어 조사 → 표준어 (받침 있을 때, 없을 때)
+  const JEJU_PARTICLES = [
+    ['이영', '이랑', '이랑'], ['영', '이랑', '랑'], ['광', '과', '와'], ['신듸', '한테', '한테'], ['안티', '한테', '한테'],
+    ['추룩', '처럼', '처럼'], ['처름', '처럼', '처럼'], ['ᄁᆞ지', '까지', '까지'], ['부떠', '부터', '부터'], ['덜', '들', '들'],
+    ['이우다', '이에요', '예요'], ['우다', '이에요', '예요'], ['엔', '엔', '엔'], ['이서', '에서', '에서'],
+  ];
+
+  const B_IRREGULAR = new Set('고맙 그립 반갑 즐겁 춥 덥 가깝 쉽 어렵 무섭 아름답 귀엽 부럽 반갑 미덥 가볍 무겁 뜨겁 차갑 놀랍 외롭 새롭 정답 아깝'.split(' '));
+
+  // 표준어 어간(낱자) + 말끝 → 표준어 낱말(낱자)
+  function stdAE(s, tail, std) {
+    const last = s.slice(-1);
+    const base = s.slice(0, -1);
+    if (s.endsWith('ㅎㅏ')) return base + 'ㅐ' + tail;                                    // 하 → 해
+    if (B_IRREGULAR.has(std)) return base + 'ㅇㅝ' + tail;                                  // 고맙 → 고마워
+    if (s.endsWith('ㄹㅡ') && s.length > 2) {                                              // 모르 → 몰라
+      const b = s.slice(0, -2);
+      return (b.endsWith('ㄹ') ? b : b + 'ㄹ') + 'ㄹ' + (isYang(lastVowel(b)) ? 'ㅏ' : 'ㅓ') + tail;
+    }
+    if (!isVowel(last)) return s + (isYang(lastVowel(s)) ? 'ㅇㅏ' : 'ㅇㅓ') + tail;
+    switch (last) {
+      case 'ㅏ': case 'ㅓ': case 'ㅐ': case 'ㅔ': case 'ㅕ': return s + tail;
+      case 'ㅣ': return base + 'ㅕ' + tail;
+      case 'ㅗ': return base + 'ㅘ' + tail;
+      case 'ㅜ': return base + 'ㅝ' + tail;
+      case 'ㅚ': return base + 'ㅙ' + tail;
+      case 'ㅡ': return base + (isYang(lastVowel(base)) ? 'ㅏ' : 'ㅓ') + tail;
+      default: return s + 'ㅇㅓ' + tail;
+    }
+  }
+  function stdEU(s, tail, std) {
+    const last = s.slice(-1);
+    if (isVowel(last)) return s + tail;
+    if (B_IRREGULAR.has(std)) return s.slice(0, -1) + 'ㅇㅜ' + tail;                      // 그리운
+    if (last === 'ㄹ') {
+      if (tail[0] === 'ㄹ' && !isVowel(tail[1])) return s + tail.slice(1);
+      if ('ㄴㅂㅅ'.includes(tail[0])) return s.slice(0, -1) + tail;
+      return s + tail;
+    }
+    return s + 'ㅇㅡ' + tail;
+  }
+  function stdFormal(s, q) {
+    const end = q ? 'ㄲㅏ' : 'ㄷㅏ';
+    const last = s.slice(-1);
+    if (isVowel(last)) return s + 'ㅂㄴㅣ' + end;
+    if (last === 'ㄹ') return s.slice(0, -1) + 'ㅂㄴㅣ' + end;
+    return s + 'ㅅㅡㅂㄴㅣ' + end;
+  }
+  function stdPlain(s, tail) {
+    return s.endsWith('ㄹ') && tail[0] === 'ㄴ' ? s.slice(0, -1) + tail : s + tail;
+  }
+  // 흔한 말끝부터 (같은 제주어로 바뀌는 표준어가 여럿이면 앞의 것을 고름)
+  const STD_ENDINGS = [
+    (s, q, d) => stdAE(s, 'ㅇㅛ', d),                // 해요체
+    (s, q, d) => stdAE(s, 'ㅆㅇㅓㅇㅛ', d),
+    (s, q) => stdFormal(s, q),                        // 합니다
+    (s, q, d) => stdAE(s, 'ㅆㅅㅡㅂㄴㅣ' + (q ? 'ㄲㅏ' : 'ㄷㅏ'), d),
+    (s) => s + 'ㄱㅔㅆㅅㅡㅂㄴㅣㄷㅏ',
+    (s, q, d) => stdEU(s, 'ㅅㅔㅇㅛ', d),
+    (s, q, d) => stdEU(s, 'ㄹㄱㅔㅇㅛ', d),
+    (s, q, d) => stdEU(s, 'ㅂㅅㅣㄷㅏ', d),
+    (s) => (isVowel(s.slice(-1)) ? s + 'ㄴㄷㅏ' : s.endsWith('ㄹ') ? s.slice(0, -1) + 'ㄴㄷㅏ' : s + 'ㄴㅡㄴㄷㅏ'),
+    (s, q, d) => stdAE(s, 'ㅆㄷㅏ', d),
+    (s, q, d) => stdAE(s, 'ㅆㅇㅓ', d),
+    (s, q, d) => stdAE(s, 'ㅅㅓ', d),
+    (s, q, d) => stdAE(s, '', d),
+    (s) => s + 'ㄱㅗ',
+    (s, q, d) => stdEU(s, 'ㅁㅕㄴㅅㅓ', d),
+    (s, q, d) => stdEU(s, 'ㅁㅕㄴ', d),
+    (s, q, d) => stdEU(s, 'ㄴㅣㄲㅏ', d),
+    (s, q, d) => stdEU(s, 'ㄹㅕㄱㅗ', d),
+    (s) => s + 'ㅈㅣㅁㅏㄴ',
+    (s) => s + 'ㅈㅏ',
+    (s) => stdPlain(s, 'ㄴㅡㄴㄷㅔ'),
+    (s) => stdPlain(s, 'ㄴㅡㄴ'),
+    (s, q, d) => stdEU(s, 'ㄴ', d),
+    (s, q, d) => stdEU(s, 'ㄹ', d),
+    (s) => s + 'ㄷㅏ',
+    (s) => s + 'ㄱㅣ',
+    (s) => s + 'ㄱㅔ',
+    (s) => s + 'ㅈㅣ',
+    (s) => s + 'ㅈㅛ',
+  ];
+
+  // 표준어 조사가 체언 받침에 맞는지 (받침 있을 때 / 없을 때)
+  const STD_PAIRS = [['이', '가'], ['은', '는'], ['을', '를'], ['과', '와'], ['으로', '로'], ['이랑', '랑'], ['이나', '나'], ['이에요', '예요'], ['이에요', '에요']];
+  function stdParticleOk(noun, p) {
+    const b = batchim(noun);
+    for (const [withB, without] of STD_PAIRS) {
+      if (p.startsWith(withB) && !(withB === '이' && p !== '이')) {
+        if (withB === '으로') return b.has && !b.rieul;
+        return b.has;
+      }
+      if (p.startsWith(without) && p.length - without.length <= 1) {
+        if (without === '로') return !b.has || b.rieul;
+        if (without === '에요') return false;
+        return !b.has;
+      }
+    }
+    return true;
+  }
+  const STD_PARTICLES = ['예요', '이에요', ...[...PARTICLES.keys()].filter((p) => !['예요', '이에요', '에요'].includes(p))];
+
+  const lookup = (w) => WORDS[w] || (KEEP.has(w) ? w : RN[w]);
+  const BASIC = new Set(STEMS.filter((st) => st.s === st.g).map((st) => st.s));   // 표준어와 같은 꼴의 기본 용언
+  const ENDING_ORDER_HADA = [(s) => s + 'ㄱㅔ', ...STD_ENDINGS];   // ○○ᄒᆞ게 → ○○하게 (하자 보다 먼저)
+  const EXTRA_STEMS = ['나'].map((std) => ({ s: toJamo(std), g: toJamo(std), pos: '동' }));   // 잘나 · 생겨나 보다 먼저
+
+  function standardWord(w, ctx) {
+    const found = lookup(w);
+    if (found) return found;
+    if (w in N || PRONOUNS.has(w)) return w;   // 표준어 낱말
+
+    // 체언 + 조사 (사전에 있는 체언)
+    for (let i = w.length - 1; i >= 1; i--) {
+      const noun = lookup(w.slice(0, i)) || (w.slice(0, i) in N ? w.slice(0, i) : null);
+      if (!noun) continue;
+      const rest = w.slice(i);
+      if (rest in PARTICLES) return noun + rest;
+      for (const [jp, withB, without] of JEJU_PARTICLES) {
+        if (rest === jp) return noun + (batchim(noun).has ? withB : without);
+      }
+      for (const p of STD_PARTICLES) {
+        if (stdParticleOk(noun, p) && translateNoun(noun + p, ctx) === w) return noun + p;
+      }
+    }
+
+    // 용언: 제주어 어간이 낱말 앞머리와 맞는 어간만 후보로 (기본 용언 먼저, 그다음 긴 어간)
+    const j = toJamo(w);
+    const cands = [...EXTRA_STEMS, ...STEMS].filter((st) => j.startsWith(st.g.length > 2 ? st.g.slice(0, -1) : st.g))
+      .sort((a, b) => (BASIC.has(b.s) - BASIC.has(a.s)) || (b.g.length - a.g.length));
+    // '○○ᄒᆞ다' → '○○하다'
+    const hada = j.lastIndexOf('ㅎ' + ARAEA);
+    if (hada > 0) {
+      const head = fromJamo(j.slice(0, hada));
+      const std = lookup(head) || roughStandard(head);
+      cands.unshift({ s: toJamo(std) + 'ㅎㅏ', g: j.slice(0, hada + 2), pos: '?', hadaHead: std });
+    }
+    for (const st of cands) {
+      const std = st.hadaHead ? st.hadaHead + '하' : fromJamo(st.s);
+      for (const make of st.hadaHead ? ENDING_ORDER_HADA : STD_ENDINGS) {
+        const word = fromJamo(make(st.s, ctx.q, std));
+        const back = st.hadaHead ? translate(word + (ctx.q ? '?' : '')).replace(/\?$/, '') : translateVerb(word, ctx, [st]);
+        if (back === w) return word;
+      }
+    }
+
+    // 사전에 없는 체언 + 조사
+    for (let i = w.length - 1; i >= 1; i--) {
+      const noun = w.slice(0, i);
+      if (/[ᄀ-ᇿ]/.test(noun)) continue;
+      const rest = w.slice(i);
+      for (const [jp, withB, without] of JEJU_PARTICLES) {
+        if (rest === jp) return noun + (batchim(noun).has ? withB : without);
+      }
+    }
+    return null;
+  }
+
+  // 못 찾은 낱말: 흔한 제주어 말끝만 표준어로, 아래아(ᄒᆞ → 하)는 읽기 쉽게
+  const ENDING_FIXES = [
+    [/ㅎㅏㅇㅕㅅ(?=ㅇㅓ|ㅈㅜ|ㄷㅓㄴ|ㅅㅜ|ㅈㅓ|$)/, 'ㅎㅐㅆ'],                                   // ᄒᆞ엿어 → 했어
+    [/([ㅏㅓㅕ])ㅅ(?=ㅇㅓ|ㅈㅜ|ㄷㅓㄴ|ㅅㅜ|ㅈㅓ)/, '$1ㅆ'],                                   // 웃엇던 → 웃었던
+    [/ㅆㅅㅜㄷㅏ$/, 'ㅆㅇㅓㅇㅛ'],                                                           // 걸엇수다 → 걸었어요
+    [/ㅆㅈㅓ$/, 'ㅆㄷㅏ'],
+    [/ㅈㅜㅁㅏㄴㅡㄴ$/, 'ㅈㅣㅁㅏㄴ'],                                                       // 아니주마는 → 아니지만
+    [/ㅋㅡㄹㅏ$/, 'ㄹㄱㅔ'],                                                                 // 주크라 → 줄게
+    [/(ㅇㅡ)?ㅋㅣㅇㅕ$/, 'ㄱㅔㅆㅇㅓ'],                                                      // 좋으키여 → 좋겠어
+    [/ㅋㅜㄷㅏ$/, 'ㄱㅔㅆㅇㅓㅇㅛ'],                                                         // 가쿠다 → 가겠어요
+    [/ㅇㅕㅁㅈㅓ$/, 'ㄱㅗ ㅇㅣㅆㅇㅓ'],                                                     // 잘ᄒᆞ염저 → 잘하고 있어
+    [/ㅁㅅㅣㄴㅑ$/, 'ㄴㅣ'],                                                                // 지냄시냐 → 지내니
+    [/ㅁㅓㅇ$/, 'ㅁㅕㄴㅅㅓ'],                                                               // 맞으멍 → 맞으면서
+    [/([ㅏㅓ])ㅅㅣㅁㅣㄴ$/, '$1ㅆㅇㅡㅁㅕㄴ'],                                              // 말아시민 → 말았으면
+    [/([ㅏㅓ])ㅅㅣ(?=ㅈㅜ)/, '$1ㅆ'],                                                      // 늦어시주마는 → 늦었지만
+    [/ㅁㅣㄴ$/, 'ㅁㅕㄴ'],                                                                  // 되민 → 되면
+    [/ㄷㅏㄴ$/, 'ㄷㅏㄱㅏ'],                                                                // 걷단 → 걷다가
+    [/ㄱㅗㄱ$/, 'ㄱㅗ'],                                                                    // ᄒᆞ곡 → 하고
+    [/ㄷㅔㄴ$/, 'ㄷㅏㄴㅡㄴ'],                                                               // 고맙덴 → 고맙다는
+    [/ㄷㅣ$/, 'ㄷㅔ'],                                                                      // 가는디 → 가는데
+  ];
+  function roughStandard(w) {
+    const at = w.lastIndexOf('ᄒᆞ');
+    if (at > 0 && lookup(w.slice(0, at))) w = lookup(w.slice(0, at)) + w.slice(at);   // 펜안ᄒᆞ곡 → 편안ᄒᆞ곡
+    let j = toJamo(w.replace(/ᄀᆞᆯ아/g, '말해')).replaceAll(ARAEA, 'ㅏ').replaceAll(SSANG_ARAEA, 'ㅛ');
+    if (w.length > 1 && !(w in N)) for (const [re, to] of ENDING_FIXES) j = j.replace(re, to);
+    return fromJamo(j).replace(/셍각/g, '생각').replace(/하여$/, '해');
+  }
+
+  const REVERSE_PHRASES = [
+    [/ᄒᆞᆫ저\s*옵서/g, '어서 오세요'],
+    [/고맙수다/g, '고맙습니다'],
+  ];
+
+  function toStandard(text) {
+    let src = text;
+    for (const [re, std] of REVERSE_PHRASES) src = src.replace(re, HOLD_OPEN + std + HOLD_CLOSE);
+    const parts = src.split(new RegExp(`(${HOLD_OPEN}[^${HOLD_CLOSE}]*${HOLD_CLOSE}|[가-힣ᄀ-ᇿ]+)`));
+    const out = parts.map((part, i) => {
+      if (i % 2 === 0) return part;
+      if (part[0] === HOLD_OPEN) return part.slice(1, -1);
+      const after = parts[i + 1] || '';
+      const next = /^\s+$/.test(after) ? (parts[i + 2] || '') : '';
+      // '-고정 ᄒᆞ다' = '-고 싶다'
+      if (part.endsWith('고정') && next.startsWith('ᄒᆞ')) {
+        const head = part.slice(0, -2);
+        const verb = standardWord(head + '곡', {}) || roughStandard(head + '곡');
+        return verb.endsWith('고') ? verb : roughStandard(head) + '고';
+      }
+      if (/^\s+$/.test(parts[i - 1] || '') && (parts[i - 2] || '').endsWith('고정') && part.startsWith('ᄒᆞ')) {
+        const sip = STEMS[STEMS.length - 1];   // 싶 → ᄒᆞ
+        const q = /^\s*\?/.test(after);
+        for (const make of STD_ENDINGS) {
+          const word = fromJamo(make(sip.s, q, '싶'));
+          if (translateVerb(word, { q, next: '' }, [sip]) === part) return word;
+        }
+      }
+      const ctx = { q: /^\s*\?/.test(after), next: next[0] || '' };
+      return standardWord(part, ctx) || roughStandard(part);
+    });
+    return out.join('');
+  }
+
+  window.translateToStandard = toStandard;
 })();

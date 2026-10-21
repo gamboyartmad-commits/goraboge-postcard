@@ -1711,11 +1711,13 @@ const boardViewCard = document.getElementById('boardViewCard');
 const boardViewToggle = document.getElementById('boardViewToggle');
 let boardViewPost = null;
 
-// 크게 본 엽서의 '표준어로 보기' ↔ '제주어로 보기' (표준어 글이 저장된 엽서만 단추가 보임)
+// 크게 본 엽서의 '표준어로 보기' ↔ '제주어로 보기'
+// 표준어 글이 함께 저장된 엽서는 그 글을, 없는 엽서(예전 엽서)는 제주어 글을 대략 풀어서(translateToStandard) 보여 줌
 function openBoardView(post) {
   boardViewPost = post;
+  if (!post.standard && window.translateToStandard) post.standard = window.translateToStandard(post.message);
   fillMiniCard(boardViewCard, post);
-  boardViewToggle.hidden = !post.standard;
+  boardViewToggle.hidden = !post.standard || post.standard === post.message;
   boardViewToggle.setAttribute('aria-pressed', 'false');
   boardViewToggle.textContent = '표준어로 보기';
   boardView.showModal();
