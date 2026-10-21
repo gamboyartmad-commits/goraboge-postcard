@@ -18,9 +18,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="images/tale/prologue-sky.webp">
-<link rel="preload" as="font" type="font/woff2" href="fonts/BookkMyungjo-Bold.woff2?v=175" crossorigin>
-<link rel="preload" as="font" type="font/woff2" href="fonts/Griun-NeatHandwriting.woff2?v=175" crossorigin>
-<link rel="stylesheet" href="style.css?v=175">
+<link rel="preload" as="font" type="font/woff2" href="fonts/BookkMyungjo-Bold.woff2?v=182" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/Griun-NeatHandwriting.woff2?v=182" crossorigin>
+<link rel="stylesheet" href="style.css?v=184">
 </head>
 <body>
   <a class="skip-link" href="#scene2">바로 편지 쓰기로 건너뛰기</a>
@@ -130,7 +130,22 @@
                   <label>To <input type="text" id="mobileTo" maxlength="10" autocomplete="off" placeholder="받는 사람"></label>
                   <label>From <input type="text" id="mobileFrom" maxlength="10" autocomplete="off" placeholder="보내는 사람"></label>
                 </div>
+                <!-- 편지 템플릿: To 칸과 하고 싶은 말 칸 사이(CSS order). 누르면 바로 아래 칸에 예시 글이 써짐 (글은 app.js의 LETTER_TEMPLATES).
+                     휴대폰에서는 한 줄로 두고 옆으로 밀어 봄 -->
+                <div class="letter-templates" role="group" aria-labelledby="templateLabel">
+                  <p class="letter-templates-label" id="templateLabel">무슨 말을 쓸지 고민된다면, 골라 보세요</p>
+                  <div class="letter-templates-list" id="templateList">
+                    <button type="button" class="template-chip" data-template="parents" aria-pressed="false">부모님에게</button>
+                    <button type="button" class="template-chip" data-template="love" aria-pressed="false">연인에게</button>
+                    <button type="button" class="template-chip" data-template="cheer" aria-pressed="false">응원과 격려</button>
+                    <button type="button" class="template-chip" data-template="friend" aria-pressed="false">친구에게</button>
+                    <button type="button" class="template-chip" data-template="birthday" aria-pressed="false">생일 축하</button>
+                    <button type="button" class="template-chip" data-template="miss" aria-pressed="false">그리운 사람에게</button>
+                  </div>
+                </div>
                 <textarea id="mobileMessage" aria-label="엽서 내용" placeholder="여기에 마음을 적어 보세요. 엽서에 바로 보여요."></textarea>
+                <!-- 템플릿으로 바꾸기 전 글로 되돌리기 (직접 쓴 글이 있었을 때만 잠깐 보임) -->
+                <p class="template-undo" id="templateUndo" role="status" hidden><button type="button" class="text-btn" id="templateUndoBtn">← 방금 쓴 글로 되돌리기</button></p>
               </div>
 
       
@@ -167,7 +182,7 @@
         </figure>
 
         <!-- 제주어 편지 고치기: 눌러서 펼침. 표준어 원문 · 제주어 결과(둘 다 고칠 수 있음) · 다시 바꾸기. 고치면 위 엽서에 바로 반영 -->
-        <button type="button" class="text-btn jeju-edit-toggle" id="jejuEditBtn" aria-expanded="false" aria-controls="jejuEditor">제주어 편지 고치기 <span aria-hidden="true">▾</span></button>
+        <button type="button" class="text-btn jeju-edit-toggle" id="jejuEditBtn" hidden aria-expanded="false" aria-controls="jejuEditor">제주어 편지 고치기 <span aria-hidden="true">▾</span></button>
         <div class="jeju-editor" id="jejuEditor" hidden>
           <div class="translate-panel" id="translatePage" hidden>
             <div class="tr-body">
@@ -360,7 +375,7 @@
   <script src="jeju-dict.js?v=1"></script>
   <script src="translate.js?v=4"></script>
   <script src="badwords.js?v=1"></script>
-  <script src="app.js?v=177"></script>
+  <script src="app.js?v=182"></script>
 </body>
 
 </html>

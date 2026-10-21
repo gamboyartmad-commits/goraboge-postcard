@@ -337,6 +337,78 @@ function syncMobile() {
   PAIRS.forEach(([mobile, card]) => { mobile.value = card.value; });
 }
 
+// ---------- 편지 템플릿: 쓰기 어려운 사람을 위한 예시 글 ----------
+// 누르면 '하고 싶은 말' 칸에 써짐(엽서에도 바로). 직접 쓴 글이 있으면 바꿔도 되는지 먼저 물어봄
+const LETTER_TEMPLATES = {
+  parents: '늘 곁에 있어 줘서 고마워. 평소엔 쑥스러워서 말하지 못했지만 많이 사랑해.',
+  love: '너와 함께하는 평범한 하루가 나에겐 가장 특별해. 앞으로도 오래오래 서로의 곁에 있자.',
+  cheer: '지금도 충분히 잘하고 있어. 네가 걸어가는 모든 순간을 진심으로 응원할게.',
+  friend: '별것 아닌 일에도 함께 웃을 수 있는 네가 있어서 참 좋아. 앞으로도 우리 재미있는 추억 많이 만들자!',
+  birthday: '생일 진심으로 축하해! 오늘 하루가 너에게 오래도록 기억될 행복한 날이길 바라.',
+  miss: '잘 지내고 있지? 함께했던 시간들이 문득 떠올라 네가 보고 싶어졌어.',
+};
+// 템플릿의 제주어 문장: 번역 규칙에 맡기면 어색해지는 곳이 있어 미리 다듬어 둠.
+// 낱말은 jeju-dict.js(『개정증보 제주어사전』)의 짝(ᄒᆞᆫ듸 · 하영 · ᄉᆞ랑 · 느 · ᄀᆞ장 …)을 따르고,
+// 말끝은 웹진 예시 엽서와 같은 꼴(-난 = -니까/-서, -으민 좋으키여 = -면 좋겠어, -게 = -자)
+const TEMPLATE_JEJU = {
+  [LETTER_TEMPLATES.parents]: '늘 옆이 이서 주난 고마워. 펭소엔 쑥스러완 말 못 ᄒᆞ엿주마는 하영 ᄉᆞ랑ᄒᆞ여.',
+  [LETTER_TEMPLATES.love]: '느광 ᄒᆞᆫ듸ᄒᆞ는 펭범ᄒᆞᆫ ᄒᆞ루가 나안티는 ᄀᆞ장 특벨ᄒᆞ여. 앞으로도 오래오래 서로 옆이 이시게.',
+  [LETTER_TEMPLATES.cheer]: '지금도 충분히 잘ᄒᆞ염저. 느가 걸어가는 모든 순간을 진심으로 응원ᄒᆞ크라.',
+  [LETTER_TEMPLATES.friend]: '벨것 아닌 일에도 ᄒᆞᆫ듸 웃을 수 잇는 느가 이시난 막 좋다. 앞으로도 우리 재미난 추억 하영 만들게!',
+  [LETTER_TEMPLATES.birthday]: '생일 진심으로 축하ᄒᆞ여! 오늘 ᄒᆞ루가 느안티 오래오래 기억될 행복ᄒᆞᆫ 날이 되민 좋으키여.',
+  [LETTER_TEMPLATES.miss]: '잘 지냄시냐? ᄒᆞᆫ듸ᄒᆞ엿던 시간들이 문득 셍각나난 느가 막 보고정ᄒᆞ여.',
+};
+const templateChips = [...document.querySelectorAll('.template-chip')];
+
+function markTemplate() {
+  const now = mobileMessage.value.trim();
+  templateChips.forEach((chip) => chip.setAttribute('aria-pressed', String(LETTER_TEMPLATES[chip.dataset.template] === now)));
+}
+
+// 직접 쓴 글이 있을 때 템플릿을 누르면: 묻지 않고 바로 바꾸고, 아래에 '방금 쓴 글로 되돌리기'를 8초 동안 보여 줌
+const templateUndo = document.getElementById('templateUndo');
+let undoText = '';
+let undoTimer = null;
+
+function hideTemplateUndo() {
+  clearTimeout(undoTimer);
+  templateUndo.hidden = true;
+  undoText = '';
+}
+
+function writeMessage(text) {
+  mobileMessage.value = text;
+  mobileMessage.dispatchEvent(new Event('input', { bubbles: true }));   // 엽서에도 옮김
+  markTemplate();
+}
+
+templateChips.forEach((chip) => chip.addEventListener('click', () => {
+  const text = LETTER_TEMPLATES[chip.dataset.template];
+  const now = mobileMessage.value.trim();
+  const isOwnText = now && !Object.values(LETTER_TEMPLATES).includes(now);
+  if (isOwnText) undoText = mobileMessage.value;   // 템플릿끼리 바꿀 때는 처음 직접 쓴 글을 계속 기억
+  writeMessage(text);
+  if (undoText) {
+    templateUndo.hidden = false;
+    clearTimeout(undoTimer);
+    undoTimer = setTimeout(hideTemplateUndo, 8000);
+  }
+  chip.scrollIntoView({ block: 'nearest', inline: 'center', behavior: smoothScroll() });   // 옆으로 미는 줄에서 고른 단추가 보이게
+}));
+
+document.getElementById('templateUndoBtn').addEventListener('click', () => {
+  const text = undoText;
+  hideTemplateUndo();
+  writeMessage(text);
+  mobileMessage.focus({ preventScroll: true });
+});
+
+mobileMessage.addEventListener('input', (e) => {
+  markTemplate();
+  if (e.isTrusted) hideTemplateUndo();   // 손으로 고쳐 쓰기 시작하면 되돌리기는 숨김
+});
+cardMessage.addEventListener('input', () => requestAnimationFrame(markTemplate));
+
 const writingBox = () => (narrowScreen.matches ? mobileMessage : cardMessage);
 
 // ---------- 제주어로 번역 → 2단계 '제주어로 변환하기' 페이지 ----------
@@ -522,7 +594,8 @@ function fillPaperInfo() {
 
 function convertLetter() {
   letter.standard = trStandard.value;
-  letter.jeju = window.translateToJeju(letter.standard);
+  // 템플릿 글을 그대로 쓰면 미리 다듬어 둔 제주어 문장을, 아니면 번역 규칙으로
+  letter.jeju = TEMPLATE_JEJU[letter.standard.trim()] || window.translateToJeju(letter.standard);
   trJeju.value = letter.jeju;
   markStale(false);
   fitHeight(trJeju);

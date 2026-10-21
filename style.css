@@ -13,7 +13,7 @@
    한 굵기뿐이라 굵게 · 보통 모두 이 파일을 씀 (가짜 굵게 처리 없이). 아래아가 필요한 엽서 글씨는 나눔명조 옛한글 */
 @font-face {
   font-family: 'Bookk Myungjo';
-  src: url('fonts/BookkMyungjo-Bold.woff2?v=175') format('woff2');
+  src: url('fonts/BookkMyungjo-Bold.woff2?v=182') format('woff2');
   font-weight: 100 900;
   font-display: swap;
 }
@@ -21,7 +21,7 @@
 /* 손글씨 자막: 그리운 단정한손글씨 (첫 화면의 작은 글: 전하지 못한 마음이 있다면 …) */
 @font-face {
   font-family: 'Griun Neat Handwriting';
-  src: url('fonts/Griun-NeatHandwriting.woff2?v=175') format('woff2');
+  src: url('fonts/Griun-NeatHandwriting.woff2?v=182') format('woff2');
   font-display: swap;
 }
 
@@ -2724,3 +2724,148 @@ html.intro-open { overflow: hidden; }
   .intro-pop-example,
   .intro-pop-btn-stamp { transition: none; }
 }
+
+/* ---------- 버튼 통일: 모든 버튼을 '제주어로 바꾸기'와 같은 짙은 알약으로 ----------
+   (예전 주황 바늘땀 버튼 · 밝은 테두리 버튼 · 바로 편지 쓰기 · 뒤로 버튼을 모두 같은 모양으로) */
+.stitch-btn,
+.stitch-btn.is-accent,
+.tale-btn,
+.tale-btn.is-primary,
+.jump-btn,
+.back-fab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 13px 28px;
+  border: 0;
+  border-radius: 999px;
+  outline: none;
+  background: var(--tale-dark);
+  color: #fbf3e4;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgb(50 40 28 / 0.22);
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stitch-btn:hover,
+.tale-btn:hover,
+.jump-btn:hover,
+.back-fab:hover {
+  background: #4a433c;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgb(50 40 28 / 0.26);
+}
+
+.stitch-btn:focus-visible,
+.tale-btn:focus-visible,
+.jump-btn:focus-visible,
+.back-fab:focus-visible {
+  outline: 3px solid var(--tale-tangerine);
+  outline-offset: 3px;
+  box-shadow: 0 8px 18px rgb(50 40 28 / 0.22);
+}
+
+.stitch-btn:disabled,
+.tale-btn:disabled { opacity: 0.6; cursor: progress; transform: none; }
+
+/* 작은 자리(엽서 안내 띠 · 메일 보내기 칸 옆)는 키만 조금 낮게 */
+.stitch-btn.is-small { min-height: 40px; padding: 8px 18px; font-size: 14px; }
+.mail-row .stitch-btn { min-height: 46px; padding: 10px 22px; flex: none; }
+.back-fab { min-height: 46px; padding: 0 20px 0 16px; font-size: 15px; }
+.jump-btn { padding: 12px 24px; font-size: 15px; }
+.stitch-btn[hidden], .tale-btn[hidden], .jump-btn[hidden] { display: none; }
+
+/* '제주어 편지 고치기' 단추는 쓰지 않음 (보내기 화면에서 숨김) */
+.jeju-edit-toggle[hidden] { display: none; }
+
+/* 뒤로 버튼: '제주어 편지 고치기' 단추와 같은 밝은 크림색 알약 (화면 위에 떠 있어 뒤가 살짝 흐려 보이게) */
+.back-fab,
+.back-fab:hover {
+  border: 1px solid var(--tale-line);
+  background: rgb(255 250 241 / 0.7);
+  color: var(--tale-ink);
+  box-shadow: 0 6px 16px rgb(50 40 28 / 0.14);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.back-fab:hover { background: rgb(255 250 241 / 0.92); }
+
+/* ---------- 편지 템플릿 (부모님에게 · 연인에게 …) ---------- */
+.letter-templates {
+  max-width: 640px;
+  margin: 22px auto 0;
+  text-align: left;
+}
+
+.letter-templates-label {
+  margin: 0 0 10px;
+  font-family: var(--hand-font);
+  font-size: 19px;
+  color: var(--tale-soft);
+}
+
+.letter-templates-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.template-chip {
+  padding: 8px 15px;
+  border: 1px solid var(--tale-line);
+  border-radius: 999px;
+  background: rgb(255 250 241 / 0.7);
+  font: inherit;
+  font-size: 14px;
+  color: var(--tale-ink);
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.template-chip:hover { background: #fffaf1; transform: translateY(-1px); }
+.template-chip:focus-visible { outline: 3px solid var(--tale-tangerine); outline-offset: 2px; }
+
+/* 고른 템플릿: 짙은 알약 (지금 칸의 글이 그 템플릿과 같을 때) */
+.template-chip[aria-pressed='true'] {
+  border-color: var(--tale-dark);
+  background: var(--tale-dark);
+  color: #fbf3e4;
+}
+
+/* 템플릿 자리: To → 템플릿 → 하고 싶은 말 → (되돌리기) → From  (.mobile-names 는 display: contents 라 order 로 줄 세움) */
+.scene-pick .mobile-writer .letter-templates { order: 2; margin: 6px 0 0; max-width: none; }
+.scene-pick .mobile-writer textarea { order: 3; }
+.scene-pick .mobile-writer .template-undo { order: 4; }
+.scene-pick .mobile-names label:last-child { order: 5; }
+.letter-templates-label { margin-bottom: 8px; font-size: 18px; }
+
+.template-undo { margin: -4px 0 0; }
+.template-undo[hidden] { display: none; }
+.template-undo .text-btn { min-height: 36px; padding: 4px 2px; font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
+
+/* 휴대폰: 템플릿 단추를 한 줄로, 옆으로 밀어서 보기. 오른쪽 끝을 흐리게 해 더 있다는 걸 알려 줌 */
+@media (max-width: 599px) {
+  .letter-templates-list {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin: 0 -16px;
+    padding: 2px 40px 6px 16px;
+    scroll-padding: 0 40px 0 16px;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 14px, #000 calc(100% - 44px), transparent);
+    mask-image: linear-gradient(to right, transparent 0, #000 14px, #000 calc(100% - 44px), transparent);
+  }
+  .letter-templates-list::-webkit-scrollbar { display: none; }
+  .template-chip { flex: none; white-space: nowrap; }
+}
+/* 옆으로 미는 줄이 칸(grid) 폭을 늘리지 않게 */
+.scene-pick .mobile-writer { grid-template-columns: minmax(0, 1fr); }
+.scene-pick .mobile-writer .letter-templates { min-width: 0; }
+/* 엽서 둘레 바람 선(.wind)이 화면 오른쪽 밖으로 나가 옆 스크롤이 생기지 않게 가로만 잘라 냄 (위로 겹치는 찢긴 종이 가장자리는 그대로) */
+.scene-pick { overflow-x: clip; }
