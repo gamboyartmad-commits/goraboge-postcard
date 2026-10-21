@@ -16,17 +16,25 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="800">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="images/tale/far.svg">
-<link rel="preload" as="image" href="images/tale/mid.svg">
-<link rel="stylesheet" href="style.css?v=94">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="images/tale/prologue-sky.webp">
+<link rel="preload" as="font" type="font/woff2" href="fonts/BookkMyungjo-Bold.woff2?v=175" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/Griun-NeatHandwriting.woff2?v=175" crossorigin>
+<link rel="stylesheet" href="style.css?v=175">
 </head>
 <body>
-  <a class="skip-link" href="#scene3">바로 편지 쓰기로 건너뛰기</a>
+  <a class="skip-link" href="#scene2">바로 편지 쓰기로 건너뛰기</a>
 
-  <!-- 위 막대: 로고 · 게시판 · 사용 방법 (늘 위에 떠 있음, 바탕 없이) -->
+  <!-- 위 막대: 로고 · 홈(웹진) · 게시판 · 사용 방법 (늘 위에 떠 있음, 바탕 없이) -->
   <header class="tale-bar">
-    <a class="tale-logo" href="#story"><img src="images/logo-goraboge.png" alt="하영고라보게 · 제주어로 엽서 적기" width="398" height="259"></a>
+    <div class="tale-bar-start">
+      <a class="tale-logo" href="#story"><img src="images/logo-goraboge.png" alt="하영고라보게 · 제주어로 엽서 적기" width="398" height="259"></a>
+      <!-- 홈: 웹진 '하영 고라보게' 첫 화면 -->
+      <a class="bar-btn bar-home" href="https://claude.ai/artifact/3EHktt3KU8zWRdGv1MFnvC" aria-label="웹진 하영 고라보게 홈으로">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5M6.5 9.8V19h4v-5h3v5h4V9.8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        홈
+      </a>
+    </div>
     <div class="tale-bar-actions">
       <button type="button" class="bar-btn" id="boardNavBtn">게시판</button>
       <button type="button" class="bar-btn bar-round" id="helpBtn" aria-label="사용 방법">?</button>
@@ -39,73 +47,43 @@
          02의 종이가 그 위로 밀려 올라오며 실제 엽서 고르기가 시작됨. 03 · 04는 편하게 쓰도록 움직임을 줄임 -->
     <div class="tale" id="writePanel">
 
+      <!-- 이야기 페이지: SCENE 01 · 02. '이 풍경에 마음 담기'를 누르면 쓰기 페이지로 넘어감 -->
+      <div class="story-page" id="storyPage">
       <!-- SCENE 01. 제주에서 날아온 편지 (프롤로그) · SCENE 02 앞부분 (편지가 책상에 내려앉아 펼쳐짐) -->
       <section class="story" id="story" aria-labelledby="prologueTitle">
         <div class="stage" id="stage">
-          <div class="sky" id="sky" aria-hidden="true"><span class="sun"></span></div>
+          <!-- 색연필 그림 두 장 (images/tale, _tools/build_tale_art.py). 풍경은 하늘 · 땅 · 앞 풀밭 세 층으로 나눠 서로 다른 빠르기로 움직임 -->
           <div class="world" id="world" aria-hidden="true">
-            <div class="layer layer-clouds" id="layerClouds">
-          <img class="cloud cloud-1" src="images/tale/cloud.svg" alt="">
-          <img class="cloud cloud-2" src="images/tale/cloud.svg" alt="">
-          <img class="cloud cloud-3" src="images/tale/cloud.svg" alt="">
-          <img class="cloud cloud-4" src="images/tale/cloud.svg" alt="">
-          <img class="cloud cloud-5" src="images/tale/cloud.svg" alt="">
+            <div class="art art-prologue" id="artPrologue">
+              <img class="art-sky" id="artSky" src="images/tale/prologue-sky.webp" alt="" width="1122" height="1402" fetchpriority="high">
+              <img class="art-land" id="artLand" src="images/tale/prologue-land.webp" alt="">
+              <img class="art-grass" id="artGrass" src="images/tale/prologue-grass.webp" alt="">
             </div>
-            <div class="layer layer-far" id="layerFar"><img src="images/tale/far.svg" alt=""><i class="layer-fill"></i></div>
-            <div class="layer layer-mid" id="layerMid"><img src="images/tale/mid.svg" alt=""><i class="layer-fill"></i></div>
-            <div class="layer layer-grass" id="layerGrass"><img src="images/tale/grass.svg" alt=""><i class="layer-fill"></i></div>
-            <div class="layer layer-ground" id="layerGround">
-              <img class="wall" src="images/tale/wall.svg" alt="">
-              <img class="desk" id="desk" src="images/tale/desk.svg" alt="">
+            <img class="art art-desk" id="artDesk" src="images/tale/desk-scene.webp" alt="" width="1122" height="1402">
+            <!-- 실제 편지: 봉투 뒷면 · 고른 엽서 · 앞주머니(귤 봉인) 세 겹. 펼쳐지면 엽서가 위로 빠져나옴 -->
+            <div class="letter" id="letter">
+              <img class="letter-layer" src="images/tale/letter-back.webp" alt="">
+              <img class="letter-card" id="letterCard" src="images/card-01.webp?v=2" alt="">
+              <img class="letter-layer" src="images/tale/letter-front.webp" alt="">
             </div>
-            <div class="letter" id="letter" aria-hidden="true"><div class="letter-back"></div><img class="letter-card" id="letterCard" src="images/card-01.webp?v=2" alt=""><div class="letter-front"></div><div class="letter-flap"><span class="letter-seal"></span></div></div>
           </div>
 
           <div class="story-copy" id="storyCopy">
             <h1 class="prologue" id="prologueTitle">
               <span class="prologue-main">지금, 생각나는 사람이 있나요?</span>
-              <span class="prologue-sub">전하지 못한 마음이 있다면</span>
+              <span class="prologue-sub">전하지 못한 마음이 있다면<br>제주의 바람에 살며시 실어보세요.</span>
             </h1>
-            <a class="jump-btn" href="#scene3" id="jumpBtn">바로 편지 쓰기 <span aria-hidden="true">→</span></a>
+            <a class="jump-btn" href="#scene2" id="jumpBtn">바로 편지 쓰기 <span aria-hidden="true">→</span></a>
           </div>
-          <p class="story-caption" id="caption1" aria-hidden="true">바람을 타고, 편지 한 통이 내려와요</p>
-          <p class="story-caption" id="caption2" aria-hidden="true">돌담 옆 작은 책상 위로</p>
           <div class="scroll-hint" id="scrollHint" aria-hidden="true"><span>천천히 내려 보세요</span><i></i></div>
         </div>
       </section>
 
-      <!-- SCENE 02. 마음을 담을 편지 (엽서 고르기): 종이 한 장이 동화 장면 위로 밀려 올라옴 -->
+      <!-- SCENE 02. 마음을 담을 편지 (엽서 고르기 + 마음 쓰기): 종이 한 장이 동화 장면 위로 밀려 올라옴 -->
       <section class="scene scene-pick" id="scene2" aria-labelledby="pickTitle">
-        <div class="paper-edge" aria-hidden="true"></div>
-        <p class="scene-label">두 번째 장 · 마음을 담을 편지</p>
+        <div class="paper-edge" aria-hidden="true"><i></i></div>
         <h2 class="scene-title" id="pickTitle" data-chars>어떤 풍경에 마음을 담아볼까요?</h2>
         <p class="scene-sub">제주 풍경을 옆으로 넘겨 고르거나, 직접 찍은 사진을 넣어 보세요.</p>
-        <figure class="pick-preview" id="pickPreview" aria-hidden="true">
-          <img id="previewImage" src="images/card-01.webp?v=2" alt="">
-          <img id="previewPhoto" class="preview-photo" alt="" hidden>
-        </figure>
-        <div class="picker">
-                <input type="file" id="photoInput" accept="image/*" hidden>
-                <div class="photo-slot">
-                  <button type="button" class="strip-item strip-photo" id="photoTile" aria-pressed="false" aria-describedby="photoCaption">
-                    <img id="photoThumb" alt="" hidden>
-                    <span class="strip-photo-label" id="photoLabel"><b>+</b>내 사진</span>
-                  </button>
-                  <p class="photo-caption" id="photoCaption">직접 찍은 사진으로 엽서 만들기</p>
-                </div>
-                <div class="carousel" id="carousel" tabindex="0" aria-label="엽서 그림 고르기. 옆으로 넘기면 가운데 그림이 골라져요"></div>
-              </div>
-        <button type="button" class="tale-btn is-primary" id="pickNext">이 풍경에 마음 담기 <span aria-hidden="true">↓</span></button>
-      </section>
-
-      <!-- SCENE 03. 제주어로 마음을 전하다 (편지 쓰기 · 제주어 변환). 글쓰기가 편하도록 스크롤 연출 없음 -->
-      <section class="scene scene-write" id="scene3" aria-labelledby="writeTitle">
-        <div class="nature nature-left" aria-hidden="true"></div>
-        <div class="nature nature-right" aria-hidden="true"></div>
-        <p class="scene-label">세 번째 장 · 제주어로 마음을 전하다</p>
-        <h2 class="scene-title" id="writeTitle" data-chars>당신의 마음을 들려주세요.</h2>
-        <p class="scene-sub">평소 쓰던 말 그대로 적어주세요.<br>당신의 마음을 제주어로 전해드릴게요.</p>
-
         <!-- 고른 엽서: 입력칸 위치는 엽서 이미지(1920×1280)의 줄에 맞춰 style.css에서 %로 잡음.
              '제주어로 바꾸기'를 누르면 엽서 위로 바람(.wind)이 스치고 글이 제주어로 바뀜 -->
         <div class="write-card" id="writeCard">
@@ -132,8 +110,21 @@
             <path d="M-40 160 C120 140 240 190 380 150 S560 130 660 160"/>
           </svg>
         </div>
-        <button type="button" class="text-btn change-card" id="changeCardBtn">↑ 다른 풍경 고르기</button>
+        <div class="picker">
+                <input type="file" id="photoInput" accept="image/*" hidden>
+                <div class="photo-slot">
+                  <button type="button" class="strip-item strip-photo" id="photoTile" aria-pressed="false" aria-describedby="photoCaption">
+                    <img id="photoThumb" alt="" hidden>
+                    <span class="strip-photo-label" id="photoLabel"><b>+</b>내 사진</span>
+                  </button>
+                  <p class="photo-caption" id="photoCaption">직접 찍은 사진으로 엽서 만들기</p>
+                </div>
+                <div class="carousel" id="carousel" tabindex="0" aria-label="엽서 그림 고르기. 옆으로 넘기면 가운데 그림이 골라져요"></div>
+              </div>
 
+        <!-- 마음 쓰기: 받는 사람 · 하고 싶은 말 · 보내는 사람. 쓰는 대로 위 엽서에 옮겨짐 -->
+        <h2 class="scene-title write-heading" id="writeTitle" tabindex="-1" data-chars>당신의 마음을 들려주세요.</h2>
+        <p class="scene-sub">평소 쓰던 말 그대로 적어주세요.<br>당신의 마음을 제주어로 전해드릴게요.</p>
         <div class="mobile-writer">
                 <div class="mobile-names">
                   <label>To <input type="text" id="mobileTo" maxlength="10" autocomplete="off" placeholder="받는 사람"></label>
@@ -156,61 +147,63 @@
                 </div>
               </div>
         <div class="write-actions">
-          <button type="button" class="tale-btn is-primary" id="translateBtn">제주어로 바꾸기</button>
+          <button type="button" class="tale-btn is-primary" id="translateBtn">제주어로 바꾸기 <span aria-hidden="true">→</span></button>
         </div>
         <p class="status" id="status" aria-live="polite"></p>
-
-        <!-- 제주어로 바꾼 뒤: 표준어 원문 · 제주어 결과(둘 다 고칠 수 있음) · 다시 바꾸기 -->
-        <div class="translate-panel" id="translatePage" hidden>
-          <h3 class="tr-heading" id="translateTitle" tabindex="-1">제주어로 이렇게 바뀌었어요</h3>
-          <div class="tr-body">
-                  <!-- 두 편지 모두 엽서 글쓰기 면처럼: To 줄 → 점선 줄 위의 글 → 날짜 · From 줄 -->
-                  <section class="tr-card tr-standard" aria-labelledby="trStandardLabel">
-                    <h3 class="tr-label" id="trStandardLabel">표준어 편지</h3>
-                    <div class="tr-paper">
-                      <p class="tr-to">To <span class="tr-name" data-name="to"></span></p>
-                      <textarea class="tr-text" id="trStandard" aria-labelledby="trStandardLabel"></textarea>
-                      <p class="tr-foot"><span class="tr-date"></span><span class="tr-from"><span class="tr-name" data-name="from"></span>From</span></p>
-                    </div>
-                  </section>
-
-                  <div class="tr-middle">
-                    <button type="button" class="tr-convert" id="trConvert">
-                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 0 1-14.3 4.9M4 12a8 8 0 0 1 14.3-4.9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M18.8 3.2v4.2h-4.2M5.2 20.8v-4.2h4.2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                      <span>원래 편지로 <br>다시 바꾸기</span>
-                    </button>
-                    <span class="tr-arrow" aria-hidden="true">→</span>
-                  </div>
-
-                  <section class="tr-card tr-jeju" aria-labelledby="trJejuLabel">
-                    <h3 class="tr-label" id="trJejuLabel">제주어 변환 결과</h3>
-                    <div class="tr-paper">
-                      <p class="tr-to">To <span class="tr-name" data-name="to"></span></p>
-                      <textarea class="tr-text" id="trJeju" aria-labelledby="trJejuLabel" aria-describedby="trNote"></textarea>
-                      <p class="tr-foot"><span class="tr-date"></span><span class="tr-from"><span class="tr-name" data-name="from"></span>From</span></p>
-                    </div>
-                  </section>
-                </div>
-
-      
-          <p class="tr-note" id="trNote" aria-live="polite"></p>
-          <div class="tr-actions">
-            <button type="button" class="tale-btn" id="trBack">표준어로 다시 쓰기</button>
-            <button type="button" class="tale-btn is-primary" id="trNext">이 엽서로 마음 전하기 <span aria-hidden="true">↓</span></button>
-          </div>
-          <p class="status" id="trStatus" aria-live="polite"></p>
-        </div>
       </section>
 
+      </div>
+
+      <!-- 보내기 화면: '제주어로 바꾸기'를 누르면 화면이 바뀌어 제주어 엽서에 우표 · 소인이 찍히고 바로 보낼 수 있음.
+           보내기를 마치면 엔딩 화면. 휴대폰 뒤로 가기 · 뒤로 버튼은 한 화면씩 돌아감 -->
+      <div class="book-page" id="pageSend" hidden>
       <!-- SCENE 04. 마음이 닿는 곳으로 (보내기): 완성된 엽서에 귤 우표 · 하영고라보게 소인이 찍힘 -->
       <section class="scene scene-send" id="secSend" aria-labelledby="sendSecTitle" hidden>
-        <p class="scene-label">네 번째 장 · 마음이 닿는 곳으로</p>
         <h2 class="scene-title" id="sendSecTitle" tabindex="-1" data-chars>이제, 마음을 전할 시간이에요.</h2>
         <figure class="final-card" id="finalCard">
           <img class="final-image" id="finalImage" alt="완성된 제주어 엽서">
           <img class="final-tangerine" id="finalTangerine" src="images/tale/stamp-tangerine.png" alt="" aria-hidden="true">
           <img class="final-postmark" id="finalPostmark" src="images/stamp-goraboge.png?v=2" alt="" aria-hidden="true">
         </figure>
+
+        <!-- 제주어 편지 고치기: 눌러서 펼침. 표준어 원문 · 제주어 결과(둘 다 고칠 수 있음) · 다시 바꾸기. 고치면 위 엽서에 바로 반영 -->
+        <button type="button" class="text-btn jeju-edit-toggle" id="jejuEditBtn" aria-expanded="false" aria-controls="jejuEditor">제주어 편지 고치기 <span aria-hidden="true">▾</span></button>
+        <div class="jeju-editor" id="jejuEditor" hidden>
+          <div class="translate-panel" id="translatePage" hidden>
+            <div class="tr-body">
+                    <!-- 두 편지 모두 엽서 글쓰기 면처럼: To 줄 → 점선 줄 위의 글 → 날짜 · From 줄 -->
+                    <section class="tr-card tr-standard" aria-labelledby="trStandardLabel">
+                      <h3 class="tr-label" id="trStandardLabel">표준어 편지</h3>
+                      <div class="tr-paper">
+                        <p class="tr-to">To <span class="tr-name" data-name="to"></span></p>
+                        <textarea class="tr-text" id="trStandard" aria-labelledby="trStandardLabel"></textarea>
+                        <p class="tr-foot"><span class="tr-date"></span><span class="tr-from"><span class="tr-name" data-name="from"></span>From</span></p>
+                      </div>
+                    </section>
+                      <div class="tr-middle">
+                        <button type="button" class="tr-convert" id="trConvert">
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 0 1-14.3 4.9M4 12a8 8 0 0 1 14.3-4.9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M18.8 3.2v4.2h-4.2M5.2 20.8v-4.2h4.2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                          <span>원래 편지로 <br>다시 바꾸기</span>
+                        </button>
+                        <span class="tr-arrow" aria-hidden="true">→</span>
+                      </div>
+                      <section class="tr-card tr-jeju" aria-labelledby="trJejuLabel">
+                        <h3 class="tr-label" id="trJejuLabel">제주어 변환 결과</h3>
+                        <div class="tr-paper">
+                          <p class="tr-to">To <span class="tr-name" data-name="to"></span></p>
+                          <textarea class="tr-text" id="trJeju" aria-labelledby="trJejuLabel" aria-describedby="trNote"></textarea>
+                          <p class="tr-foot"><span class="tr-date"></span><span class="tr-from"><span class="tr-name" data-name="from"></span>From</span></p>
+                        </div>
+                      </section>
+                    </div>
+              <p class="tr-note" id="trNote" aria-live="polite"></p>
+              <div class="tr-actions">
+                <button type="button" class="tale-btn" id="trBack">← 표준어로 다시 쓰기</button>
+                <button type="button" class="tale-btn is-primary" id="trNext">고친 편지로 엽서 다시 찍기</button>
+              </div>
+              <p class="status" id="trStatus" aria-live="polite"></p>
+            </div>
+        </div>
         <dialog class="send-panel" id="sendPanel" aria-labelledby="sendTitle">
                 <h3 class="send-title" id="sendTitle">어떻게 보낼까요?</h3>
                 <div class="send-hint" id="sendHint" hidden>
@@ -220,11 +213,11 @@
                 <div class="send-row">
                   <button type="button" class="send-option send-kakao" id="kakaoBtn">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4C7 4 3 7.1 3 11c0 2.5 1.7 4.7 4.2 5.9l-1 3.7a.3.3 0 0 0 .4.3l4.4-2.9h1c5 0 9-3.1 9-7s-4-7-9-7z" fill="currentColor"/></svg>
-                    <span><b>카카오톡으로 보내기</b><small>친구를 골라 엽서를 보내요</small></span>
+                    <span><b>카카오톡</b><small>친구를 골라 엽서를 보내요</small></span>
                   </button>
                   <button type="button" class="send-option" id="mailOption" aria-expanded="false" aria-controls="mailForm">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
-                    <span><b>메일로 보내기</b><small>엽서 그림이 메일에 바로 보여요</small></span>
+                    <span><b>메일</b><small>엽서 그림이 메일에 바로 보여요</small></span>
                   </button>
                   <form class="mail-form" id="mailForm" hidden>
                     <label class="sheet-label" for="mailInput">받는 사람 메일 주소</label>
@@ -235,15 +228,15 @@
                   </form>
                   <button type="button" class="send-option" id="copyLinkBtn">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                    <span><b>링크 복사하기</b><small>문자나 SNS에 붙여 넣어 보내요</small></span>
+                    <span><b>링크 복사</b><small>문자나 SNS에 붙여 넣어 보내요</small></span>
                   </button>
                   <button type="button" class="send-option" id="saveBtn">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    <span><b>이미지로 저장하기</b><small>휴대폰에 엽서 그림을 저장해요</small></span>
+                    <span><b>이미지 저장</b><small>휴대폰에 엽서 그림을 저장해요</small></span>
                   </button>
                   <button type="button" class="send-option" id="boardBtn">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 10.5V21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                    <span><b>게시판에 붙이기</b><small>모두가 보는 게시판에 남겨요</small></span>
+                    <span><b>게시판</b><small>모두가 보는 게시판에 남겨요</small></span>
                   </button>
                 </div>
                 <p class="sheet-status" id="sheetStatus" aria-live="polite"></p>
@@ -251,25 +244,27 @@
                   <button type="button" class="stitch-btn is-accent" id="newCardBtn">새 엽서 쓰기</button>
                   <button type="button" class="text-btn" id="viewBoardBtn" hidden>게시판에서 보기</button>
                 </div>
-                <button type="button" class="text-btn send-back" id="sendBack">↑ 제주어 편지 고치기</button>
+                <button type="button" class="text-btn send-back" id="sendBack">← 편지 다시 쓰기</button>
               </dialog>
       </section>
 
-      <!-- 엔딩: 보내기를 마치면 편지가 제주 바람을 타고 하늘로 -->
+      </div>
+
+      <!-- 엔딩: 보내기를 마치면 화면이 바뀌고, 편지가 제주 바람을 타고 하늘로 -->
+      <div class="book-page" id="pageEnd" hidden>
       <section class="scene scene-end" id="ending" aria-labelledby="endTitle" hidden>
         <div class="end-sky" aria-hidden="true">
-          <img class="cloud cloud-a" src="images/tale/cloud.svg" alt="">
-          <img class="cloud cloud-b" src="images/tale/cloud.svg" alt="">
-          <img class="cloud cloud-c" src="images/tale/cloud.svg" alt="">
-          <div class="letter is-closed" id="flyLetter" aria-hidden="true"><div class="letter-back"></div><div class="letter-front"></div><div class="letter-flap"><span class="letter-seal"></span></div></div>
+          <img class="end-art" src="images/tale/prologue-sky.webp" alt="" loading="lazy">
+          <img class="fly-letter" id="flyLetter" src="images/tale/letter-full.webp" alt="" loading="lazy">
         </div>
         <p class="end-text" id="endTitle"><span>당신의 마음이 닿는 곳에,</span><span>제주어도 함께 닿기를.</span></p>
         <img class="end-logo" src="images/logo-goraboge.png" alt="하영고라보게" width="398" height="259">
         <div class="end-actions">
           <button type="button" class="tale-btn is-primary" id="endNewBtn">새 엽서 쓰기</button>
-          <button type="button" class="text-btn" id="endMoreBtn">↑ 다른 방법으로도 보내기</button>
+          <button type="button" class="text-btn" id="endMoreBtn">← 다른 방법으로도 보내기</button>
         </div>
       </section>
+      </div>
     </div>
 
     <!-- 엽서 게시판: 다른 사람들이 쓴 엽서를 핀으로 붙여 보여 줌 (Supabase에 저장된 모두의 엽서, 적을 때는 예시도 함께) -->
@@ -285,8 +280,11 @@
         </section>
   </main>
 
+  <!-- 뒤로가기: 어느 페이지에서나 화면 아래 왼쪽 같은 자리. 어디로 돌아갈지는 app.js의 backTarget -->
+  <button type="button" class="back-fab" id="backBtn" hidden><span aria-hidden="true">←</span> 뒤로</button>
+
   <!-- 이야기를 다 보지 않아도 언제든 편지 쓰기로 (SCENE 03에 닿으면 숨음) -->
-  <a class="float-cta" id="floatCta" href="#scene3" hidden>바로 편지 쓰기</a>
+  <a class="float-cta" id="floatCta" href="#scene2" hidden>바로 편지 쓰기</a>
 
   <!-- 게시판 엽서 크게 보기 -->
   <dialog class="board-view" id="boardView" aria-label="엽서 크게 보기">
@@ -316,23 +314,53 @@
     </div>
   </dialog>
 
-  <dialog class="sheet" id="helpDialog" aria-labelledby="helpTitle">
-    <h2 id="helpTitle">이렇게 써 보세요</h2>
-    <ol>
-      <li><b>그림</b>: 옆으로 넘겨 엽서 그림을 골라요. 맨 앞 <b>+ 내 사진</b>을 누르면 직접 찍은 사진을 넣을 수 있어요.</li>
-      <li><b>쓰기</b>: 받는 사람, 하고 싶은 말, 보내는 사람을 평소 말투로 적어요.</li>
-      <li><b>제주어</b>: 표준어 편지와 제주어로 바꾼 편지를 함께 보여 줘요. 제주어 편지는 눌러서 고칠 수 있어요.</li>
-      <li><b>보내기</b>: 하영고라보게 소인이 찍히면 카카오톡 · 메일 · 링크 · 이미지 저장 · 게시판 중에 골라 보내요.</li>
-    </ol>
-    <p class="sheet-note">제주어 번역은 「개정증보 제주어사전」(2009)을 바탕으로 한 참고용 번역이에요.</p>
-    <form method="dialog" class="sheet-close"><button class="stitch-btn">닫기</button></form>
+  <!-- 처음 안내 팝업: 웹진 '제주어로 내 마음 전하기' 칸을 휴대폰 화면처럼 세로로 옮긴 것. 시작 화면을 열 때마다 바로 뜨고(새로 고쳐도 뜸),
+       위 ? 단추로 다시 열 수 있음. 예시 엽서 그림 = images/intro/ (_tools/build_intro_assets.py) -->
+  <dialog class="intro-pop" id="helpDialog" aria-labelledby="introTitle">
+    <button type="button" class="intro-pop-x" id="introClose" aria-label="안내 닫기">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+    <div class="intro-pop-body">
+      <p class="intro-pop-eyebrow" lang="en">No.01 · Write</p>
+      <h2 class="intro-pop-title" id="introTitle">제주어로 내 마음 전하기</h2>
+      <p class="intro-pop-lede">지금 전하지 않으면 사라지는 말,<br>엽서에 적어 제주어로 전해 보세요.</p>
+
+      <div class="intro-pop-examples" id="introExamples" aria-roledescription="예시 엽서" aria-label="예시 엽서 두 장">
+        <figure class="intro-pop-example is-active">
+          <img src="images/intro/example-01-m.webp" width="760" height="1064" alt="예시 엽서 — 나를 위한 기록: 미래의 나에게, 제주의 오늘을. To. 1년 뒤 나안티. 오널 제주 바당이 막 곱닥ᄒᆞ엿어. 버스 눼쳔 ᄒᆞᆫ참 지드렷는디, 덕분에 체얌 보는 바당도 만낫어. 그때 나는 잘도 돌아뎅겨신게. 느도 간간 아모 여산 어시 떠나 보라.">
+        </figure>
+        <figure class="intro-pop-example">
+          <img src="images/intro/example-02-m.webp" width="760" height="1064" loading="lazy" alt="예시 엽서 — 소중한 사람에게: 평소에 못 하던 말, 다른 말투를 빌려서. To. 어멍. 어멍, 나 제주서 잘 지냄서. 멘날 바쁘덴 전화도 ᄍᆞ르게 ᄒᆞ여신디, 이디 오난 어멍이영 ᄒᆞᆫ듸 와시민 좋으키여 ᄒᆞ는 셍각이 나라. 다음엔 꼭 ᄒᆞᆫ듸 오게. ᄉᆞ랑ᄒᆞ여!">
+        </figure>
+        <div class="intro-pop-dots" role="group" aria-label="예시 엽서 고르기">
+          <button type="button" class="intro-pop-dot" data-example="0" aria-pressed="true" aria-label="1번 예시: 나를 위한 기록"></button>
+          <button type="button" class="intro-pop-dot" data-example="1" aria-pressed="false" aria-label="2번 예시: 소중한 사람에게"></button>
+        </div>
+      </div>
+
+      <p class="intro-pop-desc">하고 싶은 말을 쓰면 제주어로 바뀌어요.<br>이미지로 저장하거나, 메일, 카톡으로 보낼 수 있어요.</p>
+      <ol class="intro-pop-steps">
+        <li><b aria-hidden="true">1</b>글을 쓰고</li>
+        <li><b aria-hidden="true">2</b>제주어로 바꾸고</li>
+        <li><b aria-hidden="true">3</b>저장하거나 메일 · 카톡으로</li>
+      </ol>
+      <p class="intro-pop-note">제주어 번역은 「개정증보 제주어사전」(2009)을 바탕으로 한 참고용 번역이에요.</p>
+    </div>
+    <!-- 단추는 팝업 아래에 늘 붙어 있음 (글을 스크롤하지 않아도 보임) -->
+    <div class="intro-pop-foot">
+      <button type="button" class="intro-pop-btn" id="introStart">
+        <span>제주어 엽서 써보기</span>
+        <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M4 10h11M11 5.5 15.5 10 11 14.5"/></svg>
+        <img class="intro-pop-btn-stamp" src="images/intro/stamp-citrus.webp" width="180" height="241" alt="">
+      </button>
+    </div>
   </dialog>
 
   <script src="config.js?v=3"></script>
   <script src="jeju-dict.js?v=1"></script>
   <script src="translate.js?v=4"></script>
   <script src="badwords.js?v=1"></script>
-  <script src="app.js?v=95"></script>
+  <script src="app.js?v=175"></script>
 </body>
 
 </html>

@@ -81,17 +81,10 @@ function selectCard(index) {
   showPhoto(false);
 }
 
-// 고른 그림을 SCENE 02의 큰 미리보기와 동화 속 봉투 안 엽서에도 똑같이
+// 고른 그림을 동화 속 봉투 안 엽서에도 똑같이
 function syncPreview() {
-  const preview = document.getElementById('previewImage');
-  const previewPhoto = document.getElementById('previewPhoto');
   const letterCard = document.getElementById('letterCard');
-  if (preview && preview.getAttribute('src') !== cardImage.getAttribute('src')) preview.src = cardImage.getAttribute('src');
   if (letterCard && letterCard.getAttribute('src') !== cardImage.getAttribute('src')) letterCard.src = cardImage.getAttribute('src');
-  if (previewPhoto) {
-    if (photoActive && previewPhoto.src !== cardPhoto.src) previewPhoto.src = cardPhoto.src;
-    previewPhoto.hidden = !photoActive;
-  }
 }
 
 const tileCenter = (k) => cardTiles[k].offsetLeft + cardTiles[k].offsetWidth / 2;
@@ -377,33 +370,30 @@ const TR_NOTE = '「개정증보 제주어사전」을 바탕으로 한 참고�
 // 지금 편지의 두 모습. 엽서에 제주어 편지를 담은 뒤 글을 고치지 않았으면 그대로 다시 보여 줌
 let letter = { standard: '', jeju: '' };
 
-// ---------- 제주 동화 한 편: SCENE 01 → 02 → 03 → 04 (+ 엔딩) ----------
-// 01~02: 화면이 멈춘 채(sticky) 스크롤에 맞춰 카메라가 움직임 (아래 '동화 장면')
-// 02: 종이 한 장이 동화 위로 밀려 올라오며 엽서 고르기 · 03: 쓰기와 제주어 변환 · 04: 보내기
-// 04와 엔딩은 앞 단계 버튼을 누르면 열림. 게시판만 따로 보는 화면이라 브라우저 기록을 하나 쌓음
+// ---------- 제주 동화 한 편: 화면 단위 ----------
+// 이야기(flow): SCENE 01~02. 화면이 멈춘 채(sticky) 스크롤에 맞춰 카메라가 움직이고(아래 '동화 장면'),
+//   종이 한 장이 동화 위로 밀려 올라오며 엽서 고르기 + 마음 쓰기 (한 화면).
+//   여기서부터는 버튼을 누를 때마다 화면이 통째로 바뀜 (앞 화면 내용은 보이지 않음):
+//   '제주어로 바꾸기' → 보내기(send: 제주어 엽서에 우표 · 소인, 제주어 편지 고치기는 펼쳐서) → 보내기를 마치면 엔딩(end)
+// 게시판(board): 따로 보는 화면
+// 화면을 바꿀 때마다 브라우저 기록을 쌓아 휴대폰 뒤로 가기 · 뒤로 버튼으로 한 화면씩 돌아옴. 화면마다 보던 자리를 기억함
 const scene2 = document.getElementById('scene2');
-const scene3 = document.getElementById('scene3');
 const secSend = document.getElementById('secSend');
 const ending = document.getElementById('ending');
 const floatCta = document.getElementById('floatCta');
-const SECTIONS = { pick: scene2, write: scene3, translate: translatePage, send: secSend };
+const SECTIONS = { pick: scene2, translate: translatePage, send: secSend };
 const calmMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const smoothScroll = () => (calmMotion.matches ? 'auto' : 'smooth');
-const barHeight = () => document.querySelector('.tale-bar').offsetHeight;
+const storyPage = document.getElementById('storyPage');
+const PAGES = {
+  flow: storyPage,
+  send: document.getElementById('pageSend'),
+  end: document.getElementById('pageEnd'),
+};
+const BACK_OF = { send: 'flow', end: 'send' };   // 뒤로 가면 갈 화면
 let view = 'flow';
-let stepDepth = 0;   // 게시판을 열며 쌓은 기록 수
-let flowScrollY = 0; // 게시판에서 돌아올 자리
-
-function scrollToEl(el, offset = 0) {
-  const top = el.getBoundingClientRect().top + window.scrollY - offset;
-  window.scrollTo({ top: Math.max(0, top), behavior: smoothScroll() });
-}
-
-function scrollToSec(name) {
-  const el = SECTIONS[name];
-  if (el.hidden) return;
-  scrollToEl(el, name === 'translate' ? barHeight() + 16 : 0);
-}
+let stepDepth = 0;                                  // 이 사이트 안에서 쌓은 기록 수
+const scrollMemory = { flow: 0, send: 0, end: 0, board: 0 };  // 화면마다 보던 자리 ('pick' = 엽서 고르기, 'write' = 마음 쓰기)
 
 function openSec(name) {
   SECTIONS[name].hidden = false;
@@ -420,43 +410,65 @@ function closeSec(name) {
 }
 
 function renderView(next) {
+  // 닫힌 화면으로 (앞으로 가기 등) 오면 열려 있는 앞 화면으로
+  if (next === 'end' && ending.hidden) next = 'send';
+  if (next === 'send' && secSend.hidden) next = 'flow';
+  if (view !== next) scrollMemory[view] = window.scrollY;
   view = next;
   document.body.dataset.view = next;
   writePanelEl.hidden = next === 'board';
+  Object.entries(PAGES).forEach(([name, el]) => { el.hidden = name !== next; });
   boardSection.hidden = next !== 'board';
+  if (next === 'flow' && jejuApplied) backToStandard();   // 쓰는 곳은 늘 평소 말로
+  let y = scrollMemory[next] || 0;
+  if (y === 'pick') y = scene2.getBoundingClientRect().top + window.scrollY;
+  if (y === 'write') y = document.getElementById('writeTitle').getBoundingClientRect().top + window.scrollY - 90;
+  window.scrollTo(0, y);
   updateFloatCta();
   if (next === 'flow') {
-    window.scrollTo(0, flowScrollY);
     scrollToSlot(centerSlot, 'instant');   // 숨어 있던 띠를 지금 그림에 맞춰 다시 놓음
+    measureStory();
     requestStory();
-  } else {
-    window.scrollTo(0, 0);
   }
 }
 
-function goBoard() {
-  if (view === 'board') return;
-  flowScrollY = window.scrollY;
-  stepDepth = 1;
-  history.pushState({ view: 'board' }, '');
-  renderView('board');
+// 다음 페이지로 (기록을 하나 쌓음). fresh면 그 페이지 맨 위부터
+function goView(next, fresh = false) {
+  if (view === next) return;
+  scrollMemory[view] = window.scrollY;
+  if (fresh) scrollMemory[next] = 0;
+  stepDepth += 1;
+  history.pushState({ view: next, depth: stepDepth }, '');
+  renderView(next);
 }
 
-function leaveBoard() {
+// 앞 페이지로 (사이트 안에서 쌓은 기록이 있으면 브라우저 뒤로 가기와 똑같이)
+function backView(fallback) {
   if (stepDepth > 0) history.back();
-  else renderView('flow');
+  else renderView(fallback);
 }
+
+// 쓰는 곳으로 돌아오면 엽서 글을 평소 말(표준어)로 되돌림. 제주어 편지는 기억해 두었다가 같은 글이면 다시 씀
+function backToStandard() {
+  if (putOnCard(trStandard.value)) letter.standard = trStandard.value;
+  setTranslated(false);
+  hideEditAlert();
+  closeSec('send');
+}
+
+const goBoard = () => goView('board', true);
+const leaveBoard = () => backView('flow');
 
 window.addEventListener('popstate', (e) => {
-  const next = (e.state && e.state.view) || 'flow';
-  stepDepth = next === 'board' ? 1 : 0;
-  renderView(next);
+  const state = e.state || {};
+  stepDepth = state.depth || 0;
+  renderView(state.view || 'flow');
 });
 
 // 제주어로 바꾼 상태: 쓰기 칸 대신 표준어 · 제주어 두 편지를 보여 주고, 엽서 글은 제주어 편지 칸에서만 고침
 function setTranslated(on) {
   jejuApplied = on;
-  scene3.classList.toggle('is-translated', on);
+  scene2.classList.toggle('is-translated', on);
   cardMessage.readOnly = on;
 }
 
@@ -528,9 +540,10 @@ translateBtn.addEventListener('click', () => {
   }
   setStatus('');
   setTrStatus('');
+  const reuse = letter.jeju && (text === letter.standard || (jejuApplied && text === letter.jeju));
   trStandard.value = jejuApplied && text === letter.jeju ? letter.standard : text;
   fillPaperInfo();
-  if (jejuApplied && text === letter.jeju) {
+  if (reuse) {
     trJeju.value = letter.jeju;
     markStale(false);
     trNote.textContent = TR_NOTE;
@@ -542,13 +555,61 @@ translateBtn.addEventListener('click', () => {
   playWind(() => {
     translateBtn.disabled = false;
     openSec('translate');
+    jejuEditor.hidden = true;
+    jejuEditBtn.setAttribute('aria-expanded', 'false');
+    // 바뀐 제주어 편지를 엽서에 담고 바로 보내기 화면으로 (8줄을 넘거나 보낼 수 없는 말이면 여기 머묾)
+    const problem = jejuProblem();
+    if (problem) {
+      setStatus(problem, true);
+      return;
+    }
+    putOnCard(trJeju.value);
     setTranslated(true);
-    applyJeju();
-    fitTrTexts();
-    scrollToSec('translate');
-    document.getElementById('translateTitle').focus({ preventScroll: true });
+    letter = { standard: trStandard.value, jeju: trJeju.value };
+    editAlertDismissed = false;
+    hideEditAlert();
+    showFinalCard();
   });
 });
+
+// 제주어 엽서로 만들 수 없는 까닭 (없으면 빈 값)
+function jejuProblem() {
+  if (!trJeju.value.trim()) return '제주어 편지가 비어 있어요.';
+  if (badWordIn(trJeju.value, trStandard.value, cardTo.value, cardFrom.value)) return BAD_WORD_MESSAGE;
+  const before = cardMessage.value;
+  const fits = putOnCard(trJeju.value);
+  putOnCard(before);
+  return fits ? '' : '제주어로 바꾸니 엽서 8줄을 넘어가요. 편지를 조금 줄여 주세요.';
+}
+
+// 보내기 화면의 '제주어 편지 고치기': 펼치면 표준어 · 제주어 두 편지 (고치면 엽서에 바로 반영)
+const jejuEditor = document.getElementById('jejuEditor');
+const jejuEditBtn = document.getElementById('jejuEditBtn');
+jejuEditBtn.addEventListener('click', () => {
+  const open = jejuEditor.hidden;
+  jejuEditor.hidden = !open;
+  jejuEditBtn.setAttribute('aria-expanded', String(open));
+  if (open) {
+    fitTrTexts();
+    jejuEditor.scrollIntoView({ behavior: smoothScroll(), block: 'start' });
+  }
+});
+
+// 보내기 화면의 완성 엽서 그림을 지금 글로 다시 그림 (우표 · 소인은 그 위에 그대로)
+let refreshTimer = null;
+function refreshFinal() {
+  if (secSend.hidden) return;
+  clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(async () => {
+    const was = stamped;
+    stamped = false;
+    try {
+      finalImage.src = (await renderCard()).toDataURL('image/jpeg', 0.9);
+    } finally {
+      stamped = was;
+    }
+  }, 350);
+}
 
 // 제주어 편지를 엽서에 담음 (엽서 8줄을 넘으면 알려 주고 엽서는 그대로)
 function applyJeju() {
@@ -570,8 +631,12 @@ trConvert.addEventListener('click', () => {
   }
   setTrStatus('');
   convertLetter();
-  if (!secSend.hidden) closeSec('send');
-  playWind(applyJeju);
+  if (applyJeju()) letter.jeju = trJeju.value;
+  refreshFinal();
+  const paper = trJeju.closest('.tr-paper');   // 제주어 편지 칸에 글이 새로 맺힘
+  paper.classList.remove('is-renewed');
+  void paper.offsetWidth;
+  paper.classList.add('is-renewed');
   trConvert.classList.remove('is-spinning');
   void trConvert.offsetWidth;
   trConvert.classList.add('is-spinning');
@@ -586,23 +651,24 @@ trStandard.addEventListener('input', () => {
   }
 });
 
-// 제주어 편지를 고치면 엽서에도 바로 (보내기를 열어 둔 뒤라면 완성 엽서가 바뀌므로 다시 닫음)
+// 제주어 편지를 고치면 엽서와 보내기 화면의 완성 엽서에도 바로
 trJeju.addEventListener('input', () => {
   letter.jeju = trJeju.value;
   fitHeight(trJeju);
   applyJeju();
-  if (!secSend.hidden) closeSec('send');
+  refreshFinal();
 });
 
 // 엽서에 글을 담아 보고, 엽서 8줄을 넘으면 되돌림.
 // 2단계 페이지에 있을 때는 엽서가 숨어 있어 높이를 잴 수 없으므로 잠깐 펼쳐서 잼 (화면에는 안 보임)
 function putOnCard(text) {
   const before = cardMessage.value;
-  const wasHidden = writePanelEl.hidden;
+  const wasHidden = [writePanelEl.hidden, storyPage.hidden];
   writePanelEl.hidden = false;
+  storyPage.hidden = false;
   cardMessage.value = text;
   const overflow = cardMessage.scrollHeight > cardMessage.clientHeight;
-  writePanelEl.hidden = wasHidden;
+  [writePanelEl.hidden, storyPage.hidden] = wasHidden;
   if (overflow) {
     cardMessage.value = before;
     return false;
@@ -624,8 +690,8 @@ document.getElementById('trBack').addEventListener('click', () => {
   closeSec('send');
   closeSec('translate');
   setTranslated(false);
-  scrollToEl(writeCard, barHeight() + 12);
-  mobileMessage.focus({ preventScroll: true });
+  scrollMemory.flow = 'write';
+  backView('flow');
 });
 
 // ---------- 보내기 소인 ----------
@@ -683,8 +749,18 @@ async function showFinalCard() {
   finalCard.dataset.pending = '1';
   openSec('send');
   if (!sendPanel.open) openSend();
-  scrollToSec('send');
-  document.getElementById('sendSecTitle').focus({ preventScroll: true });
+  if (view === 'send') {
+    // 다시 찍으면 고치기 칸은 접어서 엽서 바로 아래 보내기 아이콘이 보이게
+    jejuEditor.hidden = true;
+    jejuEditBtn.setAttribute('aria-expanded', 'false');
+    delete finalCard.dataset.pending;
+    void finalCard.offsetWidth;
+    finalCard.classList.add(calmMotion.matches ? 'is-stamped' : 'is-stamping');
+    finalCard.scrollIntoView({ behavior: smoothScroll(), block: 'center' });
+  } else {
+    goView('send', true);
+    document.getElementById('sendSecTitle').focus({ preventScroll: true });
+  }
 }
 
 const stampWatch = 'IntersectionObserver' in window ? new IntersectionObserver((entries) => {
@@ -697,7 +773,7 @@ const stampWatch = 'IntersectionObserver' in window ? new IntersectionObserver((
 if (stampWatch) stampWatch.observe(finalCard);
 else finalCard.classList.add('is-stamped');
 
-// 이 편지로 보내기: 제주어 편지를 엽서에 담고, 도장을 찍은 뒤 보내기를 엶
+// 고친 편지로 엽서 다시 찍기: 제주어 편지를 엽서에 담고 우표 · 소인을 다시 찍음
 document.getElementById('trNext').addEventListener('click', () => {
   if (!trJeju.value.trim()) {
     setTrStatus('제주어 편지가 비어 있어요. ‘원래 편지로 다시 바꾸기’를 눌러 주세요.', true);
@@ -938,14 +1014,16 @@ function finishSend(text) {
 function showEnding() {
   if (!ending.hidden) return;
   ending.hidden = false;
-  ending.classList.remove('is-playing');
-  void ending.offsetWidth;
-  ending.classList.add('is-playing');
-  setTimeout(() => scrollToEl(ending), 900);
+  setTimeout(() => {
+    ending.classList.remove('is-playing');
+    void ending.offsetWidth;
+    ending.classList.add('is-playing');
+    goView('end', true);
+  }, 900);
 }
 
 document.getElementById('endNewBtn').addEventListener('click', () => document.getElementById('newCardBtn').click());
-document.getElementById('endMoreBtn').addEventListener('click', () => scrollToEl(sendPanel, barHeight() + 12));
+document.getElementById('endMoreBtn').addEventListener('click', () => backView('send'));
 
 // 새 엽서 쓰기: 다 비우고 1단계(그림)로
 document.getElementById('newCardBtn').addEventListener('click', () => {
@@ -962,7 +1040,9 @@ document.getElementById('newCardBtn').addEventListener('click', () => {
   closeSec('send');
   closeSec('translate');
   setTranslated(false);
-  scrollToSec('pick');
+  scrollMemory.flow = 'pick';   // 엽서 고르기 자리 (숨어 있는 동안은 잴 수 없어 보인 뒤에 잼)
+  if (stepDepth > 0) history.go(-stepDepth);   // 엽서 고르기까지 기록을 되감음
+  else renderView('flow');
 });
 
 viewBoardBtn.addEventListener('click', goBoard);
@@ -970,8 +1050,8 @@ viewBoardBtn.addEventListener('click', goBoard);
 
 // 위로: 소인을 지우고 03 제주어로
 document.getElementById('sendBack').addEventListener('click', () => {
-  closeSec('send');
-  scrollToSec('translate');
+  scrollMemory.flow = 'write';
+  backView('flow');
 });
 
 // 아직 표준어면 2단계 페이지로 가서 바꿈
@@ -1505,28 +1585,55 @@ if (received) {
   receivedView.showModal();
 }
 
-// ---------- 사용 방법 ----------
+// ---------- 처음 안내 팝업 (웹진 '제주어로 내 마음 전하기'의 휴대폰 화면) ----------
+// 시작 화면을 열 때마다 바로 뜸(새로 고쳐도 뜸. 받은 엽서 링크로 들어오면 그 엽서가 먼저라 안 뜸). ? 단추로 다시 열기
 
-document.getElementById('helpBtn').addEventListener('click', () => {
-  document.getElementById('helpDialog').showModal();
+const introPop = document.getElementById('helpDialog');
+const introDots = [...introPop.querySelectorAll('.intro-pop-dot')];
+const introSlides = [...introPop.querySelectorAll('.intro-pop-example')];
+let introSlide = 0;
+let introTimer = null;
+
+function showIntroSlide(i) {
+  introSlide = (i + introSlides.length) % introSlides.length;
+  introSlides.forEach((el, n) => el.classList.toggle('is-active', n === introSlide));
+  introDots.forEach((el, n) => el.setAttribute('aria-pressed', String(n === introSlide)));
+}
+function playIntroSlides() {
+  clearInterval(introTimer);
+  if (!calmMotion.matches) introTimer = setInterval(() => showIntroSlide(introSlide + 1), 4500);
+}
+introDots.forEach((dot, n) => dot.addEventListener('click', () => {
+  showIntroSlide(n);
+  playIntroSlides();
+}));
+
+function openIntro() {
+  if (introPop.open) return;
+  document.documentElement.classList.add('intro-open');   // 뒤 화면은 스크롤되지 않게
+  introPop.showModal();
+  introPop.querySelector('.intro-pop-body').scrollTop = 0;
+  playIntroSlides();
+}
+introPop.addEventListener('close', () => {
+  clearInterval(introTimer);
+  document.documentElement.classList.remove('intro-open');
 });
+document.getElementById('introClose').addEventListener('click', () => introPop.close());
+document.getElementById('introStart').addEventListener('click', () => introPop.close());
+introPop.addEventListener('click', (e) => { if (e.target === introPop) introPop.close(); });   // 바깥(어두운 곳)을 눌러도 닫힘
+document.getElementById('helpBtn').addEventListener('click', openIntro);
+
+if (!received) openIntro();
 
 // ---------- 장면 사이 버튼 ----------
 
-// 엽서를 고르면 그 엽서가 살짝 커지며 SCENE 03으로
-document.getElementById('pickNext').addEventListener('click', () => {
-  const preview = document.getElementById('pickPreview');
-  if (calmMotion.matches) {
-    scrollToSec('write');
-    return;
-  }
-  preview.classList.add('is-chosen');
-  writeCard.classList.add('is-arriving');
-  setTimeout(() => scrollToSec('write'), 260);
-  setTimeout(() => preview.classList.remove('is-chosen'), 900);
-  setTimeout(() => writeCard.classList.remove('is-arriving'), 1800);
-});
-document.getElementById('changeCardBtn').addEventListener('click', () => scrollToSec('pick'));
+// 이야기를 건너뛰고 엽서 고르기 · 마음 쓰기 종이로 바로
+function openWritePage() {
+  if (view !== 'flow') renderView('flow');
+  window.scrollTo(0, scene2.getBoundingClientRect().top + window.scrollY);
+}
+
 document.getElementById('boardNavBtn').addEventListener('click', goBoard);
 document.getElementById('boardBack').addEventListener('click', leaveBoard);
 
@@ -1534,18 +1641,62 @@ document.getElementById('boardBack').addEventListener('click', leaveBoard);
 ['jumpBtn', 'floatCta'].forEach((id) => {
   document.getElementById(id).addEventListener('click', (e) => {
     e.preventDefault();
-    scrollToSec('write');
+    openWritePage();
     document.getElementById('writeTitle').focus({ preventScroll: true });
   });
 });
 document.querySelector('.skip-link').addEventListener('click', (e) => {
   e.preventDefault();
-  scrollToSec('write');
+  openWritePage();
   mobileMessage.focus({ preventScroll: true });
+});
+
+// ---------- 뒤로가기 (위 막대) ----------
+// 쓰기 페이지 → 엽서 고르기 · 게시판 → 보던 곳 · 이야기 중간이나 엽서 고르기 → 첫 페이지 ·
+// 첫 페이지 → 들어오기 전 페이지(웹진). 들어오기 전 페이지가 없으면(새 탭으로 열었을 때) 첫 페이지에서는 숨김
+const backBtn = document.getElementById('backBtn');
+const cameFromPage = history.length > 1 && !!document.referrer;
+
+function backTarget() {
+  if (view === 'board') return 'board';
+  if (BACK_OF[view]) return view;
+  if (window.scrollY > window.innerHeight * 0.3) return 'top';
+  return cameFromPage ? 'leave' : null;
+}
+
+function updateBackBtn() {
+  const target = backTarget();
+  backBtn.hidden = !target;
+  backBtn.setAttribute('aria-label', {
+    board: '게시판 닫기', send: '편지 쓰기로 돌아가기', end: '보내기로 돌아가기', top: '첫 페이지로', leave: '들어오기 전 페이지로',
+  }[target] || '뒤로');
+}
+
+// 위 막대 로고: 어느 페이지에서든 첫 페이지로 (주소 뒤 #story로 건너뛰지 않고 페이지 기록을 따라감)
+document.querySelector('.tale-logo').addEventListener('click', (e) => {
+  e.preventDefault();
+  if (view === 'flow') {
+    window.scrollTo({ top: 0, behavior: smoothScroll() });
+    return;
+  }
+  scrollMemory.flow = 0;
+  if (stepDepth > 0) history.go(-stepDepth);   // 맨 처음 페이지까지 기록을 되감음
+  else renderView('flow');
+});
+
+backBtn.addEventListener('click', () => {
+  const target = backTarget();
+  if (target === 'board') leaveBoard();
+  else if (BACK_OF[target]) {
+    if (target === 'send') scrollMemory.flow = 'write';
+    backView(BACK_OF[target]);
+  } else if (target === 'top') window.scrollTo({ top: 0, behavior: smoothScroll() });
+  else if (target === 'leave') history.back();
 });
 
 // 이야기 중에만 아래에 '바로 편지 쓰기'를 띄움 (첫 화면을 지나고, SCENE 02 종이가 올라오기 전까지)
 function updateFloatCta() {
+  updateBackBtn();
   const reached = scene2.getBoundingClientRect().top < window.innerHeight * 0.5;   // 종이가 올라오면 그 안의 버튼이 대신함
   floatCta.hidden = view !== 'flow' || window.scrollY < window.innerHeight * 0.6 || reached;
 }
@@ -1589,26 +1740,20 @@ if ('IntersectionObserver' in window) {
 }
 
 // ---------- 동화 장면 (SCENE 01 → 02 앞부분) ----------
-// .story는 화면보다 몇 배 길고, 안의 .stage는 화면에 멈춰 있음(sticky). 스크롤한 만큼(p)으로
-// 하늘 · 먼 오름 · 가까운 오름 · 풀밭 · 돌담을 서로 다른 빠르기로 올려 '카메라가 아래로 내려가는' 공간감을 만들고,
-// 바람에 흔들리며 내려오는 편지를 따라가다가 책상 위에서 가까이 다가가(확대) 봉투가 열림.
-// 마지막 화면 높이만큼은 SCENE 02 종이가 위로 밀려 올라와 덮음 (style.css의 .scene-pick margin-top)
+// .story는 화면보다 몇 배 길고, 안의 .stage는 화면에 멈춰 있음(sticky). 스크롤한 만큼(p)으로 카메라가 움직임.
+// 그림 두 장(색연필 일러스트): 제주 풍경(하늘 · 땅 · 앞 풀밭 세 층) → 돌담 옆 책상 (편지가 책상 위에 놓여 있음).
+// 카메라가 편지에 다가가면 엽서가 봉투에서 빠져나옴. 마지막 화면 높이만큼은 SCENE 02 종이가 위로 밀려 올라와 덮음
 const story = document.getElementById('story');
 const stage = document.getElementById('stage');
 const world = document.getElementById('world');
-const sky = document.getElementById('sky');
-const layerClouds = document.getElementById('layerClouds');
-const layerFar = document.getElementById('layerFar');
-const layerMid = document.getElementById('layerMid');
-const layerGrass = document.getElementById('layerGrass');
-const layerGround = document.getElementById('layerGround');
-const desk = document.getElementById('desk');
+const artPrologue = document.getElementById('artPrologue');
+const artSky = document.getElementById('artSky');
+const artLand = document.getElementById('artLand');
+const artGrass = document.getElementById('artGrass');
+const artDesk = document.getElementById('artDesk');
 const letterEl = document.getElementById('letter');
-const letterFlap = letterEl.querySelector('.letter-flap');
 const letterCardEl = document.getElementById('letterCard');
 const storyCopy = document.getElementById('storyCopy');
-const caption1 = document.getElementById('caption1');
-const caption2 = document.getElementById('caption2');
 const scrollHint = document.getElementById('scrollHint');
 
 const clamp = (v, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, v));
@@ -1616,35 +1761,50 @@ const seg = (v, a, b) => clamp((v - a) / (b - a));
 const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2);
 const lerp = (a, b, t) => a + (b - a) * t;
 
-const geo = { vw: 0, vh: 0, lw: 0, lh: 0, landX: 0, landY: 0, narrow: false };
+// 그림 원본 크기와, 책상 그림 속 편지 자리 (원본 픽셀 · 각도)
+const ART = { w: 1122, h: 1402 };
+const LETTER_REST = { x: 572, y: 872, angle: -3 };       // 책상 위에 놓인 편지 자리
+const LETTER_SCALE = 0.3565;                            // 편지 폭 = 그림 폭 × 이 값 (그려진 봉투와 같은 크기)
 
-// 책상 위 편지가 내려앉을 자리를 잼 (돌담 층을 움직이기 전의 제자리 기준)
+const geo = { vw: 0, vh: 0, lw: 0, lh: 0, narrow: false, pro: null, desk: null };
+
+// object-fit: cover처럼 그림을 화면에 꽉 채우는 상자 (overscan: 카메라가 움직일 여유)
+function coverBox(vw, vh, overscan, posY) {
+  const k = Math.max(vw / ART.w, vh / ART.h) * overscan;
+  const w = ART.w * k;
+  const h = ART.h * k;
+  return { k, w, h, x: (vw - w) / 2, y: (vh - h) * posY };
+}
+
+function placeBox(el, box) {
+  el.style.left = `${box.x.toFixed(1)}px`;
+  el.style.top = `${box.y.toFixed(1)}px`;
+  el.style.width = `${box.w.toFixed(1)}px`;
+  el.style.height = `${box.h.toFixed(1)}px`;
+}
+
 function measureStory() {
   geo.vw = stage.clientWidth;
   geo.vh = stage.clientHeight;
   geo.narrow = geo.vw < 720;
-  geo.lw = geo.narrow ? Math.min(geo.vw * 0.36, 170) : Math.min(geo.vw * 0.14, 220);
+  geo.pro = coverBox(geo.vw, geo.vh, 1.14, 0.5);
+  geo.desk = coverBox(geo.vw, geo.vh, 1.04, geo.narrow ? 0.7 : 0.74);
+  placeBox(artPrologue, geo.pro);
+  placeBox(artDesk, geo.desk);
+  geo.lw = geo.desk.w * LETTER_SCALE;
   geo.lh = geo.lw / 1.5;
-  letterEl.style.width = `${geo.lw}px`;
-  letterEl.style.height = `${geo.lh}px`;
-  const saved = layerGround.style.translate;
-  layerGround.style.translate = 'none';
-  const st = stage.getBoundingClientRect();
-  const d = desk.getBoundingClientRect();
-  layerGround.style.translate = saved;
-  geo.landX = d.left - st.left + d.width / 2;
-  geo.landY = d.top - st.top + d.height * 0.2 - geo.lh * 0.38;   // 책상 윗면(그림의 54~92px)에 얹힘
+  letterEl.style.width = `${geo.lw.toFixed(1)}px`;
+  letterEl.style.height = `${geo.lh.toFixed(1)}px`;
 }
 
-function fade(el, o, y = 0) {
-  el.style.opacity = o.toFixed(3);
-  el.style.translate = `0 ${y.toFixed(1)}px`;
-  el.style.visibility = o < 0.01 ? 'hidden' : 'visible';
+// 책상 그림 속 한 점 → 화면 위치
+function onDesk(pt) {
+  return { x: geo.desk.x + pt.x * geo.desk.k, y: geo.desk.y + pt.y * geo.desk.k };
 }
 
 function renderStory() {
   storyQueued = false;
-  if (view !== 'flow') return;
+  if (view !== 'flow' || !geo.pro) return;
   const { vw, vh } = geo;
   const r = story.getBoundingClientRect();
   if (r.bottom < 0 || r.top > vh) return;            // 화면 밖이면 그리지 않음
@@ -1655,48 +1815,43 @@ function renderStory() {
   const q = seg(p, storyEnd, 1);
 
   // 프롤로그 글: 처음엔 또렷하게, 내려가면 위로 흩어짐
-  const out = seg(t, 0.04, 0.16);
+  const out = seg(t, 0.05, 0.2);
   storyCopy.style.opacity = (1 - out).toFixed(3);
   storyCopy.style.translate = `0 ${(-out * vh * 0.12).toFixed(1)}px`;
   storyCopy.style.visibility = out > 0.99 ? 'hidden' : 'visible';
-  scrollHint.style.opacity = (1 - seg(t, 0, 0.05)).toFixed(3);
+  scrollHint.style.opacity = (1 - seg(t, 0, 0.06)).toFixed(3);
 
-  // 카메라가 아래로: 먼 것일수록 조금, 가까운 것일수록 많이 움직임 (패럴랙스)
-  const pan = ease(seg(t, 0.12, 0.6));
-  sky.style.translate = `0 ${(-pan * vh * 0.06).toFixed(1)}px`;
-  layerClouds.style.translate = `0 ${(-pan * vh * 0.2).toFixed(1)}px`;
-  layerFar.style.translate = `0 ${(-pan * vh * 0.12).toFixed(1)}px`;
-  layerMid.style.translate = `0 ${(-pan * vh * 0.24).toFixed(1)}px`;
-  layerGrass.style.translate = `0 ${(-pan * vh * 0.36).toFixed(1)}px`;
-  layerGround.style.translate = `0 ${((1 - pan) * vh * 0.78).toFixed(1)}px`;
+  // 카메라가 풀밭 쪽으로 조금 내려가며 다가감: 하늘은 조금, 땅은 더, 앞 풀밭은 가장 많이 (패럴랙스)
+  const pan = ease(seg(t, 0.06, 0.36));
+  const ph = geo.pro.h;
+  artSky.style.translate = `0 ${(-pan * ph * 0.03).toFixed(1)}px`;
+  artLand.style.translate = `0 ${(-pan * ph * 0.06).toFixed(1)}px`;
+  artGrass.style.translate = `0 ${(-pan * ph * 0.11).toFixed(1)}px`;
+  artPrologue.style.transform = `scale(${(1 + pan * 0.06).toFixed(4)})`;
 
-  // 이야기 자막
-  fade(caption1, Math.min(seg(t, 0.2, 0.27), 1 - seg(t, 0.38, 0.45)), (1 - seg(t, 0.2, 0.45)) * 30);
-  fade(caption2, Math.min(seg(t, 0.46, 0.52), 1 - seg(t, 0.6, 0.66)), (1 - seg(t, 0.46, 0.66)) * 30);
+  // 돌담 옆 책상 그림으로 넘어감: 편지는 처음부터 책상 위에 놓여 있음
+  const cross = ease(seg(t, 0.16, 0.38));
+  artPrologue.style.opacity = (1 - cross).toFixed(3);
+  artDesk.style.opacity = cross.toFixed(3);
+  artDesk.style.transform = `translateY(${((1 - cross) * vh * 0.06).toFixed(1)}px) scale(${(1 + (1 - cross) * 0.06).toFixed(4)})`;
 
-  // 편지: 하늘에서 바람을 타고 흔들리며 내려와 책상 위에 앉음
-  const fall = seg(t, 0.1, 0.58);
-  const e = ease(fall);
-  const sway = 1 - e;
-  const x = lerp(vw * (geo.narrow ? 0.7 : 0.64), geo.landX, e) + Math.sin(fall * Math.PI * 3.2) * vw * (geo.narrow ? 0.18 : 0.1) * sway;
-  const y = lerp(-geo.lh * 1.4, geo.landY, e);
-  const rot = Math.sin(fall * Math.PI * 2.6) * 24 * sway + lerp(-14, -3, e);
-  letterEl.style.opacity = t < 0.09 ? '0' : '1';
-  letterEl.style.transform = `translate3d(${(x - geo.lw / 2).toFixed(1)}px, ${(y - geo.lh / 2).toFixed(1)}px, 0) rotate(${rot.toFixed(2)}deg)`;
+  // 편지: 책상 위에 놓여 있음 (책상 그림과 함께 나타남)
+  const rest = onDesk(LETTER_REST);
+  letterEl.style.opacity = cross.toFixed(3);
+  letterEl.style.transform = `translate3d(${(rest.x - geo.lw / 2).toFixed(1)}px, ${(rest.y - geo.lh / 2).toFixed(1)}px, 0) rotate(${LETTER_REST.angle}deg)`;
 
-  // 앉은 편지에 다가감: 카메라를 편지 쪽으로 옮기며 확대 → SCENE 02 종이가 올라올 때 조금 더
-  const z = ease(seg(t, 0.6, 0.8));
-  const zoom = 1 + z * (geo.narrow ? 1.25 : 1.55) + q * 0.35;
-  const dx = (vw / 2 - geo.landX) * z;
-  const dy = (vh * 0.52 - geo.landY) * z;
-  world.style.transformOrigin = `${geo.landX.toFixed(1)}px ${geo.landY.toFixed(1)}px`;
+  // 편지에 다가감: 카메라를 편지 쪽으로 옮기며 확대 → SCENE 02 종이가 올라올 때 조금 더
+  const z = ease(seg(t, 0.44, 0.74));
+  const target = Math.min(vw * (geo.narrow ? 0.92 : 0.62), 760) / geo.lw;
+  const zoom = 1 + z * (Math.max(1.15, target) - 1) + q * 0.25;
+  const dx = (vw / 2 - rest.x) * z;
+  const dy = (vh * 0.5 - rest.y) * z;
+  world.style.transformOrigin = `${rest.x.toFixed(1)}px ${rest.y.toFixed(1)}px`;
   world.style.transform = `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 0) scale(${zoom.toFixed(4)})`;
 
-  // 봉투가 열리고 엽서가 고개를 내밂
-  const open = ease(seg(t, 0.8, 0.94));
-  letterFlap.style.transform = `rotateX(${(-180 * open).toFixed(1)}deg)`;
-  letterEl.classList.toggle('is-open', open > 0.5);
-  letterCardEl.style.transform = `translateY(${(-62 * ease(seg(t, 0.86, 1)) - 6 * q).toFixed(1)}%)`;
+  // 편지가 펼쳐짐: 엽서가 봉투에서 위로 빠져나옴
+  const open = ease(seg(t, 0.7, 1));
+  letterCardEl.style.transform = `translateY(${(-46 * open - 4 * q).toFixed(1)}%) rotate(${(0.6 - 0.6 * open).toFixed(2)}deg)`;
 
   // 종이가 덮어 오는 동안 뒤 장면은 살짝 어두워짐
   stage.style.setProperty('--dim', (q * 0.35).toFixed(3));
@@ -1726,7 +1881,9 @@ function setupStory() {
 }
 calmMotion.addEventListener?.('change', setupStory);
 
-history.replaceState({ view: 'flow' }, '', location.href);
+// 장마다 보던 자리는 사이트가 기억해 돌려놓음 (브라우저가 뒤로 가기 때 스크롤을 따로 옮기지 않게)
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+history.replaceState({ view: 'flow', depth: 0 }, '', location.href);
 renderView('flow');
 setupStory();
 syncPreview();
