@@ -13,7 +13,7 @@
    한 굵기뿐이라 굵게 · 보통 모두 이 파일을 씀 (가짜 굵게 처리 없이). 아래아가 필요한 엽서 글씨는 나눔명조 옛한글 */
 @font-face {
   font-family: 'Bookk Myungjo';
-  src: url('fonts/BookkMyungjo-Bold.woff2?v=215') format('woff2');
+  src: url('fonts/BookkMyungjo-Bold.woff2?v=219') format('woff2');
   font-weight: 100 900;
   font-display: swap;
 }
@@ -21,7 +21,7 @@
 /* 손글씨 자막: 그리운 단정한손글씨 (첫 화면의 작은 글: 전하지 못한 마음이 있다면 …) */
 @font-face {
   font-family: 'Griun Neat Handwriting';
-  src: url('fonts/Griun-NeatHandwriting.woff2?v=215') format('woff2');
+  src: url('fonts/Griun-NeatHandwriting.woff2?v=219') format('woff2');
   font-display: swap;
 }
 
@@ -3175,3 +3175,50 @@ html.intro-open { overflow: hidden; }
   pointer-events: none;
 }
 .message-count b { font-weight: 700; color: var(--tale-ink); }
+
+/* 받은 엽서: '표준어로 보기' (뒤로 단추와 같은 크림색 알약) */
+.received-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 22px;
+  border: 1px solid var(--tale-line);
+  border-radius: 999px;
+  background: rgb(255 250 241 / 0.85);
+  box-shadow: 0 6px 16px rgb(50 40 28 / 0.14);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--tale-ink);
+  cursor: pointer;
+}
+.received-toggle[hidden] { display: none; }
+.received-toggle:hover { background: #fffaf1; }
+.received-toggle:focus-visible { outline: 3px solid var(--tale-tangerine); outline-offset: 3px; }
+.received-view .sheet-buttons { flex-wrap: wrap; gap: 10px; }
+
+/* 엽서 위 단추 줄: 왼쪽 '제주어로 바꾸기'(짙은 알약) · 오른쪽 'T 내 편지 쓰기' */
+.pick-tools { justify-content: space-between; align-items: center; gap: 10px; }
+.translate-top-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 46px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--tale-dark);
+  box-shadow: 0 6px 16px rgb(50 40 28 / 0.2);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fbf3e4;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+.translate-top-btn:hover { background: #4a433c; transform: translateY(-2px); }
+.translate-top-btn:focus-visible { outline: 3px solid var(--tale-tangerine); outline-offset: 3px; }
+
+/* 게시판 크게 보기: '표준어로 보기' 단추를 '닫기' 왼쪽에 */
+.board-view .sheet-close { display: flex; justify-content: flex-end; align-items: center; gap: 10px; }

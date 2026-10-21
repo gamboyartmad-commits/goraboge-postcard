@@ -18,9 +18,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="images/tale/prologue-sky.webp">
-<link rel="preload" as="font" type="font/woff2" href="fonts/BookkMyungjo-Bold.woff2?v=215" crossorigin>
-<link rel="preload" as="font" type="font/woff2" href="fonts/Griun-NeatHandwriting.woff2?v=215" crossorigin>
-<link rel="stylesheet" href="style.css?v=216">
+<link rel="preload" as="font" type="font/woff2" href="fonts/BookkMyungjo-Bold.woff2?v=219" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/Griun-NeatHandwriting.woff2?v=219" crossorigin>
+<link rel="stylesheet" href="style.css?v=219">
 </head>
 <body>
   <a class="skip-link" href="#scene2">바로 편지 쓰기로 건너뛰기</a>
@@ -85,6 +85,8 @@
         <h2 class="scene-title" id="pickTitle" tabindex="-1" data-chars>당신의 마음을<br>제주어로 전해보세요</h2>
         <!-- 내 편지 쓰기: 누르면 아래에 편지 쓰는 칸(받는 사람 · 하고 싶은 말 · 보내는 사람)이 생김. 처음에는 엽서 템플릿 글만 -->
         <div class="pick-tools">
+          <!-- 위쪽 '제주어로 바꾸기': 아래 '제주어로 바꾸기'와 같은 동작 (스크롤하지 않고 바로 누를 수 있게) -->
+          <button type="button" class="translate-top-btn" id="translateTopBtn">제주어로 바꾸기 <span aria-hidden="true">→</span></button>
           <button type="button" class="write-open-btn" id="writeOpenBtn" aria-controls="writerPanel" aria-expanded="false"><span class="write-open-t" aria-hidden="true">T</span>내 편지 쓰기</button>
         </div>
         <!-- 고른 엽서: 입력칸 위치는 엽서 이미지(1920×1280)의 줄에 맞춰 style.css에서 %로 잡음.
@@ -326,7 +328,11 @@
   <!-- 게시판 엽서 크게 보기 -->
   <dialog class="board-view" id="boardView" aria-label="엽서 크게 보기">
     <div class="board-view-card mini-card" id="boardViewCard"></div>
-    <form method="dialog" class="sheet-close"><button class="stitch-btn">닫기</button></form>
+    <form method="dialog" class="sheet-close">
+      <!-- 표준어로 보기: 표준어 글이 저장된 엽서만 보임. 누르면 엽서 글이 표준어 ↔ 제주어로 바뀜 -->
+      <button type="button" class="received-toggle" id="boardViewToggle" aria-pressed="false" hidden>표준어로 보기</button>
+      <button class="stitch-btn">닫기</button>
+    </form>
   </dialog>
 
   <!-- 게시판에 붙이기 전 미리보기 -->
@@ -347,6 +353,8 @@
     <h2 class="received-title" id="receivedTitle">제주에서 엽서가 도착했어요</h2>
     <div class="board-view-card mini-card" id="receivedCard"></div>
     <div class="sheet-buttons">
+      <!-- 표준어로 보기: 링크에 표준어 글이 담겨 있을 때만 보임. 누르면 엽서 글이 표준어 ↔ 제주어로 바뀜 -->
+      <button type="button" class="received-toggle" id="receivedToggle" aria-pressed="false" hidden>표준어로 보기</button>
       <button type="button" class="stitch-btn is-accent" id="writeBackBtn">답장하기</button>
     </div>
   </dialog>
@@ -412,7 +420,7 @@
   <script src="jeju-dict.js?v=1"></script>
   <script src="translate.js?v=4"></script>
   <script src="badwords.js?v=1"></script>
-  <script src="app.js?v=215"></script>
+  <script src="app.js?v=219"></script>
 </body>
 
 </html>

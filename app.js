@@ -467,6 +467,8 @@ function openWriter() {
 // 'T 내 편지 쓰기': 엽서 템플릿 글(To · 편지)을 지우고 빈칸으로 열어 직접 쓰게 함.
 // 이미 직접 쓴 글은 지우지 않음. 이때부터는 엽서를 바꿔도 템플릿 글이 다시 써지지 않음(그 엽서 글은 단추로만)
 let writingOwn = false;
+document.getElementById('translateTopBtn').addEventListener('click', () => translateBtn.click());
+
 writeOpenBtn.addEventListener('click', () => {
   writingOwn = true;
   const text = mobileMessage.value.trim();
@@ -1413,11 +1415,15 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
 // 직접 넣은 사진은 너무 커서 링크에 담지 못함 (그때는 고른 엽서 그림으로 보임)
 
 function currentPost() {
-  return { card: currentCard, to: cardTo.value.trim(), message: cardMessage.value, from: cardFrom.value.trim(), date: TODAY };
+  // standard = 제주어로 바꾸기 전 표준어 글. 엽서 글이 그 제주어 그대로일 때만 담음 (받은 엽서 화면의 '표준어로 보기')
+  const standard = jejuApplied && letter.standard && cardMessage.value === letter.jeju && letter.standard !== letter.jeju ? letter.standard : '';
+  return { card: currentCard, to: cardTo.value.trim(), message: cardMessage.value, from: cardFrom.value.trim(), date: TODAY, standard };
 }
 
 function encodePost(post) {
-  const json = JSON.stringify({ c: post.card, t: post.to, m: post.message, f: post.from, d: post.date });
+  const data = { c: post.card, t: post.to, m: post.message, f: post.from, d: post.date };
+  if (post.standard) data.s = post.standard;   // 표준어 글 (있을 때만 — 링크가 그만큼 길어짐)
+  const json = JSON.stringify(data);
   const bytes = new TextEncoder().encode(json);
   let bin = '';
   bytes.forEach((b) => { bin += String.fromCharCode(b); });
@@ -1432,7 +1438,7 @@ function decodePost(code) {
     const card = Number.isInteger(d.c) && d.c >= 0 && d.c < CARDS.length ? d.c : 0;
     const text = (v, max) => (typeof v === 'string' ? v.slice(0, max) : '');
     const date = /^\d{4}\.\d{2}\.\d{2}$/.test(d.d) ? d.d : '';
-    return { card, to: text(d.t, 20), message: text(d.m, 400), from: text(d.f, 20), date };
+    return { card, to: text(d.t, 20), message: text(d.m, 400), from: text(d.f, 20), date, standard: text(d.s, 400) };
   } catch (e) {
     return null;
   }
@@ -1659,14 +1665,17 @@ const BOARD_POSTCARDS = [
   {
     card: 0, to: '할망', from: '손녀 민지', date: '2026.10.15', tilt: -4, pin: '#d9533c',
     message: '할망, 펜안ᄒᆞ우까? 제주 바당이 하영 기렵수다. ᄒᆞᆫ저 보고정 ᄒᆞ우다.',
+    standard: '할머니, 편안하세요? 제주 바다가 많이 그리워요. 어서 보고 싶어요.',
   },
   {
     card: 2, to: '어멍', from: '막내', date: '2026.10.16', tilt: 3, pin: '#3f7fc4',
     message: '어멍, ᄎᆞᆷ말 고맙수다.\n늘 건강ᄒᆞᆸ서. ᄉᆞ랑ᄒᆞᆸ네다.',
+    standard: '엄마, 정말 고마워요.\n늘 건강하세요. 사랑합니다.',
   },
   {
     card: 3, to: '지수', from: '하은', date: '2026.10.17', tilt: -2, pin: '#e8b62f',
     message: '친구광 ᄒᆞᆫ듸 ᄇᆞ름 부는 ᄆᆞ을을 걸엇수다. 늴 ᄒᆞᆨ교에서 만나게!',
+    standard: '친구랑 같이 바람 부는 마을을 걸었어요. 내일 학교에서 만나자!',
   },
 ];
 
@@ -1699,6 +1708,25 @@ function fillMiniCard(el, post) {
 const boardGrid = document.getElementById('boardGrid');
 const boardView = document.getElementById('boardView');
 const boardViewCard = document.getElementById('boardViewCard');
+const boardViewToggle = document.getElementById('boardViewToggle');
+let boardViewPost = null;
+
+// 크게 본 엽서의 '표준어로 보기' ↔ '제주어로 보기' (표준어 글이 저장된 엽서만 단추가 보임)
+function openBoardView(post) {
+  boardViewPost = post;
+  fillMiniCard(boardViewCard, post);
+  boardViewToggle.hidden = !post.standard;
+  boardViewToggle.setAttribute('aria-pressed', 'false');
+  boardViewToggle.textContent = '표준어로 보기';
+  boardView.showModal();
+}
+boardViewToggle.addEventListener('click', () => {
+  if (!boardViewPost) return;
+  const showStandard = boardViewToggle.getAttribute('aria-pressed') !== 'true';
+  boardViewCard.querySelector('.card-message').textContent = showStandard ? boardViewPost.standard : boardViewPost.message;
+  boardViewToggle.setAttribute('aria-pressed', String(showStandard));
+  boardViewToggle.textContent = showStandard ? '제주어로 보기' : '표준어로 보기';
+});
 
 const PIN_COLORS = ['#d9533c', '#3f7fc4', '#e8b62f', '#5f9a4a', '#c45aa0'];
 const TILTS = [-4, 3, -2, 4, -3, 2];
@@ -1716,10 +1744,7 @@ function addBoardCard(post, { prepend = false, fresh = false } = {}) {
   mini.className = 'mini-card';
   fillMiniCard(mini, post);
   btn.appendChild(mini);
-  btn.addEventListener('click', () => {
-    fillMiniCard(boardViewCard, post);
-    boardView.showModal();
-  });
+  btn.addEventListener('click', () => openBoardView(post));
   if (prepend) boardGrid.prepend(btn);
   else boardGrid.appendChild(btn);
   return btn;
@@ -1761,30 +1786,50 @@ function boardHeaders(extra = {}) {
   return headers;
 }
 
+// standard = 제주어로 바꾸기 전 표준어 글 (크게 보기의 '표준어로 보기'). supabase/board.sql의 standard 칸
+let boardHasStandard = true;   // 데이터베이스에 standard 칸이 없으면(아직 SQL을 안 돌렸으면) false로 바뀌고 예전처럼
 async function fetchBoardPosts() {
+  const cols = `card,to_name,message,from_name,post_date,photo${boardHasStandard ? ',standard' : ''}`;
   const res = await fetch(
-    `${BOARD_DB.url}/rest/v1/board_posts?select=card,to_name,message,from_name,post_date,photo&order=created_at.desc&limit=${BOARD_LIMIT}`,
+    `${BOARD_DB.url}/rest/v1/board_posts?select=${cols}&order=created_at.desc&limit=${BOARD_LIMIT}`,
     { headers: boardHeaders() },
   );
+  if (!res.ok && boardHasStandard && (res.status === 400 || res.status === 401)) {
+    boardHasStandard = false;
+    return fetchBoardPosts();
+  }
   if (!res.ok) throw new Error(`게시판을 불러오지 못했어요 (${res.status})`);
   return (await res.json()).map((r) => ({
     card: r.card, to: r.to_name, message: r.message, from: r.from_name, date: r.post_date, photo: r.photo || undefined,
+    standard: r.standard || '',
   }));
 }
 
 async function sendBoardPost(post) {
-  const res = await fetch(`${BOARD_DB.url}/rest/v1/board_posts`, {
+  const body = {
+    card: post.card,
+    to_name: post.to.slice(0, 20),
+    message: post.message.slice(0, 400),
+    from_name: post.from.slice(0, 20),
+    post_date: post.date,
+    photo: post.photo || null,
+  };
+  if (boardHasStandard && post.standard) body.standard = post.standard.slice(0, 400);
+  let res = await fetch(`${BOARD_DB.url}/rest/v1/board_posts`, {
     method: 'POST',
     headers: boardHeaders({ 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
-    body: JSON.stringify({
-      card: post.card,
-      to_name: post.to.slice(0, 20),
-      message: post.message.slice(0, 400),
-      from_name: post.from.slice(0, 20),
-      post_date: post.date,
-      photo: post.photo || null,
-    }),
+    body: JSON.stringify(body),
   });
+  if (!res.ok && body.standard && (res.status === 400 || res.status === 401)) {
+    // 데이터베이스에 아직 standard 칸이 없으면 표준어 없이 다시
+    boardHasStandard = false;
+    delete body.standard;
+    res = await fetch(`${BOARD_DB.url}/rest/v1/board_posts`, {
+      method: 'POST',
+      headers: boardHeaders({ 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
+      body: JSON.stringify(body),
+    });
+  }
   if (!res.ok) {
     let reason = '';
     try { reason = (await res.json()).message || ''; } catch (e) { /* 내용 없음 */ }
@@ -1939,8 +1984,18 @@ receivedView.addEventListener('close', clearReceived);
 
 const receivedCode = location.hash.startsWith('#p=') ? location.hash.slice(3) : new URLSearchParams(location.search).get('p');
 const received = receivedCode ? decodePost(receivedCode) : null;
+// 받은 엽서의 '표준어로 보기' ↔ '제주어로 보기': 엽서 글만 바꿔 보여 줌 (표준어 글이 담긴 링크일 때만 단추가 보임)
+const receivedToggle = document.getElementById('receivedToggle');
+receivedToggle.addEventListener('click', () => {
+  const showStandard = receivedToggle.getAttribute('aria-pressed') !== 'true';
+  receivedCard.querySelector('.card-message').textContent = showStandard ? received.standard : received.message;
+  receivedToggle.setAttribute('aria-pressed', String(showStandard));
+  receivedToggle.textContent = showStandard ? '제주어로 보기' : '표준어로 보기';
+});
+
 if (received) {
   fillMiniCard(receivedCard, received);
+  receivedToggle.hidden = !received.standard;
   receivedView.showModal();
 }
 
