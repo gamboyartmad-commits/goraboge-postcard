@@ -3,7 +3,7 @@
 // hidden: true 인 그림은 고르기 띠에서 뺌. 번호(순서)는 그대로 두어야 예전에 보낸 엽서 링크 · 게시판 엽서가 같은 그림으로 열림
 
 // 그림을 고치면 IMG_V를 올려서 브라우저에 남은 예전 그림 대신 새 그림을 받게 함
-const IMG_V = '?v=2';   // v2: 미리 찍혀 있던 소인을 지운 그림
+const IMG_V = '?v=3';   // v2: 미리 찍혀 있던 소인을 지운 그림, v3: 우표를 75%로 줄인 그림 (_tools/shrink_card_stamp.py)
 const CARDS = [
   { src: `images/card-01.webp${IMG_V}`, alt: '해녀가 헤엄치는 바다' },
   { src: `images/card-02.webp${IMG_V}`, alt: '비 오는 창밖의 꽃밭' },
@@ -242,8 +242,10 @@ carousel.addEventListener('keydown', (e) => {
 window.addEventListener('resize', () => scrollToSlot(centerSlot, 'instant'));
 
 // ---------- 내 사진 넣기 ----------
-// 엽서 왼쪽 그림 자리(960×1280)에 사진을 꽉 채워 넣음. 비율이 다르면 가운데를 기준으로 잘림.
-// 다른 엽서를 골랐다가 '내 사진' 칸을 다시 누르면 넣었던 사진으로 돌아옴
+// 엽서 왼쪽 그림 자리(960×1280)에 사진을 꽉 채워 넣음. 처음엔 가운데 기준으로 잘리고,
+// 사용자가 그 자리 안에서 끌어서 옮기고 · 두 손가락(또는 + − 단추, 트랙패드 핀치)으로 키울 수 있음 (photoView).
+// 화면 · 저장 그림 · 카카오톡 · 메일 · 게시판 사진 모두 같은 photoView로 그림.
+// 다른 엽서를 골랐다가 '내 사진' 칸을 다시 누르면 넣었던 사진(과 맞춘 위치)으로 돌아옴
 
 const PHOTO_W = 960;
 const PHOTO_MAX_BYTES = 30 * 1024 * 1024;
@@ -257,9 +259,104 @@ let photoActive = false;  // 지금 엽서에 사진이 보이는지
 
 const photoCaption = document.getElementById('photoCaption');
 
+// 사진을 얼마나 키웠고(zoom 1~4) 어디를 가운데에 두었는지(cx · cy = 사진 안의 비율 0~1)
+const photoView = { zoom: 1, cx: 0.5, cy: 0.5 };
+const PHOTO_ZOOM_MAX = 4;
+const cardPhotoView = document.getElementById('cardPhotoView');
+const photoTools = document.getElementById('photoTools');
+
+// 그림 자리(w×h)에 보일 사진의 부분: 꽉 채우는 크기 × zoom, 가운데 = (cx, cy), 사진 밖으로는 못 나가게
+function photoWindow(img, w, h) {
+  const iw = img.naturalWidth;
+  const ih = img.naturalHeight;
+  const scale = Math.max(w / iw, h / ih) * photoView.zoom;
+  const sw = w / scale;
+  const sh = h / scale;
+  const sx = Math.min(Math.max(photoView.cx * iw - sw / 2, 0), iw - sw);
+  const sy = Math.min(Math.max(photoView.cy * ih - sh / 2, 0), ih - sh);
+  return { sx, sy, sw, sh };
+}
+
+// 끌다가 사진 끝을 넘으면 끝에 붙여 둠 (다음에 반대로 끌 때 바로 움직이게)
+function clampPhotoView() {
+  if (!cardPhoto.naturalWidth) return;
+  const { sx, sy, sw, sh } = photoWindow(cardPhoto, PHOTO_W, CARD_H);
+  photoView.cx = (sx + sw / 2) / cardPhoto.naturalWidth;
+  photoView.cy = (sy + sh / 2) / cardPhoto.naturalHeight;
+}
+
+let photoDrawPending = false;
+function drawPhotoView() {
+  if (photoDrawPending) return;
+  photoDrawPending = true;
+  requestAnimationFrame(() => {
+    photoDrawPending = false;
+    if (!photoActive || !cardPhoto.naturalWidth) return;
+    const ctx = cardPhotoView.getContext('2d');
+    drawCover(ctx, cardPhoto, cardPhotoView.width, cardPhotoView.height);
+  });
+}
+
+function setPhotoZoom(zoom) {
+  photoView.zoom = Math.min(PHOTO_ZOOM_MAX, Math.max(1, zoom));
+  clampPhotoView();
+  drawPhotoView();
+}
+
+// 손가락 · 마우스: 하나는 끌어 옮기기, 둘은 벌리고 오므려 크기
+const photoPointers = new Map();
+let pinchStart = null;
+const pointerGap = () => {
+  const [a, b] = [...photoPointers.values()];
+  return Math.hypot(a.x - b.x, a.y - b.y) || 1;
+};
+cardPhotoView.addEventListener('pointerdown', (e) => {
+  if (!photoActive) return;
+  e.preventDefault();
+  try { cardPhotoView.setPointerCapture(e.pointerId); } catch (err) { /* 일부 브라우저 */ }
+  photoPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  cardPhotoView.classList.add('is-dragging');
+  if (photoPointers.size === 2) pinchStart = { gap: pointerGap(), zoom: photoView.zoom };
+});
+cardPhotoView.addEventListener('pointermove', (e) => {
+  const prev = photoPointers.get(e.pointerId);
+  if (!prev) return;
+  const now = { x: e.clientX, y: e.clientY };
+  photoPointers.set(e.pointerId, now);
+  if (photoPointers.size === 1) {
+    const box = cardPhotoView.getBoundingClientRect();
+    const { sw, sh } = photoWindow(cardPhoto, PHOTO_W, CARD_H);
+    photoView.cx -= ((now.x - prev.x) / box.width) * (sw / cardPhoto.naturalWidth);
+    photoView.cy -= ((now.y - prev.y) / box.height) * (sh / cardPhoto.naturalHeight);
+    clampPhotoView();
+    drawPhotoView();
+  } else if (photoPointers.size === 2 && pinchStart) {
+    setPhotoZoom(pinchStart.zoom * (pointerGap() / pinchStart.gap));
+  }
+});
+['pointerup', 'pointercancel'].forEach((type) => cardPhotoView.addEventListener(type, (e) => {
+  photoPointers.delete(e.pointerId);
+  if (photoPointers.size < 2) pinchStart = null;
+  if (!photoPointers.size) cardPhotoView.classList.remove('is-dragging');
+}));
+// 트랙패드 두 손가락 벌리기(ctrl + 휠)만 크기로. 그냥 휠은 화면 스크롤 그대로
+cardPhotoView.addEventListener('wheel', (e) => {
+  if (!photoActive || !e.ctrlKey) return;
+  e.preventDefault();
+  setPhotoZoom(photoView.zoom * Math.exp(-e.deltaY * 0.01));
+}, { passive: false });
+document.getElementById('photoZoomIn').addEventListener('click', () => setPhotoZoom(photoView.zoom * 1.25));
+document.getElementById('photoZoomOut').addEventListener('click', () => setPhotoZoom(photoView.zoom / 1.25));
+document.getElementById('photoReset').addEventListener('click', () => {
+  Object.assign(photoView, { zoom: 1, cx: 0.5, cy: 0.5 });
+  drawPhotoView();
+});
+
 function showPhoto(on) {
   photoActive = on && !!photoUrl;
-  cardPhoto.hidden = !photoActive;
+  cardPhotoView.hidden = !photoActive;
+  photoTools.hidden = !photoActive;
+  if (photoActive) drawPhotoView();
   syncPreview();
   // 사진 칸 밑 설명: 지금 누르면 무슨 일이 일어나는지
   if (photoActive) photoCaption.textContent = '한 번 더 누르면 다른 사진으로';
@@ -299,15 +396,16 @@ photoInput.addEventListener('change', async () => {
 
   if (photoUrl) URL.revokeObjectURL(photoUrl);
   photoUrl = url;
+  Object.assign(photoView, { zoom: 1, cx: 0.5, cy: 0.5 });   // 새 사진은 가운데부터
   cardPhoto.src = url;
+  try { await cardPhoto.decode(); } catch (e) { /* 아래에서 다시 그림 */ }
   photoThumb.src = url;
   photoThumb.hidden = false;
   photoTile.classList.add('has-photo');
   photoLabel.textContent = '내 사진';
   showPhoto(true);
 
-  const fits = Math.abs(probe.naturalWidth / probe.naturalHeight - PHOTO_W / CARD_H) < 0.02;
-  setStatus(fits ? '사진을 넣었어요.' : '사진을 넣었어요. 엽서 크기(960×1280)에 맞게 가운데를 기준으로 잘랐어요.');
+  setStatus('사진을 넣었어요. 끌어서 옮기고, 두 손가락으로 벌리거나 + − 단추로 크기를 바꿀 수 있어요.');
 });
 
 markPicked();
@@ -381,7 +479,7 @@ writeOpenBtn.addEventListener('click', () => {
 
 function goWriteField(id) {
   openWriter();
-  const heading = document.getElementById('writeTitle');
+  const heading = writerPanel;   // 쓰는 칸 맨 위(To)
   const bar = document.querySelector('.tale-bar');
   const top = heading.getBoundingClientRect().top + window.scrollY - (bar ? bar.offsetHeight : 0) - 16;
   window.scrollTo({ top, behavior: smoothScroll() });
@@ -552,6 +650,13 @@ mobileMessage.addEventListener('input', (e) => {
 });
 cardMessage.addEventListener('input', () => requestAnimationFrame(markTemplate));
 
+// 하고 싶은 말 글자 수 (최대 120자, 칸 오른쪽 아래 'N/120자')
+const messageCount = document.querySelector('#messageCount b');
+const updateMessageCount = () => { messageCount.textContent = graphemes(mobileMessage.value).length; };
+mobileMessage.addEventListener('input', updateMessageCount);
+cardMessage.addEventListener('input', () => requestAnimationFrame(updateMessageCount));
+requestAnimationFrame(updateMessageCount);
+
 const writingBox = () => (narrowScreen.matches ? mobileMessage : cardMessage);
 
 // ---------- 제주어로 번역 → 2단계 '제주어로 변환하기' 페이지 ----------
@@ -639,7 +744,7 @@ function renderView(next) {
   if (y === 'pick') y = scene2.getBoundingClientRect().top + window.scrollY;
   if (y === 'write') {
     openWriter();   // 편지 쓰는 자리로 돌아올 때는 쓰는 칸을 열어 둠
-    y = document.getElementById('writeTitle').getBoundingClientRect().top + window.scrollY - 90;
+    y = writerPanel.getBoundingClientRect().top + window.scrollY - 90;
   }
   window.scrollTo(0, y);
   updateFloatCta();
@@ -1062,13 +1167,13 @@ const FONT_PX = CARD_H * 0.038;        // style.css의 font-size: 3.8cqh
 const FONT = `${FONT_PX}px "NanumMyeongjo YetHangul", "Malgun Gothic", "Apple SD Gothic Neo", serif`;
 const SPOTS = {
   message: { x: 1064, top: 313, width: 727, lines: 8 },
-  to: { x: 1130, top: 221, width: 370 },   // 소인 자리(1500) 앞까지. 긴 To는 글자를 줄여서 (toScale)
+  to: { x: 1130, top: 221, width: 560 },   // 줄인 우표(1704) 앞까지 — 긴 To도 편지 글과 같은 크기로. 이보다 길면 글자를 줄임 (toScale)
   from: { x: 1405, top: 1049, width: 270 },
   date: { x: 1064, top: 1049 },            // style.css의 .card-date (글자는 3.1cqh)
 };
 
 // 원래 엽서에 인쇄돼 있던 소인과 같은 자리·크기 (style.css의 .card-stamp)
-const STAMP = { left: 0.7819, top: 0.0694, size: 0.1912, angle: 0 };
+const STAMP = { left: 0.8266, top: 0.0699, size: 0.1434, angle: 0 };   // 우표를 75%로 줄이며 소인도 같은 비율로
 // 귤 우표: 엽서 그림에 인쇄된 우표(1662,90 ~ 1846,334)를 덮는 자리
 
 // 긴 To(예: 사과하고 싶은 사람에게)는 소인 앞까지 들어가게 글자 크기를 줄임: 1 = 그대로, 0.7 = 70%
@@ -1104,12 +1209,11 @@ function wrapLines(ctx, text, width) {
   return lines;
 }
 
-// 화면의 object-fit: cover 와 같게, 넘치는 쪽을 가운데 기준으로 잘라 그림
+// 내 사진을 그림 자리(가로:세로 = 960:1280)에 사용자가 맞춘 크기 · 위치(photoView)대로 잘라 그림
+// (화면 캔버스 · 저장 그림 · 게시판 작은 사진 모두 같은 비율이라 같은 부분이 보임)
 function drawCover(ctx, img, width, height) {
-  const scale = Math.max(width / img.naturalWidth, height / img.naturalHeight);
-  const sw = width / scale;
-  const sh = height / scale;
-  ctx.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) / 2, sw, sh, 0, 0, width, height);
+  const { sx, sy, sw, sh } = photoWindow(img, width, height);
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, width, height);
 }
 
 async function renderCard() {
@@ -1414,7 +1518,7 @@ function kakao() {
 // 보내기를 열 때 미리 올려 두어, 버튼을 누르면 바로 공유 창이 뜨게 함 (늦으면 PC에서 팝업이 막힐 수 있음)
 let kakaoImage = { key: '', promise: null };
 function uploadCardImage() {
-  const key = `${encodePost(currentPost())}|${photoActive}|${stamped}`;
+  const key = `${encodePost(currentPost())}|${photoActive}|${stamped}|${JSON.stringify(photoView)}`;   // 사진을 옮기면 다시 올림
   if (kakaoImage.key !== key || !kakaoImage.promise) {
     const promise = (async () => {
       const K = await kakao();
@@ -1913,7 +2017,7 @@ document.getElementById('boardBack').addEventListener('click', leaveBoard);
   document.getElementById(id).addEventListener('click', (e) => {
     e.preventDefault();
     openWritePage();
-    document.getElementById('writeTitle').focus({ preventScroll: true });
+    document.getElementById('pickTitle').focus({ preventScroll: true });
   });
 });
 document.querySelector('.skip-link').addEventListener('click', (e) => {
@@ -1974,13 +2078,22 @@ function updateFloatCta() {
 
 // 장면 제목: 한 글자씩 잉크가 번지듯 써짐 (화면에 들어올 때)
 function splitChars(el) {
-  const text = el.textContent.trim();
-  el.setAttribute('aria-label', text);
+  // <br>로 나눈 줄은 그대로 두고(예: 당신의 마음을 / 제주어로 전해보세요), 줄 안에서 글자마다 나눔
+  const tmp = document.createElement('div');
+  const lines = el.innerHTML.split(/<br\s*\/?>/i).map((html) => {
+    tmp.innerHTML = html;
+    return tmp.textContent.trim();
+  }).filter(Boolean);
+  el.setAttribute('aria-label', lines.join(' '));
   el.textContent = '';
   // 낱말 단위로 묶어 두어야 줄이 낱말 중간(…있나요 / ?)에서 끊기지 않음
   let i = 0;
-  text.split(' ').forEach((word, w) => {
-    if (w > 0) el.appendChild(document.createTextNode(' '));
+  lines.join(' \n ').split(' ').forEach((word, w) => {
+    if (word === '\n') {
+      el.appendChild(document.createElement('br'));
+      return;
+    }
+    if (w > 0 && el.lastChild && el.lastChild.nodeName !== 'BR') el.appendChild(document.createTextNode(' '));
     const box = document.createElement('span');
     box.className = 'word';
     box.setAttribute('aria-hidden', 'true');

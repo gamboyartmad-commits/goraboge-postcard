@@ -18,9 +18,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="images/tale/prologue-sky.webp">
-<link rel="preload" as="font" type="font/woff2" href="fonts/BookkMyungjo-Bold.woff2?v=206" crossorigin>
-<link rel="preload" as="font" type="font/woff2" href="fonts/Griun-NeatHandwriting.woff2?v=206" crossorigin>
-<link rel="stylesheet" href="style.css?v=207">
+<link rel="preload" as="font" type="font/woff2" href="fonts/BookkMyungjo-Bold.woff2?v=215" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/Griun-NeatHandwriting.woff2?v=215" crossorigin>
+<link rel="stylesheet" href="style.css?v=216">
 </head>
 <body>
   <a class="skip-link" href="#scene2">바로 편지 쓰기로 건너뛰기</a>
@@ -63,7 +63,7 @@
             <!-- 실제 편지: 봉투 뒷면 · 고른 엽서 · 앞주머니(귤 봉인) 세 겹. 펼쳐지면 엽서가 위로 빠져나옴 -->
             <div class="letter" id="letter">
               <img class="letter-layer" src="images/tale/letter-back.webp" alt="">
-              <img class="letter-card" id="letterCard" src="images/card-01.webp?v=2" alt="">
+              <img class="letter-card" id="letterCard" src="images/card-01.webp?v=3" alt="">
               <img class="letter-layer" src="images/tale/letter-front.webp" alt="">
             </div>
           </div>
@@ -82,8 +82,7 @@
       <!-- SCENE 02. 마음을 담을 편지 (엽서 고르기 + 마음 쓰기): 종이 한 장이 동화 장면 위로 밀려 올라옴 -->
       <section class="scene scene-pick" id="scene2" aria-labelledby="pickTitle">
         <div class="paper-edge" aria-hidden="true"><i></i></div>
-        <h2 class="scene-title" id="pickTitle" data-chars>어떤 풍경에 마음을 담아볼까요?</h2>
-        <p class="scene-sub">제주 풍경을 옆으로 넘겨 고르거나, 직접 찍은 사진을 넣어 보세요.</p>
+        <h2 class="scene-title" id="pickTitle" tabindex="-1" data-chars>당신의 마음을<br>제주어로 전해보세요</h2>
         <!-- 내 편지 쓰기: 누르면 아래에 편지 쓰는 칸(받는 사람 · 하고 싶은 말 · 보내는 사람)이 생김. 처음에는 엽서 템플릿 글만 -->
         <div class="pick-tools">
           <button type="button" class="write-open-btn" id="writeOpenBtn" aria-controls="writerPanel" aria-expanded="false"><span class="write-open-t" aria-hidden="true">T</span>내 편지 쓰기</button>
@@ -92,14 +91,15 @@
              '제주어로 바꾸기'를 누르면 엽서 위로 바람(.wind)이 스치고 글이 제주어로 바뀜 -->
         <div class="write-card" id="writeCard">
           <div class="card" id="card">
-                    <img id="cardImage" src="images/card-01.webp?v=2" alt="해녀가 헤엄치는 바다 엽서">
+                    <img id="cardImage" src="images/card-01.webp?v=3" alt="해녀가 헤엄치는 바다 엽서">
                     <!-- 직접 넣은 사진은 엽서 왼쪽 그림 자리(960×1280)를 덮음 -->
-                    <img id="cardPhoto" class="card-photo" alt="직접 넣은 사진" hidden>
+                    <img id="cardPhoto" alt="" hidden>   <!-- 넣은 사진 원본 (화면에는 아래 캔버스로 그림) -->
+                    <canvas id="cardPhotoView" class="card-photo" width="960" height="1280" role="img" aria-label="직접 넣은 사진. 끌어서 옮기고, 두 손가락으로 벌리거나 아래 + − 단추로 크기를 바꿀 수 있어요" hidden></canvas>
                     <label class="card-field card-to">
                       <span class="sr-only">받는 사람</span>
                       <input type="text" id="cardTo" maxlength="14" autocomplete="off">
                     </label>
-                    <textarea class="card-field card-message" id="cardMessage" aria-label="엽서 내용" placeholder="여기에 마음을 적어 보세요"></textarea>
+                    <textarea class="card-field card-message" id="cardMessage" maxlength="120" aria-label="엽서 내용" placeholder="여기에 마음을 적어 보세요"></textarea>
                     <label class="card-field card-from">
                       <span class="sr-only">보내는 사람</span>
                       <input type="text" id="cardFrom" maxlength="10" autocomplete="off">
@@ -113,6 +113,15 @@
             <path d="M-40 280 C90 250 210 320 320 270 S530 230 660 290"/>
             <path d="M-40 160 C120 140 240 190 380 150 S560 130 660 160"/>
           </svg>
+        </div>
+        <!-- 내 사진을 넣었을 때만: 사진 크기 · 위치 단추 (엽서 왼쪽 그림 자리 안에서) -->
+        <div class="photo-tools" id="photoTools" hidden>
+          <span class="photo-tools-hint">사진을 끌어서 옮기고, 두 손가락으로 키워 보세요</span>
+          <span class="photo-tools-btns">
+            <button type="button" class="photo-tool" id="photoZoomOut" aria-label="사진 작게">−</button>
+            <button type="button" class="photo-tool" id="photoZoomIn" aria-label="사진 크게">+</button>
+            <button type="button" class="photo-tool photo-tool-reset" id="photoReset">처음대로</button>
+          </span>
         </div>
         <div class="picker">
                 <input type="file" id="photoInput" accept="image/*" hidden>
@@ -135,14 +144,15 @@
         <!-- 마음 쓰기 칸: 'T 내 편지 쓰기'(또는 엽서 위 줄글)를 누르면 열림 (app.js openWriter) -->
         <div class="writer-panel" id="writerPanel" hidden>
         <!-- 마음 쓰기: 받는 사람 · 하고 싶은 말 · 보내는 사람. 쓰는 대로 위 엽서에 옮겨짐 -->
-        <h2 class="scene-title write-heading" id="writeTitle" tabindex="-1" data-chars>당신의 마음을 들려주세요.</h2>
-        <p class="scene-sub">평소 쓰던 말 그대로 적어주세요.<br>당신의 마음을 제주어로 전해드릴게요.</p>
         <div class="mobile-writer">
                 <div class="mobile-names">
                   <label>To <input type="text" id="mobileTo" maxlength="14" autocomplete="off" placeholder="받는 사람"></label>
                   <label>From <input type="text" id="mobileFrom" maxlength="10" autocomplete="off" placeholder="보내는 사람"></label>
                 </div>
-                <textarea id="mobileMessage" aria-label="엽서 내용" placeholder="여기에 마음을 적어 보세요. 엽서에 바로 보여요."></textarea>
+                <div class="message-box">
+                  <textarea id="mobileMessage" maxlength="120" aria-label="엽서 내용" aria-describedby="messageCount" placeholder="여기에 마음을 적어 보세요. 엽서에 바로 보여요."></textarea>
+                  <span class="message-count" id="messageCount"><b>0</b>/120자</span>
+                </div>
                 <!-- 템플릿으로 바꾸기 전 글로 되돌리기 (직접 쓴 글이 있었을 때만 잠깐 보임) -->
                 <p class="template-undo" id="templateUndo" role="status" hidden><button type="button" class="text-btn" id="templateUndoBtn">← 방금 쓴 글로 되돌리기</button></p>
               </div>
@@ -402,7 +412,7 @@
   <script src="jeju-dict.js?v=1"></script>
   <script src="translate.js?v=4"></script>
   <script src="badwords.js?v=1"></script>
-  <script src="app.js?v=208"></script>
+  <script src="app.js?v=215"></script>
 </body>
 
 </html>

@@ -13,7 +13,7 @@
    한 굵기뿐이라 굵게 · 보통 모두 이 파일을 씀 (가짜 굵게 처리 없이). 아래아가 필요한 엽서 글씨는 나눔명조 옛한글 */
 @font-face {
   font-family: 'Bookk Myungjo';
-  src: url('fonts/BookkMyungjo-Bold.woff2?v=206') format('woff2');
+  src: url('fonts/BookkMyungjo-Bold.woff2?v=215') format('woff2');
   font-weight: 100 900;
   font-display: swap;
 }
@@ -21,7 +21,7 @@
 /* 손글씨 자막: 그리운 단정한손글씨 (첫 화면의 작은 글: 전하지 못한 마음이 있다면 …) */
 @font-face {
   font-family: 'Griun Neat Handwriting';
-  src: url('fonts/Griun-NeatHandwriting.woff2?v=206') format('woff2');
+  src: url('fonts/Griun-NeatHandwriting.woff2?v=215') format('woff2');
   font-display: swap;
 }
 
@@ -1247,10 +1247,10 @@ body::after {
 
 .card .card-stamp {
   inset: auto;
-  left: 78.19%;
-  top: 6.94%;
-  width: 19.12cqh;
-  height: 19.12cqh;
+  left: 82.66%;
+  top: 6.99%;
+  width: 14.34cqh;
+  height: 14.34cqh;
   opacity: 0.92;
   mix-blend-mode: multiply;
   pointer-events: none;
@@ -1280,9 +1280,9 @@ body::after {
 /* 게시판 · 받은 엽서는 이미 보낸 엽서라 늘 소인이 찍혀 있음 */
 .mini-card .mini-stamp {
   inset: auto;
-  left: 78.19%;
-  top: 6.94%;
-  width: 12.74%;
+  left: 82.66%;
+  top: 6.99%;
+  width: 9.56%;
   height: auto;
   opacity: 0.92;
   mix-blend-mode: multiply;
@@ -2095,9 +2095,9 @@ body::after { background: var(--grain); opacity: 0.5; }
 }
 
 .final-postmark {
-  left: 78.19%;
-  top: 6.94%;
-  width: 12.75%;
+  left: 82.66%;
+  top: 6.99%;
+  width: 9.56%;
   mix-blend-mode: multiply;
 }
 
@@ -3055,7 +3055,7 @@ html.intro-open { overflow: hidden; }
 
 /* 엽서 To 칸: 소인 자리 앞까지 넓히고, 긴 To(템플릿의 '사과하고 싶은 사람에게' 등)는 글자를 줄임 (app.js toScale → --to-scale) */
 .card .card-to,
-.mini-card .card-to { width: 19.3%; }
+.mini-card .card-to { width: 29.17%; }   /* 줄인 우표 앞까지 (app.js SPOTS.to.width 560) */
 .card .card-to input,
 .mini-card .card-to { font-size: calc(3.8cqh * var(--to-scale, 1)); }
 
@@ -3117,3 +3117,61 @@ html.intro-open { overflow: hidden; }
 
 .write-open-btn:hover { background: rgb(255 250 241 / 0.92); transform: translateY(-2px); }
 .write-open-t { font-size: 16px; }
+
+/* ---------- 내 사진: 엽서 왼쪽 그림 자리 안에서 끌어 옮기기 · 키우기 ---------- */
+.card canvas.card-photo {
+  height: 100%;
+  touch-action: none;          /* 사진 위에서 끌면 화면이 아니라 사진이 움직임 */
+  cursor: grab;
+}
+.card canvas.card-photo.is-dragging { cursor: grabbing; }
+.card canvas.card-photo[hidden] { display: none; }
+
+.photo-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  max-width: 640px;
+  margin: 10px auto 0;
+  font-size: 13px;
+  color: var(--tale-soft);
+}
+.photo-tools[hidden] { display: none; }
+.photo-tools-btns { display: inline-flex; gap: 6px; }
+
+.photo-tool {
+  min-width: 38px;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--tale-line);
+  border-radius: 999px;
+  background: rgb(255 250 241 / 0.8);
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--tale-ink);
+  cursor: pointer;
+}
+.photo-tool-reset { font-size: 13px; }
+.photo-tool:hover { background: #fffaf1; }
+.photo-tool:focus-visible { outline: 3px solid var(--tale-tangerine); outline-offset: 2px; }
+/* 넣은 사진 원본(#cardPhoto)은 늘 숨김 — 화면에는 캔버스로 그림. 캔버스는 엽서 왼쪽 절반에 */
+.card img[hidden] { display: none; }
+.card canvas.card-photo { position: absolute; top: 0; left: 0; width: 50%; display: block; }
+.photo-tools { -webkit-user-select: none; user-select: none; }
+.writer-panel { margin-top: 22px; }
+
+/* 하고 싶은 말 칸 + 글자 수 (오른쪽 아래 'N/120자') */
+.scene-pick .mobile-writer .message-box { order: 3; position: relative; }
+.message-box textarea { display: block; width: 100%; padding-bottom: 30px; }
+.message-count {
+  position: absolute;
+  right: 14px;
+  bottom: 10px;
+  font-size: 12.5px;
+  color: var(--tale-soft);
+  pointer-events: none;
+}
+.message-count b { font-weight: 700; color: var(--tale-ink); }
