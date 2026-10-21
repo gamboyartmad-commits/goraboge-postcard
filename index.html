@@ -20,7 +20,7 @@
 <link rel="preload" as="image" href="images/tale/prologue-sky.webp">
 <link rel="preload" as="font" type="font/woff2" href="fonts/BookkMyungjo-Bold.woff2?v=193" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="fonts/Griun-NeatHandwriting.woff2?v=193" crossorigin>
-<link rel="stylesheet" href="style.css?v=199">
+<link rel="stylesheet" href="style.css?v=201">
 </head>
 <body>
   <a class="skip-link" href="#scene2">바로 편지 쓰기로 건너뛰기</a>
@@ -341,7 +341,7 @@
     </div>
   </dialog>
 
-  <!-- 처음 안내 팝업: 웹진 '제주어로 내 마음 전하기' 칸을 휴대폰 화면처럼 세로로 옮긴 것. 시작 화면을 열 때마다 바로 뜨고(새로 고쳐도 뜸),
+  <!-- 처음 안내 팝업: 웹진 'NO.01 · WRITE' 칸(당신의 엽서 한 장이, 제주어를 지켜요)을 휴대폰 화면처럼 세로로 옮긴 것. 시작 화면을 열 때마다 바로 뜨고(새로 고쳐도 뜸),
        위 ? 단추로 다시 열 수 있음. 예시 엽서 그림 = images/intro/ (_tools/build_intro_assets.py) -->
   <dialog class="intro-pop" id="helpDialog" aria-labelledby="introTitle">
     <button type="button" class="intro-pop-x" id="introClose" aria-label="안내 닫기">
@@ -349,28 +349,43 @@
     </button>
     <div class="intro-pop-body">
       <p class="intro-pop-eyebrow" lang="en">No.01 · Write</p>
-      <h2 class="intro-pop-title" id="introTitle">제주어로 내 마음 전하기</h2>
-      <p class="intro-pop-lede">지금 전하지 않으면 사라지는 말,<br>엽서에 적어 제주어로 전해 보세요.</p>
+      <h2 class="intro-pop-title" id="introTitle">당신의 엽서 한 장이,<span>제주어를 지켜요</span></h2>
 
-      <div class="intro-pop-examples" id="introExamples" aria-roledescription="예시 엽서" aria-label="예시 엽서 두 장">
+      <!-- 세 걸음: 번호 동그라미를 점선으로 잇고, 1 · 2번 아래에 말풍선 (표준어 → 제주어) -->
+      <ol class="intro-pop-flow">
+        <li>
+          <b class="flow-num" aria-hidden="true">1</b>
+          <p class="flow-title">평소 말투로 마음을 쓰면</p>
+          <p class="flow-bubble">오늘도 고생했어, 사랑해!</p>
+        </li>
+        <li class="is-jeju">
+          <b class="flow-num" aria-hidden="true">2</b>
+          <p class="flow-title">제주어로 바꿔 드려요</p>
+          <p class="flow-bubble">오늘도 욕봐신게, 사랑햄쪄!</p>
+        </li>
+        <li>
+          <b class="flow-num" aria-hidden="true">3</b>
+          <p class="flow-title">소중한 사람에게 보내요</p>
+        </li>
+      </ol>
+
+      <!-- 예시 엽서 세 장 (가로 엽서, 4.5초마다 넘어감). 그림 = images/intro/postcard-*.webp (_tools/build_intro_assets.py) -->
+      <div class="intro-pop-examples" id="introExamples" aria-roledescription="예시 엽서" aria-label="예시 엽서 세 장">
         <figure class="intro-pop-example is-active">
-          <img src="images/intro/example-01-m.webp" width="760" height="1064" alt="예시 엽서 — 나를 위한 기록: 미래의 나에게, 제주의 오늘을. To. 1년 뒤 나안티. 오널 제주 바당이 막 곱닥ᄒᆞ엿어. 버스 눼쳔 ᄒᆞᆫ참 지드렷는디, 덕분에 체얌 보는 바당도 만낫어. 그때 나는 잘도 돌아뎅겨신게. 느도 간간 아모 여산 어시 떠나 보라.">
+          <img src="images/intro/postcard-mom.webp" width="960" height="640" alt="예시 엽서 — 엄마와 딸이 안고 웃는 그림. To. 어멍(엄마). 어멍, 나 제주서 잘 지냄수다. 맨날 바쁘덴 전화도 짜르게 허여신디, 이디 오난 어멍이영 혼디 와시민 좋으켜 허는 생각이 나라. 바당 보멍 어멍 생각 하영 해수다. 밥 잘 챙겨 먹곡, 아프지 맙서. 다음엔 꼭 혼디 오게. 사랑햄수다! From. 똘(딸)">
         </figure>
         <figure class="intro-pop-example">
-          <img src="images/intro/example-02-m.webp" width="760" height="1064" loading="lazy" alt="예시 엽서 — 소중한 사람에게: 평소에 못 하던 말, 다른 말투를 빌려서. To. 어멍. 어멍, 나 제주서 잘 지냄서. 멘날 바쁘덴 전화도 ᄍᆞ르게 ᄒᆞ여신디, 이디 오난 어멍이영 ᄒᆞᆫ듸 와시민 좋으키여 ᄒᆞ는 셍각이 나라. 다음엔 꼭 ᄒᆞᆫ듸 오게. ᄉᆞ랑ᄒᆞ여!">
+          <img src="images/intro/postcard-friends.webp" width="960" height="640" loading="lazy" alt="예시 엽서 — 해녀 옷을 입은 친구들 그림. To. 벗아(친구야). 제주서 해녀 체험 혼 거 막 재미져라. 여행 첫날부터 우리 싸와신디, 나 모음은 경 헌 거 아닌 거 알주? 바당 소곱서 손 심엉 웃을 때 다 잊어불고 막 행복허여라. 너영 혼디 이시난 제주가 두 배로 좋아라. 고맙고, 다음에도 꼭 혼디 오게. 나 벗, 사랑햄쪄! From. 느 벗(너의 친구)">
+        </figure>
+        <figure class="intro-pop-example">
+          <img src="images/intro/postcard-me.webp" width="960" height="640" loading="lazy" alt="예시 엽서 — 책상에서 편지를 쓰는 사람 그림. To. 나신디(나에게). 안녕, 오늘도 하루 잘 버텨분 나. 맨날 속솜허멍 참암신디, 참는 것만이 답은 아니주게. 이 지겨운 9TO6 그만두멍 해외로 훌쩍 떠나고정 허다. 낯선 바당 앞이서 나만 생각허멍 하영 웃곡, 하영 쉬어도 괜찮주. 오늘도 욕봐신게, 사랑햄쪄! From. 나가(내가)">
         </figure>
         <div class="intro-pop-dots" role="group" aria-label="예시 엽서 고르기">
-          <button type="button" class="intro-pop-dot" data-example="0" aria-pressed="true" aria-label="1번 예시: 나를 위한 기록"></button>
-          <button type="button" class="intro-pop-dot" data-example="1" aria-pressed="false" aria-label="2번 예시: 소중한 사람에게"></button>
+          <button type="button" class="intro-pop-dot" data-example="0" aria-pressed="true" aria-label="1번 예시: 엄마에게"></button>
+          <button type="button" class="intro-pop-dot" data-example="1" aria-pressed="false" aria-label="2번 예시: 친구에게"></button>
+          <button type="button" class="intro-pop-dot" data-example="2" aria-pressed="false" aria-label="3번 예시: 나에게"></button>
         </div>
       </div>
-
-      <p class="intro-pop-desc">하고 싶은 말을 쓰면 제주어로 바뀌어요.<br>이미지로 저장하거나, 메일, 카톡으로 보낼 수 있어요.</p>
-      <ol class="intro-pop-steps">
-        <li><b aria-hidden="true">1</b>글을 쓰고</li>
-        <li><b aria-hidden="true">2</b>제주어로 바꾸고</li>
-        <li><b aria-hidden="true">3</b>저장하거나 메일 · 카톡으로</li>
-      </ol>
       <p class="intro-pop-note">제주어 번역은 「개정증보 제주어사전」(2009)을 바탕으로 한 참고용 번역이에요.</p>
     </div>
     <!-- 단추는 팝업 아래에 늘 붙어 있음 (글을 스크롤하지 않아도 보임) -->

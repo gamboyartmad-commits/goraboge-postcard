@@ -2943,3 +2943,111 @@ html.intro-open { overflow: hidden; }
 /* 엽서 위 줄글은 누르면 아래 편지 쓰는 곳으로 내려감 (app.js '엽서 위 줄글') */
 .scene-pick .card { cursor: pointer; }
 .promo-sub .nowrap { white-space: nowrap; }
+
+/* ---------- 처음 안내 팝업 v2: 웹진 'NO.01 · WRITE' (당신의 엽서 한 장이, 제주어를 지켜요) ---------- */
+.intro-pop-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  color: #8a3a1c;
+}
+
+.intro-pop-eyebrow::before {
+  content: '';
+  width: 30px;
+  height: 2px;
+  background: #d4532a;
+}
+
+.intro-pop-title { font-size: 31px; }
+
+.intro-pop-title span {
+  display: block;
+  margin-top: 8px;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #6b2f17;
+}
+
+/* 예시 엽서: 가로 엽서 세 장 */
+.intro-pop-examples { width: 100%; margin-top: 20px; }
+.intro-pop-example { transform: rotate(-0.8deg); }
+.intro-pop-example img { border-radius: 4px; }
+
+/* 세 걸음: 번호 동그라미를 세로 점선으로 이음 */
+.intro-pop-flow {
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.intro-pop-flow li {
+  position: relative;
+  padding: 0 0 18px 44px;
+}
+
+.intro-pop-flow li:last-child { padding-bottom: 0; }
+
+.intro-pop-flow li:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 13.5px;
+  top: 30px;
+  bottom: 2px;
+  border-left: 1.5px dashed #e39a72;
+}
+
+.flow-num {
+  position: absolute;
+  left: 0;
+  top: -2px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #4a2c20;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.intro-pop-flow li.is-jeju .flow-num { background: #b5532e; }
+
+.flow-title {
+  margin: 0;
+  font-size: 16.5px;
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  color: #6b2f17;
+}
+
+.flow-bubble {
+  display: inline-block;
+  margin: 10px 0 0;
+  padding: 9px 16px;
+  border: 1.5px solid #d9bd94;
+  border-radius: 6px;
+  background: #fffaf0;
+  font-size: 15px;
+  color: var(--intro-ink);
+}
+
+.intro-pop-flow li.is-jeju .flow-bubble {
+  border-color: #d97a55;
+  background: #fff3ea;
+  font-weight: 600;
+}
+
+@media (max-width: 380px) {
+  .intro-pop-title { font-size: 27px; }
+  .intro-pop-title span { font-size: 17px; }
+  .flow-title { font-size: 15.5px; }
+  .flow-bubble { font-size: 14px; }
+}
+.intro-pop-flow + .intro-pop-examples { margin-top: 26px; }
