@@ -192,5 +192,8 @@
   "map.filter-cat": "Type",
   "map.filter-region": "Area",
   "map.region-jeju": "Jeju City",
-  "map.region-seogwipo": "Seogwipo"
+  "map.region-seogwipo": "Seogwipo",
+  "again.eyebrow": "One last card",
+  "again.title": "Now it’s your turn to write a Jeju postcard",
+  "again.lead": "Write the way you usually talk and we’ll turn it into Jeju-eo. Send one to family, a friend, or yourself."
 }

@@ -78,25 +78,6 @@ body[data-page="postcard"] {
   background-color: #fff;
 }
 
-/* '새 창에서 열기'(바깥 사이트가 다른 사이트 안에 뜨는 것을 막아 두었을 때를 위해) */
-.play__out {
-  position: fixed;
-  right: max(0.75rem, env(safe-area-inset-right, 0px));
-  bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
-  z-index: 11;
-  margin: 0;
-  padding: 0.4em 0.9em;
-  border-radius: 999px;
-  background-color: rgb(30 28 32 / 0.78);
-  color: var(--paper-50);
-  font-size: var(--fs-xs);
-}
-
-.play__out a {
-  color: inherit;
-  font-weight: 700;
-}
-
 /* (30차) 쪽 안에 띄울 수 없을 때의 '엽서 사이트 열기' 카드(config.js 의 links.postcardOpen = 'link') */
 .play__card {
   display: grid;

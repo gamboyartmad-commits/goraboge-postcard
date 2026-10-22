@@ -72,9 +72,7 @@ async function start() {
   box.append(frame);
   box.hidden = false;
   connect(frame, new URL(external).origin);
-  const out = document.querySelector('[data-play-out]');
-  out.querySelector('[data-play-link]').href = url;
-  out.hidden = false;
+  // (33차) 오른쪽 아래 '화면이 보이지 않으면 새 창에서 열기' 알약은 뺐다(사용자 — 다른 사이트처럼 보임. 엽서 사이트는 같은 사이트 안이라 늘 뜬다)
   frame.addEventListener('load', () => track('postcard_site_view', { host: new URL(external).hostname }), { once: true });
 }
 

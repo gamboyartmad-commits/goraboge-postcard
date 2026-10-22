@@ -1500,7 +1500,17 @@ function postUrl() {
 function siteUrl() {
   return `${location.origin}${location.pathname}`;
 }
-const shareText = (postLink) => `제주어 엽서가 도착했어요.\n엽서 보기: ${postLink}\n나도 제주어 엽서 쓰기: ${siteUrl()}`;
+// v7.14: 웹진 「하영 고라보게」 첫 화면 주소 — 공유할 때 엽서와 함께 보냄(사용자: '웹진 링크도 같이').
+// config.js 의 WEBZINE_URL(통합본은 '../' = 같은 사이트의 웹진)을 전체 주소로
+const WEBZINE_NAME = '웹진 하영 고라보게';
+function webzineUrl() {
+  try { return new URL((window.POSTCARD_CONFIG || {}).WEBZINE_URL || '../', location.href).href; } catch (e) { return ''; }
+}
+const webzineLine = () => (webzineUrl() ? `\n${WEBZINE_NAME}: ${webzineUrl()}` : '');
+// 받는 사람이 보기 편하게: 인사 한 줄 → 엽서(가장 먼저) → 나도 쓰기 → 웹진, 한 줄에 하나씩
+const shareText = (postLink) => `제주어 엽서가 도착했어요.\n엽서 보기: ${postLink}\n나도 제주어 엽서 쓰기: ${siteUrl()}${webzineLine()}`;
+// 링크 복사: 엽서 링크 + 웹진(짧게)
+const linkText = (postLink) => `제주어 엽서가 도착했어요.\n엽서 보기: ${postLink}${webzineLine()}`;
 
 // 지금은 내 컴퓨터(localhost)에서 열고 있어서, 사이트를 인터넷에 올려야 다른 사람도 링크를 열 수 있음
 const LOCAL_ONLY = ['localhost', '127.0.0.1', ''].includes(location.hostname);
@@ -1529,8 +1539,8 @@ async function copyText(text) {
 // URL 복사
 document.getElementById('copyLinkBtn').addEventListener('click', async () => {
   if (cardHasBadWord()) { setSheetStatus(BAD_WORD_MESSAGE, true); return; }
-  if (await copyText(postUrl())) {
-    finishSend('엽서 링크를 복사했어요. 받는 사람에게 붙여 넣어 보내 주세요.' + PHOTO_NOTE() + LOCAL_NOTE, 'link');
+  if (await copyText(linkText(postUrl()))) {
+    finishSend('엽서 링크와 웹진 주소를 복사했어요. 받는 사람에게 붙여 넣어 보내 주세요.' + PHOTO_NOTE() + LOCAL_NOTE, 'link');
   } else {
     setSheetStatus('링크를 복사하지 못했어요. 다시 눌러 주세요.', true);
   }
@@ -1538,8 +1548,8 @@ document.getElementById('copyLinkBtn').addEventListener('click', async () => {
 
 // 카카오톡으로 전송하기
 // config.js에 카카오 JavaScript 키를 넣으면 카카오톡 공유 창이 열려 친구를 고르고 보낼 수 있음.
-// 메시지에는 지금 엽서를 그린 이미지(제주어 편지 + 소인)가 들어가고, '엽서 열어 보기'를 누르면 이 사이트에서 그 엽서가,
-// '나도 엽서 쓰기'를 누르면 편지 사이트 첫 화면이 열림.
+// 메시지에는 지금 엽서를 그린 이미지(제주어 편지 + 소인)가 들어가고, 카드 · '엽서 보기'를 누르면 이 사이트에서 그 엽서가,
+// '웹진 보러 가기'를 누르면 웹진 「하영 고라보게」 첫 화면이 열림(v7.14).
 // 엽서 이미지는 카카오 서버에 올려서 씀(Kakao.Share.uploadImage) → 사이트를 아직 인터넷에 안 올렸어도 이미지는 보임.
 // 키가 없을 때는 휴대폰 공유 창(카카오톡 선택 가능)이나 링크 복사로 대신함
 const KAKAO_JS_KEY = ((window.POSTCARD_CONFIG || {}).KAKAO_JS_KEY || '').trim();
@@ -1626,20 +1636,26 @@ async function shareToKakao() {
   const post = currentPost();
   // 카카오톡 그림 카드에는 주소가 따로 보이지 않아서, 설명 줄에 편지 사이트 주소를 글자로 적어 둠
   // (편지 글은 엽서 그림 안에 이미 보임. 누르는 곳은 카드 · 아래 두 단추)
-  const siteLabel = siteUrl().replace(/^https?:\/\//, '').replace(/\/$/, '');
+  // v7.14: 메시지 아래 단추 두 개 — [엽서 보기](카드를 눌러도 같음) [웹진 보러 가기]. 편지가 길어 첫 화면으로 보낼 때는 [나도 엽서 쓰기].
+  // 단추를 비워 두면 카카오가 카드 링크로 기본 단추를 붙여서 메시지가 오히려 길어짐(잰 값: 링크 420자 · 단추 둘 = 9,284자 < 1만 자).
+  // 웹진 단추는 이 사이트와 같은 도메인일 때만(카카오 개발자 앱에 등록된 웹 도메인이어야 함 — 다른 도메인이면 공유가 거절될 수 있음)
+  const toHome = url === siteUrl();
+  const webzine = webzineUrl();
+  const buttons = [{ title: toHome ? '나도 엽서 쓰기' : '엽서 보기', link: { mobileWebUrl: url, webUrl: url } }];
+  if (webzine && new URL(webzine).host === location.host) buttons.push({ title: '웹진 보러 가기', link: { mobileWebUrl: webzine, webUrl: webzine } });
   K.Share.sendDefault({
     objectType: 'feed',
     content: {
       title: arrivalTitle(post.to),
-      description: `제주어로 엽서 적기 ▸ ${siteLabel}`,
+      description: `제주어로 엽서 적기 · ${WEBZINE_NAME}`,
       imageUrl,
       imageWidth: 1920,
       imageHeight: 1280,
       link: { mobileWebUrl: url, webUrl: url },   // 카드를 누르면 편지 사이트에서 받은 엽서가 열림 (답장하기 단추가 있음)
     },
-    buttons: [],   // 아래 단추는 두지 않음
+    buttons,
   });
-  return url === siteUrl();
+  return toHome;
 }
 
 document.getElementById('kakaoBtn').addEventListener('click', async () => {
@@ -1662,7 +1678,7 @@ document.getElementById('kakaoBtn').addEventListener('click', async () => {
   if (navigator.share) {
     try {
       // 카카오톡은 text와 url을 이어 붙여 보여 줌 → 엽서 링크(url) 앞에 사이트 주소도 함께
-      await navigator.share({ title: '제주어 엽서', text: `제주어 엽서가 도착했어요.\n나도 제주어 엽서 쓰기: ${siteUrl()}\n엽서 보기:`, url });
+      await navigator.share({ title: '제주어 엽서', text: `제주어 엽서가 도착했어요.\n나도 제주어 엽서 쓰기: ${siteUrl()}${webzineLine()}\n엽서 보기:`, url });
       finishSend('', 'kakao_share');
     } catch (err) {
       if (err.name !== 'AbortError') setSheetStatus('공유 창을 열지 못했어요. URL 복사로 보내 주세요.', true);
@@ -1704,6 +1720,8 @@ mailForm.addEventListener('submit', async (e) => {
         fromName: cardFrom.value.trim(),
         message: cardMessage.value,
         filename: 'jeju-postcard.jpg',
+        siteUrl: siteUrl(),         // v7.14: 메일 아래 '나도 제주어 엽서 쓰기' · '웹진' 링크(mail_script.gs — 정해 둔 도메인만 받음)
+        webzineUrl: webzineUrl(),
       }),
     });
     const json = await res.json();
