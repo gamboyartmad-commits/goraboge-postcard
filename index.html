@@ -1,435 +1,508 @@
-<!DOCTYPE html>
-<html lang="ko">
+<!doctype html>
+<html lang="ko" data-intro="active">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#cfe2e6">
-<title>제주어로 엽서 적기 · 하영 고라보게</title>
-<meta name="description" content="전하지 않으면 사라지는 말을 제주어로 적어 보세요. 표준어로 쓴 엽서를 제주어로 바꿔 보낼 수 있어요.">
-<!-- 카카오톡 · 문자에 링크를 붙여 넣으면 보이는 미리보기 (이미지 주소는 인터넷에 올린 주소여야 함) -->
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="하영고라보게">
-<meta property="og:title" content="제주어로 엽서 적기 · 하영고라보게">
-<meta property="og:description" content="전하지 않으면 사라지는 말을 제주어로 적어 보세요.">
-<meta property="og:url" content="https://gamboyartmad-commits.github.io/goraboge-postcard/">
-<meta property="og:image" content="https://gamboyartmad-commits.github.io/goraboge-postcard/images/og-start.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="images/tale/prologue-sky.webp">
-<link rel="preload" as="font" type="font/woff2" href="fonts/BookkMyungjo-Bold.woff2?v=228" crossorigin>
-<link rel="preload" as="font" type="font/woff2" href="fonts/Griun-NeatHandwriting.woff2?v=228" crossorigin>
-<link rel="stylesheet" href="style.css?v=235">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- ✏️ 교체: 웹진 이름·부제·소개 문장(아래 og:site_name · og:title · og:description 도 같게).
+       탭 제목의 영어 · 제주어는 data/i18n/*.json 의 meta.title. 소개 문장 · 공유 미리보기(og)는 한국어 하나뿐입니다(검색 · SNS 는 스크립트를 실행하지 않아 바꿔 넣어도 소용이 없다) -->
+  <title data-i18n="meta.title">하영 고라보게</title>
+  <meta name="description" content="사라져 가는 제주어를 지키는 사람들의 목소리와 인터뷰, 제주어로 쓰는 엽서, 제주어 상호 지도 100곳을 담은 웹진">
+  <meta name="theme-color" content="#e1653a">
+
+  <!-- 공유 미리보기(OG). ✏️ 교체: og:site_name · og:title · og:description 은 위 <title> · description 과 같게,
+       og:image = assets/og-image.jpg(1200x630 — 12차, 만든 법은 .work/check/r20-og.mjs). ✏️ 배포 주소가 정해지면 https://주소/assets/og-image.jpg 처럼 전체 주소로 바꾸세요
+       (상대 주소는 카카오톡 · 인스타그램 · 페이스북이 그림을 찾지 못합니다) -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:site_name" content="하영 고라보게">
+  <meta property="og:title" content="하영 고라보게">
+  <meta property="og:description" content="사라져 가는 제주어를 지키는 사람들의 목소리와 인터뷰, 제주어로 쓰는 엽서, 제주어 상호 지도 100곳을 담은 웹진">
+  <meta property="og:image" content="assets/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- 파비콘(감귤색 우표): .ico 는 SVG 아이콘을 못 읽는 브라우저용 -->
+  <link rel="icon" href="favicon.ico" sizes="32x32">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+  <!-- 글꼴: Pretendard(본문 · 제목) · 고운바탕(제주어 문장 · 인용) · 나눔손글씨 펜(엽서 쓰기 창의 엽서 글씨). 손글씨(나눔손글씨 가람연꽃)는 css/base.css 에서 불러옵니다.
+       crossorigin="anonymous" 는 지우지 마세요(엽서 이미지 저장에 필요).
+       media="print" onload="…" 는 글꼴 스타일을 기다리지 않고 화면부터 그리게 하는 장치입니다(글꼴 서버의 답이 없어도 빈 화면으로 멈추지 않게). -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" crossorigin="anonymous" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Pen+Script&display=swap" media="print" onload="this.media='all'">
+
+  <!-- 지도(Leaflet) 기본 스타일 -->
+  <link rel="stylesheet" href="css/leaflet.css"> <!-- 지도 라이브러리(Leaflet 1.9.4)의 기본 스타일 — 원본 그대로 복사해 둔 것(BSD-2 라이선스). 발행한 페이지는 바깥 CSS 를 막아서 사이트 안에 둔다 -->
+
+  <!-- 우리 스타일: 바탕 → 섹션 순서. theme.css(직접 고치는 글꼴 · 색 · 크기 · 사진 자리)는 늘 맨 마지막에 둡니다 -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/intro.css">
+  <link rel="stylesheet" href="css/quotes.css">
+  <link rel="stylesheet" href="css/interviews.css">
+  <link rel="stylesheet" href="css/map.css">
+  <link rel="stylesheet" href="css/maker.css">
+  <link rel="stylesheet" href="css/scrapbook.css"> <!-- 스크랩북 디자인: 주황 테두리 · 찢어진 종이 · 폴라로이드 · 색바랜 사진 -->
+  <link rel="stylesheet" href="css/theme.css">
+
+  <!-- 파일을 더블클릭(file://)해서 열었을 때 안내 띠를 띄운다 -->
+  <script>if (location.protocol === 'file:') document.documentElement.classList.add('is-file');</script>
+  <!-- 언어(한국어 · English · 제주어)를 미리 정한다: 주소의 ?lang=ko|en|jje → 저장된 값(hayeong-lang) → 한국어. 주소로 들어오면 그 값을 저장한다.
+       한국어가 아니면 글을 바꿀 때까지 화면을 잠깐 가린다(js/i18n.js 가 걷는다. 안전장치: 1.5초). 세 HTML 에 같은 줄이 있다 -->
+  <script>(function (d) { var L = ['ko', 'en'], m = /[?&]lang=([^&#]*)/.exec(location.search), q = m && L.indexOf(m[1]) > -1 ? m[1] : '', s = ''; try { s = localStorage.getItem('hayeong-lang') || ''; if (q) localStorage.setItem('hayeong-lang', q); } catch (e) {} var v = q || (L.indexOf(s) > -1 ? s : 'ko'); d.lang = v; d.setAttribute('data-lang', v); if (v !== 'ko') { d.classList.add('i18n-pending'); setTimeout(function () { d.classList.remove('i18n-pending'); }, 1500); } })(document.documentElement);</script>
+  <!-- 인트로: '동작 줄이기'가 꺼져 있을 때만 스크롤 연출용 배치를 쓴다(깜빡임 없이 처음부터 맞는 화면을 보여 주려고 여기서 정한다).
+       안전장치: 페이지를 다 불러오고 5초가 지나도(불러오기가 끝나지 않더라도 10초가 지나면) 연출이 준비되지 않았을 때 정적 배치(.intro-static)로 바꿔 내용을 보여 준다 -->
+  <script>(function (c) { if (location.protocol === 'file:' || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return; c.add('motion-ok'); var still = function () { if (!c.contains('intro-ready')) c.add('intro-static'); }; addEventListener('load', function () { setTimeout(still, 5000); }); setTimeout(still, 10000); })(document.documentElement.classList);</script>
+
+  <!-- 외부 라이브러리(버전 고정): 스크롤 연출 · 지도 · 엽서 이미지 저장 · 메일 발송.
+       async = 받는 대로 실행한다(답이 없는 CDN 하나가 페이지의 나머지 스크립트를 붙잡지 못하게).
+       data-lib 가 붙은 셋은 화면 배치에 필요해서 js/main.js 가 도착을 기다린다(최대 3초. onload · onerror 가 도착 여부를 적어 둔다.
+       그보다 늦으면 인트로 · 도입 문구 · 인용은 정적 배치로 보여 주고, 지도는 Leaflet 이 도착하는 대로 그린다).
+       fetchpriority="high" 는 느린 회선에서 글꼴보다 먼저 받게 한다. 태그를 더하거나 뺄 때 이 속성들은 그대로 두세요 -->
+  <script async fetchpriority="high" data-lib onload="this.dataset.done=1" onerror="this.dataset.done=1" src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js" integrity="sha384-XmJ9SoHtVOHoQUcKvFAzVXwdkKo1Ie3bhmSoIAkcdsHGaIrVJIkmozyq0FJeb/Ly" crossorigin="anonymous"></script>
+  <script async fetchpriority="high" data-lib onload="this.dataset.done=1" onerror="this.dataset.done=1" src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollTrigger.min.js" integrity="sha384-wl5TeDVvOWt30Pbf8aSo2ZrzsOjddu3avOBvHe+p+OhJt9gP6w9YXmDkN5DK2/dF" crossorigin="anonymous"></script>
+  <script async fetchpriority="high" data-lib onload="this.dataset.done=1" onerror="this.dataset.done=1" src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
+  <script async src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.js" integrity="sha384-Tha/42qsYmpYmQ07pX+nJzkKumO0BzKJxK/uzVc7xyBQxVCUgQBhQIG8L7vXK+9C" crossorigin="anonymous"></script>
+  <script async src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js" integrity="sha384-SALc35EccAf6RzGw4iNsyj7kTPr33K7RoGzYu+7heZhT8s0GZouafRiCg1qy44AS" crossorigin="anonymous"></script>
+
+  <!-- 설정(EmailJS 키 등) → 우리 코드 -->
+  <script defer src="config.js"></script>
+  <script type="module" src="js/main.js"></script>
 </head>
 <body>
-  <a class="skip-link" href="#scene2">바로 편지 쓰기로 건너뛰기</a>
+  <a class="skip-link" href="#main" data-i18n="common.skip-to-main">본문으로 건너뛰기</a>
 
-  <!-- 위 막대: 로고 · 홈(웹진) · 게시판 · 사용 방법 (늘 위에 떠 있음, 바탕 없이) -->
-  <header class="tale-bar">
-    <div class="tale-bar-start">
-      <a class="tale-logo" href="#story"><img src="images/logo-goraboge.png" alt="하영고라보게 · 제주어로 엽서 적기" width="398" height="259"></a>
-      <!-- 홈: 웹진 '하영 고라보게' 첫 화면 -->
-      <a class="bar-btn bar-home" href="https://claude.ai/artifact/3EHktt3KU8zWRdGv1MFnvC" data-webzine-link="bar" aria-label="웹진 하영 고라보게에서 기사 보러가기">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h11.5a1 1 0 0 1 1 1V18a1.5 1.5 0 0 0 3 0V8.5h-3M5 4.5v13.5A1.5 1.5 0 0 0 6.5 19.5h14.5M8 8.5h6.5M8 12h6.5M8 15.5h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        기사 보러가기
-      </a>
-    </div>
-    <div class="tale-bar-actions">
-      <button type="button" class="bar-btn" id="boardNavBtn">게시판</button>
-      <button type="button" class="bar-btn bar-round" id="helpBtn" aria-label="사용 방법">?</button>
-    </div>
-  </header>
+  <!-- 언어 전환 단추(한국어 / English / 제주어) — js/i18n.js 가 이 자리에 그린다(화면 오른쪽 위에 떠 있다. 모양은 css/base.css 의 '언어 전환').
+       이 페이지의 화면 글자 가운데 data-i18n · data-i18n-html · data-i18n-attr 가 붙은 것이 언어마다 바뀐다(번역은 data/i18n/en.json · jje.json, README '언어 전환') -->
+  <div class="lang-float" data-lang-switch></div>
+
+  <!-- 위쪽 고정 목차: 인트로(메인 화면)가 끝나면 화면 위에 나타난다(css/scrapbook.css '6-7' · js/main.js 의 initTopbar — 지금 보고 있는 섹션에 표시).
+       ✏️ 교체: 차례 문구 · 이동할 곳(메인 화면의 목차와 같게) -->
+  <nav class="topbar" aria-label="섹션 바로 가기" data-topbar>
+    <a class="topbar__logo" href="#intro"><img src="assets/logo-hayeong.png" alt="하영 고라보게 — 처음으로" width="860" height="556" decoding="async"></a>
+    <ol class="topbar__list">
+      <li><a href="#write" data-spy="write"><span lang="en">01</span>엽서 쓰기</a></li>
+      <li><a href="#quotes" data-spy="quotes"><span lang="en">02</span>목소리</a></li>
+      <li><a href="#interviews" data-spy="interviews"><span lang="en">03</span>인터뷰</a></li>
+      <li><a href="#map" data-spy="map"><span lang="en">04</span>상호 지도</a></li>
+    </ol>
+  </nav>
 
   <main id="main">
-    <!-- 제주 동화 한 편: SCENE 01 → 02 → 03 → 04 (+ 엔딩)이 한 줄로 이어짐.
-         SCENE 01~02는 화면이 멈춘 채(sticky) 스크롤에 맞춰 카메라가 움직이고(app.js의 '동화 장면'),
-         02의 종이가 그 위로 밀려 올라오며 실제 엽서 고르기가 시작됨. 03 · 04는 편하게 쓰도록 움직임을 줄임 -->
-    <div class="tale" id="writePanel">
 
-      <!-- 이야기 페이지: SCENE 01 · 02. '이 풍경에 마음 담기'를 누르면 쓰기 페이지로 넘어감 -->
-      <div class="story-page" id="storyPage">
-      <!-- SCENE 01. 제주에서 날아온 편지 (프롤로그) · SCENE 02 앞부분 (편지가 책상에 내려앉아 펼쳐짐) -->
-      <section class="story" id="story" aria-labelledby="prologueTitle">
-        <div class="stage" id="stage">
-          <!-- 색연필 그림 두 장 (images/tale, _tools/build_tale_art.py). 풍경은 하늘 · 땅 · 앞 풀밭 세 층으로 나눠 서로 다른 빠르기로 움직임 -->
-          <div class="world" id="world" aria-hidden="true">
-            <div class="art art-prologue" id="artPrologue">
-              <img class="art-sky" id="artSky" src="images/tale/prologue-sky.webp" alt="" width="1122" height="1402" fetchpriority="high">
-              <img class="art-land" id="artLand" src="images/tale/prologue-land.webp" alt="">
-              <img class="art-grass" id="artGrass" src="images/tale/prologue-grass.webp" alt="">
-            </div>
-            <img class="art art-desk" id="artDesk" src="images/tale/desk-scene.webp" alt="" width="1122" height="1402">
-            <!-- 실제 편지: 봉투 뒷면 · 고른 엽서 · 앞주머니(귤 봉인) 세 겹. 펼쳐지면 엽서가 위로 빠져나옴 -->
-            <div class="letter" id="letter">
-              <img class="letter-layer" src="images/tale/letter-back.webp" alt="">
-              <img class="letter-card" id="letterCard" src="images/card-01.webp?v=3" alt="">
-              <img class="letter-layer" src="images/tale/letter-front.webp" alt="">
+    <!-- ▼ 1. 인트로 시작 (css/intro.css · js/intro.js) -->
+    <section id="intro" class="intro" aria-label="인트로" data-i18n-attr="aria-label:intro.label">
+      <!-- 웹진 이름(페이지의 큰 제목 — 화면 낭독기 · 검색용. 눈에 보이는 로고는 봉인 스티커와 위쪽 고정 목차에 있다) -->
+      <h1 class="visually-hidden" data-i18n="site.name">하영 고라보게</h1>
+      <div class="intro__stage">
+
+        <!-- 배경: '인트로 사진/빈티지 제주 배경'을 살짝 흐리게 · 따뜻한 필름 색으로(assets/intro/intro-bg.jpg — .work/gen/intro_bg_candidates.py 의 B) + 필름 입자.
+             레퍼런스: 흐린 풍경 위의 'YOU'VE GOT MAIL!' 카드. 봉투 · 스티커 · 쪽지 두 장은 예전 모양 그대로. ✏️ 교체: 배경 그림 · 입자의 진하기는 css/intro.css '1.' -->
+        <div class="intro__desk" aria-hidden="true"></div>
+
+        <!-- 봉투(뚜껑 쪽에서 본 모습). 겹치는 순서: 안쪽 → 뚜껑 → 엽서 → 앞주머니 → 봉인 스티커(누르는 단추) · 손글씨 안내.
+             봉투 그림은 장식이라 화면 낭독기에는 숨기고(aria-hidden), 스티커 단추와 안내 한 줄만 읽힌다 -->
+        <div class="intro__envelope">
+          <div class="intro__inside" aria-hidden="true"></div>
+          <div class="intro__flap-wrap" aria-hidden="true">
+            <div class="intro__flap">
+              <div class="intro__flap-face intro__flap-face--out"><span class="intro__flap-shade"></span></div>
+              <div class="intro__flap-face intro__flap-face--in"><span class="intro__lining"></span><span class="intro__flap-shade"></span></div>
             </div>
           </div>
-
-          <div class="story-copy" id="storyCopy">
-            <h1 class="prologue" id="prologueTitle">
-              <span class="prologue-main">지금, 생각나는 사람이 있나요?</span>
-              <span class="prologue-sub">전하지 못한 마음이 있다면<br>제주의 바람에 살며시 실어보세요.</span>
-            </h1>
-            <a class="jump-btn" href="#scene2" id="jumpBtn">바로 편지 쓰기 <span aria-hidden="true">→</span></a>
-          </div>
-          <div class="scroll-hint" id="scrollHint" aria-hidden="true"><span>천천히 내려 보세요</span><i></i></div>
-        </div>
-      </section>
-
-      <!-- SCENE 02. 마음을 담을 편지 (엽서 고르기 + 마음 쓰기): 종이 한 장이 동화 장면 위로 밀려 올라옴 -->
-      <section class="scene scene-pick" id="scene2" aria-labelledby="pickTitle">
-        <div class="paper-edge" aria-hidden="true"><i></i></div>
-        <h2 class="scene-title" id="pickTitle" tabindex="-1" data-chars>당신의 마음을<br>제주어로 전해보세요</h2>
-        <!-- 내 편지 쓰기: 누르면 아래에 편지 쓰는 칸(받는 사람 · 하고 싶은 말 · 보내는 사람)이 생김. 처음에는 엽서 템플릿 글만 -->
-        <div class="pick-tools">
-          <!-- '제주어로 바꾸기'(v7.11 — v7.9의 '이대로 보내기'를 되돌림): 엽서 글을 제주어로 바꿔 바로 보내기 화면으로 (숨겨 둔 아래 #translateBtn을 누름) -->
-          <button type="button" class="translate-top-btn" id="translateTopBtn">제주어로 바꾸기 <span aria-hidden="true">→</span></button>
-          <button type="button" class="write-open-btn" id="writeOpenBtn" aria-controls="writerPanel" aria-expanded="false"><span class="write-open-t" aria-hidden="true">T</span>내 편지 쓰기</button>
-        </div>
-        <!-- 고른 엽서: 입력칸 위치는 엽서 이미지(1920×1280)의 줄에 맞춰 style.css에서 %로 잡음.
-             '제주어로 바꾸기'를 누르면 엽서 위로 바람(.wind)이 스치고 글이 제주어로 바뀜 -->
-        <div class="write-card" id="writeCard">
-          <div class="card" id="card">
-                    <img id="cardImage" src="images/card-01.webp?v=3" alt="해녀가 헤엄치는 바다 엽서">
-                    <!-- 직접 넣은 사진은 엽서 왼쪽 그림 자리(960×1280)를 덮음 -->
-                    <img id="cardPhoto" alt="" hidden>   <!-- 넣은 사진 원본 (화면에는 아래 캔버스로 그림) -->
-                    <canvas id="cardPhotoView" class="card-photo" width="960" height="1280" role="img" aria-label="직접 넣은 사진. 끌어서 옮기고, 두 손가락으로 벌리거나 아래 + − 단추로 크기를 바꿀 수 있어요" hidden></canvas>
-                    <label class="card-field card-to">
-                      <span class="sr-only">받는 사람</span>
-                      <input type="text" id="cardTo" maxlength="14" autocomplete="off">
-                    </label>
-                    <textarea class="card-field card-message" id="cardMessage" maxlength="144" aria-label="엽서 내용" placeholder="여기에 마음을 적어 보세요"></textarea>
-                    <label class="card-field card-from">
-                      <span class="sr-only">보내는 사람</span>
-                      <input type="text" id="cardFrom" maxlength="10" autocomplete="off">
-                    </label>
-                    <div class="card-field card-date" id="cardDate" aria-label="쓴 날짜"></div>
-                    <!-- 엽서 안 글 바로 아랫줄(8줄을 다 채우면 From 줄 밑): 누르면 지금 엽서 글 그대로 아래 편지 쓰는 칸으로 -->
-                    <button type="button" class="card-edit-btn" id="cardEditBtn" aria-controls="writerPanel"><span class="write-open-t" aria-hidden="true">T</span>메시지 편집</button>
-                              <img class="card-stamp" id="cardStamp" src="images/stamp-goraboge.png?v=2" alt="" aria-hidden="true" hidden>
-                  </div>
-          <svg class="wind" id="wind" viewBox="0 0 600 400" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M-40 120 C80 80 180 150 300 110 S520 70 660 120"/>
-            <path d="M-40 200 C100 160 220 240 340 190 S540 150 660 210"/>
-            <path d="M-40 280 C90 250 210 320 320 270 S530 230 660 290"/>
-            <path d="M-40 160 C120 140 240 190 380 150 S560 130 660 160"/>
-          </svg>
-        </div>
-        <!-- 엽서 템플릿 단추 줄 (엽서 바로 아래, 엽서 그림 고르기 위): 엽서를 고르면 그 엽서의 To · 편지 글이 바로 써짐
-             (app.js CARD_TEMPLATES). 모든 엽서에서 보임 -->
-        <div class="letter-templates" role="group" aria-labelledby="templateLabel" hidden>
-          <p class="letter-templates-label sr-only" id="templateLabel">이 엽서에 어울리는 글</p>   <!-- 화면에는 안 보임(읽어 주기용) -->
-          <div class="letter-templates-list" id="templateList"></div>
-        </div>
-        <!-- 내 사진을 넣었을 때만: 사진 크기 · 위치 단추 (엽서 왼쪽 그림 자리 안에서) -->
-        <div class="photo-tools" id="photoTools" hidden>
-          <span class="photo-tools-hint">사진을 끌어서 옮기고, 두 손가락으로 키워 보세요</span>
-          <span class="photo-tools-btns">
-            <button type="button" class="photo-tool" id="photoZoomOut" aria-label="사진 작게">−</button>
-            <button type="button" class="photo-tool" id="photoZoomIn" aria-label="사진 크게">+</button>
-            <button type="button" class="photo-tool photo-tool-reset" id="photoReset">처음대로</button>
-          </span>
-        </div>
-        <div class="picker">
-                <input type="file" id="photoInput" accept="image/*" hidden>
-                <div class="photo-slot">
-                  <button type="button" class="strip-item strip-photo" id="photoTile" aria-pressed="false" aria-describedby="photoCaption">
-                    <img id="photoThumb" alt="" hidden>
-                    <span class="strip-photo-label" id="photoLabel"><b>+</b>내 사진</span>
-                  </button>
-                  <p class="photo-caption" id="photoCaption">직접 찍은 사진으로 엽서 만들기</p>
-                </div>
-                <div class="carousel" id="carousel" tabindex="0" aria-label="엽서 그림 고르기. 옆으로 넘기면 가운데 그림이 골라져요"></div>
+          <div class="intro__card-slot" aria-hidden="true">
+            <div class="intro__card">
+              <span class="intro__card-paper"></span>
+              <!-- ✏️ 교체: 봉투 속 작은 엽서의 호수와 작은 로고(아래 큰 타이틀과 같은 그림 — 로고 파일을 바꾸면 src 를 함께 고친다) -->
+              <div class="intro__card-face airmail">
+                <span class="intro__card-vol">VOL.01</span>
+                <img class="intro__card-stamp" src="assets/intro/stamp-citrus.webp" alt="" width="478" height="640" decoding="async">
+                <img class="intro__card-logo" src="assets/logo-hayeong.png" alt="" width="860" height="556" decoding="async">
               </div>
-
-        <!-- 마음 쓰기 칸: 'T 내 편지 쓰기'(또는 엽서 위 줄글)를 누르면 열림 (app.js openWriter) -->
-        <div class="writer-panel" id="writerPanel" hidden>
-        <!-- 마음 쓰기: 받는 사람 · 하고 싶은 말 · 보내는 사람. 쓰는 대로 위 엽서에 옮겨짐 -->
-        <div class="mobile-writer">
-                <div class="mobile-names">
-                  <label>To <input type="text" id="mobileTo" maxlength="14" autocomplete="off" placeholder="받는 사람"></label>
-                  <label>From <input type="text" id="mobileFrom" maxlength="10" autocomplete="off" placeholder="보내는 사람"></label>
-                </div>
-                <div class="message-box">
-                  <textarea id="mobileMessage" maxlength="144" aria-label="엽서 내용" aria-describedby="messageCount" placeholder="여기에 마음을 적어 보세요. 엽서에 바로 보여요."></textarea>
-                  <span class="message-count" id="messageCount"><b>0</b>/144자</span>
-                </div>
-                <!-- 템플릿으로 바꾸기 전 글로 되돌리기 (직접 쓴 글이 있었을 때만 잠깐 보임) -->
-                <p class="template-undo" id="templateUndo" role="status" hidden><button type="button" class="text-btn" id="templateUndoBtn">← 방금 쓴 글로 되돌리기</button></p>
-              </div>
-        <!-- 다 쓰면 바로 보내기: 위 '제주어로 바꾸기'와 같은 동작 (쓰는 칸이 열릴 때만 함께 보임) -->
-        <div class="writer-send">
-          <button type="button" class="tale-btn is-primary" id="writerSendBtn">편지 보내기 <span aria-hidden="true">→</span></button>
-        </div>
-        </div>
-
-      
-        <!-- 제주어로 바꾼 뒤(또는 엽서 보내기를 연 뒤) 글을 고치면 뜨는 알림 -->
-              <div class="edit-alert" id="editAlert" role="status" hidden>
-                <span class="edit-alert-icon" aria-hidden="true">!</span>
-                <div class="edit-alert-body">
-                  <p class="edit-alert-title">고친 글은 아직 표준어예요</p>
-                  <p class="edit-alert-text">엽서 글을 고치면 제주어로 저절로 바뀌지 않아요. 다 고친 다음 한 번 더 바꿔 주세요.</p>
-                </div>
-                <div class="edit-alert-actions">
-                  <button type="button" class="stitch-btn is-small is-accent" id="editAlertTranslate">제주어로 다시 바꾸기</button>
-                  <button type="button" class="edit-alert-dismiss" id="editAlertDismiss">이대로 둘게요</button>
-                </div>
-              </div>
-        <!-- 아래 '제주어로 바꾸기' 단추는 숨김(위 '제주어로 바꾸기'가 대신). 동작은 이 단추에 그대로 있어 여러 곳에서 누름 -->
-        <div class="write-actions" hidden>
-          <button type="button" class="tale-btn is-primary" id="translateBtn">제주어로 바꾸기 <span aria-hidden="true">→</span></button>
-        </div>
-        <p class="status" id="status" aria-live="polite"></p>
-      </section>
-
-      </div>
-
-      <!-- 보내기 화면: '제주어로 바꾸기'를 누르면 화면이 바뀌어 제주어 엽서에 우표 · 소인이 찍히고 바로 보낼 수 있음.
-           보내기를 마치면 엔딩 화면. 휴대폰 뒤로 가기 · 뒤로 버튼은 한 화면씩 돌아감 -->
-      <div class="book-page" id="pageSend" hidden>
-      <!-- SCENE 04. 마음이 닿는 곳으로 (보내기): 완성된 엽서에 귤 우표 · 하영고라보게 소인이 찍힘 -->
-      <section class="scene scene-send" id="secSend" aria-labelledby="sendSecTitle" hidden>
-        <h2 class="scene-title" id="sendSecTitle" tabindex="-1" data-chars>이제, 마음을 전할 시간이에요.</h2>
-        <figure class="final-card" id="finalCard">
-          <img class="final-image" id="finalImage" alt="완성된 제주어 엽서">
-          <img class="final-postmark" id="finalPostmark" src="images/stamp-goraboge.png?v=2" alt="" aria-hidden="true">
-        </figure>
-
-        <!-- 제주어 편지 고치기: 눌러서 펼침. 표준어 원문 · 제주어 결과(둘 다 고칠 수 있음) · 다시 바꾸기. 고치면 위 엽서에 바로 반영 -->
-        <button type="button" class="text-btn jeju-edit-toggle" id="jejuEditBtn" hidden aria-expanded="false" aria-controls="jejuEditor">제주어 편지 고치기 <span aria-hidden="true">▾</span></button>
-        <div class="jeju-editor" id="jejuEditor" hidden>
-          <div class="translate-panel" id="translatePage" hidden>
-            <div class="tr-body">
-                    <!-- 두 편지 모두 엽서 글쓰기 면처럼: To 줄 → 점선 줄 위의 글 → 날짜 · From 줄 -->
-                    <section class="tr-card tr-standard" aria-labelledby="trStandardLabel">
-                      <h3 class="tr-label" id="trStandardLabel">표준어 편지</h3>
-                      <div class="tr-paper">
-                        <p class="tr-to">To <span class="tr-name" data-name="to"></span></p>
-                        <textarea class="tr-text" id="trStandard" aria-labelledby="trStandardLabel"></textarea>
-                        <p class="tr-foot"><span class="tr-date"></span><span class="tr-from"><span class="tr-name" data-name="from"></span>From</span></p>
-                      </div>
-                    </section>
-                      <div class="tr-middle">
-                        <button type="button" class="tr-convert" id="trConvert">
-                          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 0 1-14.3 4.9M4 12a8 8 0 0 1 14.3-4.9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M18.8 3.2v4.2h-4.2M5.2 20.8v-4.2h4.2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                          <span>원래 편지로 <br>다시 바꾸기</span>
-                        </button>
-                        <span class="tr-arrow" aria-hidden="true">→</span>
-                      </div>
-                      <section class="tr-card tr-jeju" aria-labelledby="trJejuLabel">
-                        <h3 class="tr-label" id="trJejuLabel">제주어 변환 결과</h3>
-                        <div class="tr-paper">
-                          <p class="tr-to">To <span class="tr-name" data-name="to"></span></p>
-                          <textarea class="tr-text" id="trJeju" aria-labelledby="trJejuLabel" aria-describedby="trNote"></textarea>
-                          <p class="tr-foot"><span class="tr-date"></span><span class="tr-from"><span class="tr-name" data-name="from"></span>From</span></p>
-                        </div>
-                      </section>
-                    </div>
-              <p class="tr-note" id="trNote" aria-live="polite"></p>
-              <div class="tr-actions">
-                <button type="button" class="tale-btn" id="trBack">← 표준어로 다시 쓰기</button>
-                <button type="button" class="tale-btn is-primary" id="trNext">고친 편지로 엽서 다시 찍기</button>
-              </div>
-              <p class="status" id="trStatus" aria-live="polite"></p>
             </div>
+          </div>
+          <div class="intro__pocket-wrap" aria-hidden="true">
+            <div class="intro__pocket">
+              <svg class="intro__pocket-art" viewBox="0 0 580 400" preserveAspectRatio="none" focusable="false">
+                <defs>
+                  <linearGradient id="intro-fold-l" x1="0" y1="0" x2="1" y2="0"><stop class="intro__shade-0" offset="0.35"/><stop class="intro__shade-1" offset="1"/></linearGradient>
+                  <linearGradient id="intro-fold-r" x1="1" y1="0" x2="0" y2="0"><stop class="intro__shade-0" offset="0.35"/><stop class="intro__shade-1" offset="1"/></linearGradient>
+                  <linearGradient id="intro-fold-b" x1="0" y1="0" x2="0" y2="1"><stop class="intro__light-1" offset="0"/><stop class="intro__light-0" offset="0.7"/></linearGradient>
+                </defs>
+                <path d="M0 0 290 204 0 400Z" fill="url(#intro-fold-l)"/>
+                <path d="M580 0 290 204 580 400Z" fill="url(#intro-fold-r)"/>
+                <path d="M0 400 290 188 580 400Z" fill="url(#intro-fold-b)"/>
+                <path class="intro__fold intro__fold--soft" d="M0 400 290 188 580 400"/>
+                <path class="intro__fold" d="M0 400 290 188 580 400"/>
+                <path class="intro__fold intro__fold--edge" d="M0 0 290 204 580 0"/>
+              </svg>
+            </div>
+          </div>
+          <!-- 봉인 스티커 = 동그란 스티커 안의 하영고라보게 로고(단추). 누르면 스크롤하지 않아도 봉투가 열리고 엽서가 나온다(js/intro.js 가 인트로 끝까지 저절로 스크롤한다).
+               ✏️ 교체: 단추 이름(aria-label). 로고 파일을 바꾸면 src · width · height 도 -->
+          <button type="button" class="intro__seal" aria-label="봉투 열기" aria-describedby="intro-hint" data-i18n-attr="aria-label:intro.seal-label">
+            <img class="intro__seal-logo" src="assets/logo-hayeong.png" alt="" width="860" height="556" decoding="async">
+          </button>
         </div>
-        <dialog class="send-panel" id="sendPanel" aria-labelledby="sendTitle">
-                <h3 class="send-title" id="sendTitle">어떻게 보낼까요?</h3>
-                <div class="send-hint" id="sendHint" hidden>
-                  <p>아직 표준어 그대로예요. 제주어로 바꿔서 보낼까요?</p>
-                  <button type="button" class="stitch-btn is-small is-accent" id="sendHintTranslate">제주어로 바꾸기</button>
-                </div>
-                <div class="send-row">
-                  <button type="button" class="send-option send-kakao" id="kakaoBtn">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4C7 4 3 7.1 3 11c0 2.5 1.7 4.7 4.2 5.9l-1 3.7a.3.3 0 0 0 .4.3l4.4-2.9h1c5 0 9-3.1 9-7s-4-7-9-7z" fill="currentColor"/></svg>
-                    <span><b>카카오톡</b><small>친구를 골라 엽서를 보내요</small></span>
-                  </button>
-                  <button type="button" class="send-option" id="mailOption" aria-expanded="false" aria-controls="mailForm">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
-                    <span><b>메일</b><small>엽서 그림이 메일에 바로 보여요</small></span>
-                  </button>
-                  <form class="mail-form" id="mailForm" hidden>
-                    <label class="sheet-label" for="mailInput">받는 사람 메일 주소</label>
-                    <div class="mail-row">
-                      <input type="email" id="mailInput" class="sheet-input" required placeholder="name@email.com" autocomplete="email" inputmode="email">
-                      <button type="submit" class="stitch-btn is-accent" id="mailSubmit">보내기</button>
-                    </div>
-                  </form>
-                  <button type="button" class="send-option" id="copyLinkBtn">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                    <span><b>링크 복사</b><small>문자나 SNS에 붙여 넣어 보내요</small></span>
-                  </button>
-                  <button type="button" class="send-option" id="saveBtn">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    <span><b>이미지 저장</b><small>휴대폰에 엽서 그림을 저장해요</small></span>
-                  </button>
-                  <button type="button" class="send-option" id="boardBtn">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 10.5V21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                    <span><b>게시판</b><small>모두가 보는 게시판에 남겨요</small></span>
-                  </button>
-                </div>
-                <p class="sheet-status" id="sheetStatus" aria-live="polite"></p>
-                <div class="send-done" id="sendDone" hidden>
-                  <button type="button" class="stitch-btn is-accent" id="newCardBtn" hidden>새 엽서 쓰기</button>
-                  <button type="button" class="text-btn" id="viewBoardBtn" hidden>게시판에서 보기</button>
-                </div>
-                <!-- v7.11: 글자 단추 → 위 '제주어로 바꾸기'와 같은 짙은 알약 단추(잘 보이게) -->
-                <button type="button" class="translate-top-btn send-back" id="sendBack"><span aria-hidden="true">←</span> 편지 다시 쓰기</button>
-              </dialog>
 
-        <!-- 맨 끝: 웹진 하영 고라보게 홍보 띠 (간단하게 한 줄). 누르면 웹진이 새 탭으로.
-             그림은 웹진 인터뷰 그림 (_tools/build_promo_assets.py → images/promo/) -->
-        <a class="webzine-promo" href="https://claude.ai/artifact/3EHktt3KU8zWRdGv1MFnvC" target="_blank" rel="noopener" data-webzine-link="promo">
-          <img class="promo-thumb" src="images/promo/interview-02.webp" width="720" height="540" loading="lazy" alt="">
-          <span class="promo-text">
-            <span class="promo-eyebrow">웹진 하영 고라보게</span>
-            <b>제주어 이야기, 더 읽어 볼까요?</b>
-            <span class="promo-sub">인터뷰 · 목소리 · <span class="nowrap">상호 지도 100곳</span></span>
-          </span>
-          <span class="promo-go" aria-hidden="true">→</span>
-        </a>
-      </section>
+        <!-- 찢어진 종이 쪽지 두 장. ✏️ 교체: 문구(둘째 쪽지는 스티커 단추의 설명으로도 읽힌다 — aria-describedby) -->
+        <p class="intro__note intro__note--hello"><span class="torn-paper torn-paper--a" data-i18n="intro.hello" data-edit="intro-hello">제주에서 엽서가 도착했어요</span><span class="tape" aria-hidden="true"></span></p>
+        <p class="intro__note intro__note--hint" id="intro-hint"><span class="torn-paper torn-paper--b"><span data-i18n="intro.hint" data-edit="intro-hint">스티커를 눌러 보세요</span><svg class="intro__note-arrow" viewBox="0 0 48 34" aria-hidden="true" focusable="false"><path d="M44 30C34 30 20 26 12 10"/><path d="M5 17C8 13 10 8 11 3c4 3 9 5 14 6"/></svg></span></p>
+
+        <!-- (27차) 엽서 앞면 = 메인 화면(사진 · 제목 · 목차)을 뺐다(사용자) — 봉투가 열리고 엽서가 올라오면 바로 '엽서 쓰기'가 이어진다.
+             빼기 전 HTML = .work/front-block-r27.html(다시 넣으려면 이 자리에 붙이고 js/intro.js 의 마지막 장면을 되돌린다 — README 27차) -->
+
+        <div class="intro__scroll" aria-hidden="true">
+          <span class="intro__scroll-mouse"><span class="intro__scroll-wheel"></span></span>
+          <span class="intro__scroll-text">SCROLL</span>
+        </div>
+
+        <!-- 바로 보기: 봉투 연출을 건너뛰고 '엽서 쓰기'로(js/intro.js). 가만히 있어도 잠시 뒤 봉투가 저절로 열린다(js/intro.js 의 AUTO_OPEN_MS).
+             ✏️ 교체: 단추 글자(영어 · 제주어는 data/i18n/*.json 의 intro.skip) -->
+        <button type="button" class="intro__skip" data-intro-skip><span data-i18n="intro.skip">바로 보기</span><svg class="intro__skip-arrow" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M4 10h11M11 5l5 5-5 5"/></svg></button>
 
       </div>
+    </section>
+    <!-- ▲ 1. 인트로 끝 -->
 
-      <!-- 엔딩: 보내기를 마치면 화면이 바뀌고, 편지가 제주 바람을 타고 하늘로 -->
-      <div class="book-page" id="pageEnd" hidden>
-      <section class="scene scene-end" id="ending" aria-labelledby="endTitle" hidden>
-        <div class="end-sky" aria-hidden="true">
-          <img class="end-art" src="images/tale/prologue-sky.webp" alt="" loading="lazy">
-          <img class="fly-letter" id="flyLetter" src="images/tale/letter-full.webp" alt="" loading="lazy">
+    <!-- ▼ 1. 엽서 써보기 시작 (css/maker.css '7.' · js/maker.js · js/story.js) — 화면의 작은 라벨은 No.01.
+         27차: 메인 화면(엽서 앞면)을 빼서 봉투 인트로 바로 다음이 '엽서 써보기'. 12차(2026-10-21): 메인 화면 바로 다음에 '엽서 써보기'를 먼저(광고로 들어온 사람이 첫 스크롤에 무엇을 하는 곳인지 보게) →
+         그 아래 '왜 제주어로 써야 할까요?' 는 글 없이 '이 말이 사라지면' 애니메이션 하나(16차). 예전 구성(왜 제주어로 글 + 유네스코 카드가 먼저)은 jeju-webzine-history/v11-2026-10-21 -->
+    <section id="write" class="write band" aria-labelledby="write-title">
+      <div class="tear tear--up tear--soft tear--c" aria-hidden="true"></div>
+      <div class="container write__inner">
+
+        <!-- ① 엽서 써보기 — 왼쪽 제목 · 세 걸음 · 단추, 오른쪽 견본 엽서 -->
+        <div class="write__make">
+          <div class="write__copy" data-reveal>
+            <p class="eyebrow" lang="en">No.01 · Write</p>
+            <!-- ✏️ 교체: 제목 두 줄(위 = 크고 굵게, 아래 = 작게). 크기는 css/maker.css '7.' 의 .write__title-main · .write__title-sub -->
+            <h2 id="write-title" class="write__title"><span class="write__title-main" data-i18n="write.title-main" data-edit="write-title-main">당신의 엽서 한 장이</span> <span class="write__title-sub" data-i18n="write.title-sub" data-edit="write-title-sub">제주어를 지킬 수 있어요</span></h2>
+            <!-- 세 걸음(14차): 평소 말투로 쓰면 → 제주어로 바꿔 준다는 것이 한눈에 보이게, 1 · 2 걸음 아래에 실제 예시 한 쌍.
+                 ✏️ 교체: 걸음 글 · 예시(지금 예시 = 견본 엽서 '나에게'의 마지막 줄 그대로 — 표준어 '오늘도 고생했어, 사랑해!' → 제주어 '오늘도 욕봐신게, 사랑햄쪄!').
+                 예시를 바꿀 때는 뜻을 확인한 제주어로(지어내지 않기). 생김새는 css/maker.css 의 .write__flow -->
+            <ol class="write__flow" role="list">
+              <li class="write__flow-step">
+                <b class="write__flow-no" aria-hidden="true">1</b>
+                <div class="write__flow-body">
+                  <p class="write__flow-label" data-i18n="write.step-write" data-edit="write-step-1">평소 말투로 마음을 쓰면</p>
+                  <p class="write__flow-sample"><span class="visually-hidden" data-i18n="write.sample-from">예: </span><span data-edit="write-sample-from">오늘도 고생했어, 사랑해!</span></p>
+                </div>
+              </li>
+              <li class="write__flow-step">
+                <b class="write__flow-no" aria-hidden="true">2</b>
+                <div class="write__flow-body">
+                  <p class="write__flow-label" data-i18n="write.step-convert" data-edit="write-step-2">제주어로 바꿔 드려요</p>
+                  <p class="write__flow-sample write__flow-sample--jeju"><span class="visually-hidden" data-i18n="write.sample-to">제주어로: </span><span data-edit="write-sample-to">오늘도 욕봐신게, 사랑햄쪄!</span></p>
+                </div>
+              </li>
+              <li class="write__flow-step">
+                <b class="write__flow-no" aria-hidden="true">3</b>
+                <div class="write__flow-body">
+                  <p class="write__flow-label" data-i18n="write.step-send" data-edit="write-step-3">소중한 사람에게 보내요</p>
+                </div>
+              </li>
+            </ol>
+            <!-- ✏️ 교체: 단추 이름 · 아래 작은 안내. 생김새는 오른쪽 아래 플로팅 배너와 같은 짙은 알약(css/maker.css '7.' 의 .write__btn).
+                 data-open-maker 가 붙은 단추는 플로팅 배너와 같은 곳으로 간다(js/maker.js):
+                 config.js 의 links.postcard 에 주소가 있으면 그 주소를 새 탭(새 창)으로 열고, 비어 있으면 변환 창을 연다 -->
+            <div class="write__cta">
+              <button type="button" class="write__btn" data-open-maker data-track-location="write" aria-haspopup="dialog" aria-describedby="write-cta-note"><span class="write__btn-text" data-i18n="write.cta" data-edit="write-cta">제주어 엽서 써보기</span><svg class="write__btn-icon" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M8 4.5H4.5v11h11V12M11 4.5h4.5V9M15.2 4.8 9 11"/></svg><img class="write__btn-stamp" src="assets/intro/stamp-citrus.webp" alt="" width="478" height="640" decoding="async" loading="lazy"></button>
+              <p class="write__cta-note" id="write-cta-note" data-i18n="write.cta-note" data-edit="write-cta-note">누르면 새 창에서 제주어 엽서 쓰기 페이지가 열려요.</p>
+            </div>
+          </div>
+
+          <!-- 예시 엽서 세 장(그림 — 작업 폴더 '엽서 샘플' 의 나 · 엄마 · 친구). 몇 초마다 저절로 넘어간다(js/maker.js 의 initExamples. '동작 줄이기'에서는 멈추고 아래 단추로 넘긴다).
+               엽서를 누르면 크게 보인다(js/maker.js 의 initZoom) — 휴대폰은 글이 읽히는 세로판(data-zoom-m), 넓은 화면은 가로판 그대로.
+               ✏️ 교체: 그림 = assets/write/example-0N.jpg(가로 1200x800 — 휴대폰에서도 작게 이 그림) + example-0N-m.jpg(휴대폰에서 크게 볼 때의 세로판).
+               새 샘플로 바꾸려면 '엽서 샘플' 폴더의 그림(1920x1280, 오른쪽 글 칸이 x 1000 부터)을 README '예시 엽서' 의 방법으로 다시 만든다.
+               alt = 그림 속 글(제주어)과 표준어 뜻 — 화면 낭독기 · 그림이 안 보일 때. 장을 더하거나 빼면 아래 단추(data-example-dot)도 같은 수로 -->
+          <div class="write__examples" data-reveal="right" data-write-examples aria-roledescription="예시 엽서" aria-label="예시 엽서 네 장">
+            <figure class="write__example is-active">
+              <button type="button" class="write__zoom" data-example-zoom data-zoom-m="assets/write/example-01-m.jpg" data-zoom-name="나에게">
+                <img src="assets/write/example-01.jpg" alt="엽서 샘플 — 나에게 보내는 엽서. 왼쪽에 턱을 괴고 엽서를 쓰는 사람 그림, 오른쪽에 To. 나신디(나에게) · From. 나가(내가), 줄마다 제주어 글과 그 아래 표준어 뜻(안녕, 오늘도 하루 잘 버텨낸 나 …)" width="1200" height="800" decoding="async" loading="lazy">
+                <span class="write__zoom-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M10.5 7.5v6M7.5 10.5h6"/></svg></span>
+                <span class="visually-hidden" data-i18n="write.zoom">크게 보기</span>
+              </button>
+            </figure>
+            <figure class="write__example">
+              <button type="button" class="write__zoom" data-example-zoom data-zoom-m="assets/write/example-02-m.jpg" data-zoom-name="엄마에게">
+                <img src="assets/write/example-02.jpg" alt="엽서 샘플 — 엄마에게 보내는 엽서. 왼쪽에 엄마와 딸이 안고 웃는 그림, 오른쪽에 To. 어멍(엄마) · From. 똘(딸), 줄마다 제주어 글과 그 아래 표준어 뜻(엄마, 나 제주에서 잘 지내요 …)" width="1200" height="800" decoding="async" loading="lazy">
+                <span class="write__zoom-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M10.5 7.5v6M7.5 10.5h6"/></svg></span>
+                <span class="visually-hidden" data-i18n="write.zoom">크게 보기</span>
+              </button>
+            </figure>
+            <figure class="write__example">
+              <button type="button" class="write__zoom" data-example-zoom data-zoom-m="assets/write/example-03-m.jpg" data-zoom-name="친구에게">
+                <img src="assets/write/example-03.jpg" alt="엽서 샘플 — 친구에게 보내는 엽서. 왼쪽에 바닷가에서 해녀복을 입고 웃는 친구들 그림, 오른쪽에 To. 벗아(친구야) · From. 느 벗(너의 친구), 줄마다 제주어 글과 그 아래 표준어 뜻(제주에서 해녀 체험한 거 정말 재밌더라 …)" width="1200" height="800" decoding="async" loading="lazy">
+                <span class="write__zoom-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M10.5 7.5v6M7.5 10.5h6"/></svg></span>
+                <span class="visually-hidden" data-i18n="write.zoom">크게 보기</span>
+              </button>
+            </figure>
+            <!-- (29차) 연인에게 — '엽서 샘플/엽서 샘플_연인.png'(사용자 제공) → example-04.jpg(가로 1200x800) · example-04-m.jpg(세로) -->
+            <figure class="write__example">
+              <button type="button" class="write__zoom" data-example-zoom data-zoom-m="assets/write/example-04-m.jpg" data-zoom-name="연인에게">
+                <img src="assets/write/example-04.jpg" alt="엽서 샘플 — 연인에게 보내는 엽서. 왼쪽에 바닷가 돌담에 나란히 앉아 웃는 두 사람 그림, 오른쪽에 To. 태훈이신디(태훈이에게) · From. 나가(내가), 줄마다 제주어 글과 그 아래 표준어 뜻(훈아, 우리 첫 제주여행이라 정말 좋아요! …)" width="1200" height="800" decoding="async" loading="lazy">
+                <span class="write__zoom-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M10.5 7.5v6M7.5 10.5h6"/></svg></span>
+                <span class="visually-hidden" data-i18n="write.zoom">크게 보기</span>
+              </button>
+            </figure>
+            <!-- (27차) 좌우 꺾쇠: 누르면 앞 · 다음 예시 엽서로 바로(끝에서 누르면 반대쪽 끝으로 돈다 — js/maker.js 의 initExamples) -->
+            <button type="button" class="write__step write__step--prev" data-example-step="-1" aria-label="이전 예시 엽서" data-i18n-attr="aria-label:write.example-prev"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 5l-7 7 7 7"/></svg></button>
+            <button type="button" class="write__step write__step--next" data-example-step="1" aria-label="다음 예시 엽서" data-i18n-attr="aria-label:write.example-next"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7"/></svg></button>
+            <div class="write__dots" role="group" aria-label="예시 엽서 고르기">
+              <button type="button" class="write__dot" data-example-dot="0" aria-pressed="true" aria-label="1번 예시: 나에게"></button>
+              <button type="button" class="write__dot" data-example-dot="1" aria-pressed="false" aria-label="2번 예시: 엄마에게"></button>
+              <button type="button" class="write__dot" data-example-dot="2" aria-pressed="false" aria-label="3번 예시: 친구에게"></button>
+              <button type="button" class="write__dot" data-example-dot="3" aria-pressed="false" aria-label="4번 예시: 연인에게"></button>
+            </div>
+          </div>
         </div>
-        <p class="end-text" id="endTitle"><span>당신의 마음이 닿는 곳에,</span><span>제주어도 함께 닿기를.</span></p>
-        <img class="end-logo" src="images/logo-goraboge.png" alt="하영고라보게" width="398" height="259">
-        <div class="end-actions">
-          <button type="button" class="tale-btn is-primary" id="endNewBtn">새 엽서 쓰기</button>
-          <button type="button" class="text-btn" id="endMoreBtn">← 다른 방법으로도 보내기</button>
+
+        <!-- ② 왜 제주어로 써야 할까요? — 글 없이 '이 말이 사라지면' 애니메이션 하나(iframe — assets/story/jeju-disappear.html).
+             원본: '움직이는 캐러셀 만들기 실습/웹진_물꾸락과갯것이/애니메이션_이말이사라지면/이말이사라지면_웹진삽입용.html' 을 복사하고 마지막 버튼만 이 페이지로 잇게 고쳤다.
+             화면에 반 넘게 들어오면 저절로 재생된다. 마지막 '제주어 엽서 쓰러가기'를 누르면 이 섹션 맨 위(#write — 엽서 써보기)로 스크롤된다(js/story.js).
+             ✏️ 교체: 비율 = css/maker.css '6-9.' 의 aspect-ratio(1673:940), 최대 폭 = --story-w(1100px). 제목을 빼려면 <h3> 줄을 지운다 -->
+        <div class="write__why" id="why">
+          <h3 class="write__why-title" data-i18n="why.title" data-edit="why-title">왜 제주어로 써야 할까요?</h3>
+          <iframe class="story__frame" src="assets/story/jeju-disappear.html" title="이 말이 사라지면, 제주에선 무엇이 함께 사라질까요? — 제주어 간판 · 해녀 할머니 · 올레길 · 삼춘이 사라졌다 돌아오는 짧은 애니메이션" loading="lazy" data-story-frame data-i18n-attr="title:story.title"></iframe>
         </div>
-      </section>
+
       </div>
-    </div>
+    </section>
+    <!-- ▲ 1. 엽서 써보기 끝 -->
 
-    <!-- 엽서 게시판: 다른 사람들이 쓴 엽서를 핀으로 붙여 보여 줌 (Supabase에 저장된 모두의 엽서, 적을 때는 예시도 함께) -->
-        <section class="board" id="boardSection" aria-labelledby="boardTitle" hidden>
-          <div class="board-head">
-            <button type="button" class="text-btn" id="boardBack">← 엽서 쓰러 가기</button>
-            <!-- 숨은 관리자 입구: 이 제목을 2초 안에 3번 누르면 admin.html (app.js '게시판 관리자 입구') -->
-            <h2 class="board-title" id="boardTitle" tabindex="-1">모두의 엽서 게시판</h2>
-            <p class="board-desc">엽서를 누르면 크게 볼 수 있어요</p>
+
+
+    <!-- ▼ 2. 인용(Voices) 시작 (css/quotes.css · js/quotes.js · data/quotes.json) — 화면의 작은 라벨은 No.02
+         한 화면짜리 좌우 슬라이드(캐러셀)입니다. 인물 아이콘 · 이전/다음 단추 · 손가락으로 좌우 밀기 · 키보드 ← → 로 한 사람씩 넘겨 봅니다 -->
+    <!-- data-tone = 지금 보이는 사람의 바탕색(paper · sea · tangerine · basalt). 넘길 때마다 js 가 바꾼다.
+         aria-roledescription = 화면 낭독기가 이 영역을 부르는 이름 -->
+    <section id="quotes" class="quotes" data-tone="paper" aria-roledescription="캐러셀" aria-labelledby="quotes-title" data-i18n-attr="aria-roledescription:quotes.roledescription">
+      <div class="tear tear--up tear--soft tear--b" aria-hidden="true"></div>
+
+      <header class="quotes__head" data-reveal>
+        <p class="eyebrow" lang="en">No.02 · Voices</p>
+        <!-- ✏️ 교체: 섹션 제목(<br> 자리에서 두 줄로). 크기 · 줄 간격 · 자간은 화면 폭마다 css/theme.css '0.' 의 --voices-title-… -->
+        <h2 id="quotes-title" class="section-title quotes__title" data-i18n-html="quotes.title" data-edit="quotes-title">제주어가 사라진다는 것은<br>어떤 의미인가요?</h2>
+      </header>
+
+      <div class="quotes__body" data-reveal>
+
+        <!-- 슬라이드 창: js/quotes.js 가 data/quotes.json 을 읽어 한 사람에 슬라이드 한 장씩 채운다(사진 + 인용문 + 이름 · 소속).
+             ✏️ 교체: 인용문 · 이름 · 소속 · 사진 경로는 data/quotes.json 에서, 사진 파일은 assets/quotes/ 에서 바꿉니다
+             (지금 6명. 항목을 지우거나 더하면 슬라이드와 인물 아이콘 수가 그대로 따라갑니다 — 1~8명 권장.
+              실제 인물의 말은 반드시 출처를 확인한 뒤에 넣으세요).
+             사진 크기 · 글자 크기 · 넘기는 빠르기는 css/theme.css '4.'(원래 값은 css/quotes.css 맨 위)에서,
+             한 사람의 큰 사진 자리만 고치려면 data/quotes.json 의 그 항목에 "photoShift": "0rem -2rem"(옮기기) · "photoPos": "50% 20%"(frame 사진의 잘라 보여 줄 중심) -->
+        <div class="quotes__viewport">
+          <div class="quotes__list"></div>
+        </div>
+
+        <div class="quotes__controls">
+          <!-- 인물 아이콘(누르면 그 사람의 말로). 큰 사진에서 얼굴 언저리를 잘라 씁니다. 얼굴이 어긋나면 data/quotes.json 의 그 항목에
+               "face": "50% 30%" (사진 안에서 얼굴 한가운데의 자리 — 왼쪽에서 몇 % · 위에서 몇 %)를 더하세요 -->
+          <nav class="quotes__nav" aria-label="인용 바로 가기" data-i18n-attr="aria-label:quotes.nav-label">
+            <ul class="quotes__thumbs" role="list" data-fab-avoid></ul>
+          </nav>
+
+          <!-- [이전] 01 / 06 [다음] — 끝에서 더 넘기면 반대쪽 끝으로 돌아갑니다. 숫자는 js 가 고쳐 쓴다.
+               data-fab-avoid(아이콘 줄에도 있음): 이 단추들이 오른쪽 아래 플로팅 버튼 자리에 들어오면 그동안 버튼이 비켜 숨는다(js/maker.js) -->
+          <div class="quotes__step" data-fab-avoid>
+            <button type="button" class="quotes__arrow" data-quotes-step="-1" aria-label="이전 인용" data-i18n-attr="aria-label:quotes.prev">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 12H5M11 6l-6 6 6 6"/></svg>
+            </button>
+            <p class="quotes__count" aria-hidden="true"><span class="quotes__count-now">01</span><span class="quotes__count-all">/ 06</span></p>
+            <button type="button" class="quotes__arrow" data-quotes-step="1" aria-label="다음 인용" data-i18n-attr="aria-label:quotes.next">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+            </button>
           </div>
-          <div class="board-inner">
-            <div class="board-grid" id="boardGrid"></div>
+        </div>
+
+        <!-- 넘길 때마다 '6명 중 2번째 — 이름' 을 화면 낭독기에 알리는 자리(화면에는 보이지 않는다) -->
+        <p class="quotes__live visually-hidden" aria-live="polite" aria-atomic="true"></p>
+
+      </div>
+    </section>
+    <!-- ▲ 2. 인용 끝 -->
+
+    <!-- ▼ 3. 인터뷰 엽서 시작 (css/interviews.css · js/postcards.js · data/interviews.json) — 화면의 작은 라벨은 No.03
+         엽서 두 장은 어느 화면 폭에서도 좌우로 나란히 놓입니다(넓으면 가로 엽서, 휴대폰처럼 좁으면 세로 엽서) -->
+    <section id="interviews" class="interviews band" aria-labelledby="interviews-title">
+      <div class="tear tear--up" aria-hidden="true"></div>
+      <div class="container interviews__inner">
+
+        <header class="interviews__head" data-reveal>
+          <p class="eyebrow" lang="en">No.03 · Interview</p>
+          <!-- ✏️ 교체: 섹션 제목(<span> 으로 감싼 부분은 좁은 화면에서 한 덩어리로 줄이 바뀝니다)과 소개 문단 -->
+          <h2 id="interviews-title" class="section-title interviews__title" data-i18n-html="interviews.title" data-edit="interviews-title"><small>인터뷰 —</small> <span>사라져가는 제주어를 지키는</span> <span>사람들</span></h2>
+          <!-- ✏️ 교체: 안내 문구(첫째 줄 = 마우스를 쓰는 기기, 둘째 줄 = 손가락으로 누르는 기기. 둘 중 하나만 보인다) -->
+          <p class="pcards-hint">
+            <span class="pcards-hint__mouse" data-i18n="pcards.hint-mouse">엽서를 누르면 인터뷰를 읽을 수 있어요</span>
+            <span class="pcards-hint__touch" data-i18n="pcards.hint-touch">엽서를 누르면 인터뷰를 읽을 수 있어요</span>
+          </p>
+        </header>
+
+        <!-- 엽서 두 장이 놓이는 자리 — js/postcards.js 가 data/interviews.json 을 읽어 그린다(이 div 안은 비워 둔다).
+             ✏️ 교체: 인터뷰 제목 · 인터뷰이 이름 · 소속 · 한 줄 요약 · 대표 사진 경로는 data/interviews.json 에서,
+             사진 파일은 assets/interviews/ 에서 바꿉니다(가로 3:2 사진 권장).
+             바다색 엽서와 기사 맨 위에서는 사진의 위아래가, 휴대폰의 세로 엽서에서는 양옆이 잘려 보입니다 — 얼굴이 잘리면 그 항목에
+             "coverPos": "50% 20%" 처럼 보여 줄 중심(가로 세로)을 더하세요.
+             제목은 20자 안팎, 한 줄 요약은 40자 안팎이 보기 좋습니다(더 길면 글자가 작아지고, 아주 길면 끝이 잘립니다).
+             "variant" 는 엽서 디자인: "a" = 감귤(사진이 가득) · "b" = 바다(흰 테두리 사진) -->
+        <div class="pcards" data-pcards></div>
+
+      </div>
+    </section>
+    <!-- ▲ 3. 인터뷰 엽서 끝 -->
+
+    <!-- ▼ 4. 제주어 상호 지도 시작 (css/map.css · js/map.js · 장소 데이터 = config.js 의 map.dataFile, 기본 data/places.json) — 화면의 작은 라벨은 No.04 -->
+    <section id="map" class="map paper" aria-labelledby="map-title">
+      <div class="tear tear--up tear--b" aria-hidden="true"></div>
+      <div class="container map__inner">
+
+        <header class="map__head">
+          <div class="map__intro" data-reveal>
+            <p class="eyebrow" lang="en">No.04 · Map</p>
+            <!-- ✏️ 교체: 섹션 제목 -->
+            <h2 id="map-title" class="section-title map__title" data-i18n-html="map.title" data-edit="map-title"><span class="map__title-top">알고 가면 더 재밌는</span><br>제주어 상호 지도</h2>
+            <!-- ✏️ 교체: 지도를 소개하는 글(곳 수 100 은 데이터를 바꾸면 함께 고친다) -->
+            <div class="map__desc-box" data-edit="map-desc" data-edit-block="map__desc">
+              <p class="map__desc" data-i18n-html="map.desc">제주어가 담긴 맛집 · 카페 · 명소 100곳</p>
+            </div>
           </div>
-        </section>
+
+          <div class="map__guide" data-reveal style="--reveal-delay: 0.1s">
+            <!-- ✏️ 교체: 안내 문구(첫째 줄 = 마우스를 쓰는 기기, 둘째 줄 = 손가락으로 누르는 기기. 둘 중 하나만 보인다) -->
+            <p class="map__hint">
+              <span class="map__hint-mouse" data-i18n="map.hint-mouse">핀에 마우스를 올려 보세요<span class="visually-hidden" data-i18n="map.hint-keyboard"> (키보드로는 Tab 키로 지점을 고르면 설명이 열려요)</span></span>
+              <span class="map__hint-touch" data-i18n="map.hint-touch">핀을 눌러 보세요</span>
+            </p>
+            <!-- 숫자 동그라미(묶음 핀) 안내. ✏️ 교체: 문구(동그라미 속 숫자 12 는 보기일 뿐) -->
+            <p class="map__cluster-hint"><span class="map__cluster-icon" aria-hidden="true">12</span><span data-i18n="map.cluster-hint" data-edit="map-cluster-hint">숫자를 누르면 그 지역 상호가 보여요</span></p>
+            <!-- 지역 · 분류 단추(범례를 겸한다): js/map.js 가 장소 데이터의 지역(제주시 · 서귀포시)과 분류(명소 · 카페·간식 · 맛집)로 채운다.
+                 누르면 지도와 아래 목록이 그 지역 · 분류만 보인다(목록 위에도 같은 단추가 있고 서로 맞춰진다) -->
+            <div class="map__filters" data-map-filters data-fab-avoid></div>
+          </div>
+        </header>
+
+        <!-- 키보드 사용자를 위한 건너뛰기 링크(Tab 으로 닿았을 때만 보인다) — 지도 단추 · 지점 · 목록을 한 번에 건너뛰어 푸터로 간다 -->
+        <a class="skip-link skip-link--inline" href="#footer" data-i18n="map.skip">지도 건너뛰기</a>
+
+        <!-- 지도 액자(종이). 지도 높이는 css/map.css 맨 위의 --map-h -->
+        <div class="map__sheet" data-reveal="fade">
+          <span class="tape map__tape map__tape--a" aria-hidden="true"></span>
+          <span class="tape tape--sea map__tape map__tape--b" aria-hidden="true"></span>
+
+          <div class="map__view">
+            <!-- 지도 단추: 보기 범위 · 확대/축소(지도는 손가락 · 마우스로 바로 끌어 움직인다 — 14차에 '지도 움직이기' 단추를 뺐다).
+                 .map__tool-more 안의 글자는 아주 좁은 화면(360px 미만)에서 숨는다 → 단추 이름을 바꾸면 aria-label 도 같게.
+                 data-lang-avoid(단추 묶음 둘): 이 단추들이 화면 오른쪽 위의 언어 전환 단추 자리에 들어오면 그동안 언어 단추가 비켜 숨는다(js/i18n.js) -->
+            <div class="map__tools">
+              <div class="map__views" role="group" aria-label="지도 보기 범위" data-i18n-attr="aria-label:map.views-label" data-lang-avoid>
+                <button type="button" class="btn btn--s map__tool" data-map-view="island" aria-label="섬 전체 보기" data-i18n-attr="aria-label:map.view-island-label"><span data-i18n="map.view-island">섬 전체<span class="map__tool-more" data-i18n="map.view-island-more"> 보기</span></span></button>
+                <button type="button" class="btn btn--s map__tool" data-map-view="northeast" aria-label="북동부 가까이 보기" data-i18n-attr="aria-label:map.view-northeast-label"><span data-i18n="map.view-northeast">북동부<span class="map__tool-more" data-i18n="map.view-northeast-more"> 가까이 보기</span></span></button>
+              </div>
+              <div class="map__zoom" role="group" aria-label="지도 확대와 축소" data-i18n-attr="aria-label:map.zoom-label" data-lang-avoid>
+                <button type="button" class="btn btn--s map__tool map__tool--zoom" data-map-zoom="in" aria-label="지도 확대" data-i18n-attr="aria-label:map.zoom-in">
+                  <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M4.5 10h11M10 4.500v11"/></svg>
+                </button>
+                <button type="button" class="btn btn--s map__tool map__tool--zoom" data-map-zoom="out" aria-label="지도 축소" data-i18n-attr="aria-label:map.zoom-out">
+                  <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M4.5 10h11"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- 지도가 그려지는 자리(js/map.js 가 Leaflet 지도를 넣는다) -->
+            <div class="map__canvas" id="map-canvas" role="region" aria-label="제주도 지도 — 방향키로 움직이고 더하기·빼기 키로 확대·축소할 수 있어요" data-i18n-attr="aria-label:map.canvas-label"></div>
+
+            <!-- 지도 위 장식: 가장자리 그늘 · 이중 테두리 선 · 손으로 그린 나침반 -->
+            <div class="map__decor" aria-hidden="true">
+              <span class="map__vignette"></span>
+              <span class="map__neatline"></span>
+              <svg class="map__compass" viewBox="0 0 80 96" focusable="false">
+                <path class="map__compass-ring" d="M40 22.500c15.300-.4 27.300 11.500 27.600 26.500.3 15.600-11.800 27.700-27.200 27.800C25 77 12.700 64.800 12.600 49.600 12.500 34.400 24.600 22.800 40 22.500z"/>
+                <path class="map__compass-ring map__compass-ring--in" d="M40 29.500c11.300-.2 20.200 8.500 20.400 19.600.2 11.500-8.700 20.500-20.100 20.600-11.300.1-20.400-8.900-20.500-20.100C19.700 38.300 28.700 29.700 40 29.500z"/>
+                <path class="map__compass-tick" d="M40 16.500v5M40 78v4.500M7.500 49.700h4.600M68.200 49.500h4.500M17.300 26.800l3.200 3.300M59.600 69.300l3.200 3.200M62.700 26.700l-3.200 3.300M20.500 69.200l-3.300 3.300"/>
+                <path class="map__compass-east" d="M40.200 44.500 63 49.600 40 54.800 17.200 49.700z"/>
+                <path class="map__compass-south" d="M35 49.800 40.100 73 45.300 49.600z"/>
+                <path class="map__compass-north" d="M35 49.800 40 25.500 45.300 49.600z"/>
+                <circle class="map__compass-pin" cx="40.100" cy="49.700" r="2.200"/>
+                <path class="map__compass-n" d="M35.800 13V3.200l8.300 9.600V2.900"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- 장소 목록 — js/map.js 가 장소 데이터를 읽어 채운다(지도를 볼 수 없을 때의 대안이기도 하다).
+             처음에는 위 3곳만 보이고, 아래 '더보기' 단추를 누르면 나머지가 펼쳐진다(다시 누르면 접힌다).
+             ✏️ 교체: 장소의 이름 · 뜻 · 주소 · 좌표는 data/places.json 에서 바꿉니다(CSV 파일로 바꾸려면 config.js 의 map.dataFile).
+             장소가 몇 곳이든 CSS 는 고치지 않아도 됩니다(접힌 목록의 높이는 곳 수와 상관없이 같다).
+             처음에 보여 줄 곳 수(3)는 config.js 의 map.listFirst -->
+        <div class="map__index">
+          <!-- ✏️ 교체: 목록 제목과 보조 문구 -->
+          <div class="map__index-head" data-reveal>
+            <h3 class="map__index-title" data-i18n="map.list-title">지도에 담긴 이름들 <span class="map__index-count" data-count="all"></span></h3>
+            <p class="map__index-hint" data-i18n="map.list-hint">이름을 누르면 지도가 그곳으로 찾아가요</p>
+          </div>
+          <!-- 목록 위의 큰 지역 · 분류 단추(지도 위의 단추와 같다 — js/map.js 의 renderFilters) -->
+          <div class="map__filters map__filters--list" data-map-filters data-fab-avoid></div>
+          <ul class="map__list" id="map-list" role="list"></ul>
+          <!-- 더보기 · 접기 단추. 글자('더보기 (9곳)' · '접기')는 js/map.js 맨 위의 TEXT 가 채운다(언어별 문구는 data/i18n/*.json 의 map.list-more · map.list-less). 곳이 map.listFirst(지금 3)곳 이하면 단추가 나오지 않는다 -->
+          <p class="map__more" data-fab-avoid>
+            <button type="button" class="btn btn--s btn--ghost map__more-btn" data-map-more aria-expanded="false" aria-controls="map-list" hidden>
+              <span data-map-more-label data-i18n="map.list-more-short">더보기</span>
+              <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M4.500 7.500c2 1.900 3.700 3.600 5.600 5.700 1.700-2.100 3.400-3.900 5.400-5.800"/></svg>
+            </button>
+          </p>
+        </div>
+
+      </div>
+    </section>
+    <!-- ▲ 4. 제주어 상호 지도 끝 -->
+
+
+
   </main>
 
-  <!-- 뒤로가기: 어느 페이지에서나 화면 아래 왼쪽 같은 자리. 어디로 돌아갈지는 app.js의 backTarget -->
-  <button type="button" class="back-fab" id="backBtn" hidden><span aria-hidden="true">←</span> 뒤로</button>
-
-  <!-- 이야기를 다 보지 않아도 언제든 편지 쓰기로 (SCENE 03에 닿으면 숨음) -->
-  <a class="float-cta" id="floatCta" href="#scene2" hidden>바로 편지 쓰기</a>
-
-  <!-- 게시판 엽서 크게 보기 -->
-  <dialog class="board-view" id="boardView" aria-label="엽서 크게 보기">
-    <div class="board-view-card mini-card" id="boardViewCard"></div>
-    <form method="dialog" class="sheet-close">
-      <!-- 표준어로 보기: 누르면 엽서 글이 표준어 ↔ 제주어로 바뀜 -->
-      <button type="button" class="received-toggle" id="boardViewToggle" aria-pressed="false" hidden>표준어로 보기</button>
-      <button class="stitch-btn">닫기</button>
-    </form>
-  </dialog>
-
-  <!-- 게시판에 붙이기 전 미리보기 -->
-  <dialog class="sheet board-post" id="boardPost" aria-labelledby="boardPostTitle">
-    <h2 id="boardPostTitle">게시판에 이렇게 붙어요</h2>
-    <div class="board-post-preview mini-card" id="boardPostCard"></div>
-    <label class="board-post-option"><input type="checkbox" id="hideNames" checked> 받는 사람·보내는 사람 이름 가리기</label>
-    <p class="sheet-note" id="boardPostNote">게시판에 붙인 엽서는 이 사이트를 찾은 다른 사람들도 보게 돼요. 지금은 시험 단계라 이 기기에서만 보여요.</p>
-    <p class="sheet-status" id="boardPostStatus" aria-live="polite"></p>
-    <div class="sheet-buttons">
-      <button type="button" class="stitch-btn" id="boardPostCancel">취소</button>
-      <button type="button" class="stitch-btn is-accent" id="boardPostConfirm">붙이기</button>
-    </div>
-  </dialog>
-
-  <!-- 링크로 받은 엽서 -->
-  <dialog class="board-view received-view" id="receivedView" aria-labelledby="receivedTitle">
-    <h2 class="received-title" id="receivedTitle">제주에서 엽서가 도착했어요</h2>
-    <div class="board-view-card mini-card" id="receivedCard"></div>
-    <div class="sheet-buttons">
-      <!-- 표준어로 보기: 링크에 표준어 글이 담겨 있을 때만 보임. 누르면 엽서 글이 표준어 ↔ 제주어로 바뀜 -->
-      <button type="button" class="received-toggle" id="receivedToggle" aria-pressed="false" hidden>표준어로 보기</button>
-      <button type="button" class="stitch-btn is-accent" id="writeBackBtn">답장하기</button>
-    </div>
-  </dialog>
-
-  <!-- 처음 안내 팝업: 웹진 'NO.01 · WRITE' 칸(당신의 엽서 한 장이, 제주어를 지켜요)을 휴대폰 화면처럼 세로로 옮긴 것. 시작 화면을 열 때마다 바로 뜨고(새로 고쳐도 뜸),
-       위 ? 단추로 다시 열 수 있음. 예시 엽서 그림 = images/intro/ (_tools/build_intro_assets.py) -->
-  <dialog class="intro-pop" id="helpDialog" aria-labelledby="introTitle">
-    <button type="button" class="intro-pop-x" id="introClose" aria-label="안내 닫기">
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg>
-    </button>
-    <div class="intro-pop-body">
-      <p class="intro-pop-eyebrow" lang="en">No.01 · Write</p>
-      <h2 class="intro-pop-title" id="introTitle">당신의 엽서 한 장이,<span>제주어를 지켜요</span></h2>
-
-      <!-- 세 걸음: 번호 동그라미를 점선으로 잇고, 1 · 2번 아래에 말풍선 (표준어 → 제주어) -->
-      <ol class="intro-pop-flow">
-        <li>
-          <b class="flow-num" aria-hidden="true">1</b>
-          <p class="flow-title">평소 말투로 마음을 쓰면</p>
-          <p class="flow-bubble">오늘도 고생했어, 사랑해!</p>
-        </li>
-        <li class="is-jeju">
-          <b class="flow-num" aria-hidden="true">2</b>
-          <p class="flow-title">제주어로 바꿔 드려요</p>
-          <p class="flow-bubble">오늘도 욕봐신게, 사랑햄쪄!</p>
-        </li>
-        <li>
-          <b class="flow-num" aria-hidden="true">3</b>
-          <p class="flow-title">소중한 사람에게 보내요</p>
-        </li>
-      </ol>
-
-      <!-- 예시 엽서 세 장 (가로 엽서, 4.5초마다 넘어감). 그림 = images/intro/postcard-*.webp (_tools/build_intro_assets.py) -->
-      <div class="intro-pop-examples" id="introExamples" aria-roledescription="예시 엽서" aria-label="예시 엽서 세 장">
-        <figure class="intro-pop-example is-active">
-          <img src="images/intro/postcard-mom.webp" width="960" height="640" alt="예시 엽서 — 엄마와 딸이 안고 웃는 그림. To. 어멍(엄마). 어멍, 나 제주서 잘 지냄수다. 맨날 바쁘덴 전화도 짜르게 허여신디, 이디 오난 어멍이영 혼디 와시민 좋으켜 허는 생각이 나라. 바당 보멍 어멍 생각 하영 해수다. 밥 잘 챙겨 먹곡, 아프지 맙서. 다음엔 꼭 혼디 오게. 사랑햄수다! From. 똘(딸)">
-        </figure>
-        <figure class="intro-pop-example">
-          <img src="images/intro/postcard-friends.webp" width="960" height="640" loading="lazy" alt="예시 엽서 — 해녀 옷을 입은 친구들 그림. To. 벗아(친구야). 제주서 해녀 체험 혼 거 막 재미져라. 여행 첫날부터 우리 싸와신디, 나 모음은 경 헌 거 아닌 거 알주? 바당 소곱서 손 심엉 웃을 때 다 잊어불고 막 행복허여라. 너영 혼디 이시난 제주가 두 배로 좋아라. 고맙고, 다음에도 꼭 혼디 오게. 나 벗, 사랑햄쪄! From. 느 벗(너의 친구)">
-        </figure>
-        <figure class="intro-pop-example">
-          <img src="images/intro/postcard-me.webp" width="960" height="640" loading="lazy" alt="예시 엽서 — 책상에서 편지를 쓰는 사람 그림. To. 나신디(나에게). 안녕, 오늘도 하루 잘 버텨분 나. 맨날 속솜허멍 참암신디, 참는 것만이 답은 아니주게. 이 지겨운 9TO6 그만두멍 해외로 훌쩍 떠나고정 허다. 낯선 바당 앞이서 나만 생각허멍 하영 웃곡, 하영 쉬어도 괜찮주. 오늘도 욕봐신게, 사랑햄쪄! From. 나가(내가)">
-        </figure>
-        <div class="intro-pop-dots" role="group" aria-label="예시 엽서 고르기">
-          <button type="button" class="intro-pop-dot" data-example="0" aria-pressed="true" aria-label="1번 예시: 엄마에게"></button>
-          <button type="button" class="intro-pop-dot" data-example="1" aria-pressed="false" aria-label="2번 예시: 친구에게"></button>
-          <button type="button" class="intro-pop-dot" data-example="2" aria-pressed="false" aria-label="3번 예시: 나에게"></button>
+  <!-- ▼ 푸터 시작 — ✏️ 교체: 대괄호 [ ] 안의 내용과 웹진 이름(로고 그림) · 맨 아래 줄의 호수(VOL.01). index.html · interview-01.html · interview-02.html 세 파일을 똑같이 고치세요.
+       영어 · 제주어 문구는 data/i18n/*.json 의 footer.… 키(한 번 고치면 세 페이지에 함께 적용된다).
+       로고 대신 글자로 쓰려면 <img class="brand-logo" …> 를 지우고 그 자리에 하영 고라보게 라고 적으면 됩니다(로고 높이는 css/base.css 의 --brand-logo-h) -->
+  <footer class="site-footer" id="footer" tabindex="-1">
+    <div class="tear tear--up tear--b tear--shift" aria-hidden="true"></div>
+    <div class="container">
+      <div class="site-footer__grid">
+        <div>
+          <p class="site-footer__name"><img class="brand-logo" src="assets/logo-hayeong.png" alt="하영 고라보게" width="860" height="556" loading="lazy" decoding="async" data-i18n-attr="alt:site.name"></p>
+          <p class="site-footer__tagline" data-i18n="footer.tagline" data-edit="footer-tagline">여러분은 그냥 쓰고, 남겨 주세요. 제주어를 많이 말 하면 사라져가는 제주어를 지킬 수 있어요.</p>
+        </div>
+        <div>
+          <h2 class="site-footer__heading" data-i18n="footer.makers">만든 사람들</h2>
+          <ul class="site-footer__list" role="list">
+            <li data-i18n="footer.team" data-edit="footer-team">하영 고라보게(=많이 말해보자)</li>
+            <li data-i18n="footer.members" data-edit="footer-members">홍람빈, 유지연, 강다현, 석현진, 박태준</li>
+            <li><span data-i18n="footer.contact-label">문의</span> <a href="mailto:rjyproject26@gmail.com" data-edit="footer-contact">rjyproject26@gmail.com</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2 class="site-footer__heading" data-i18n="footer.sources">출처</h2>
+          <ul class="site-footer__list site-footer__list--small" role="list">
+            <li><span data-i18n="footer.credit-map">지도</span>: <a href="https://maps.eox.at">Terrain Light</a> © <a href="https://eox.at">EOX</a>, <span data-i18n="footer.credit-map-data">지도 데이터</span> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors</li>
+            <li data-i18n="footer.credit-fonts">글꼴: Pretendard(OFL), 나눔손글씨 가람연꽃 © NAVER, 고운바탕(OFL), 나눔손글씨 펜(OFL), Noto Sans KR · Noto Serif KR 옛한글 조각(OFL)</li>
+            <li data-i18n="footer.credit-other" data-edit="footer-credit-other">그 밖의 사진 · 그림: 팀이 직접 찍은 사진을 바탕으로 AI 도구로 만들었어요.</li>
+          </ul>
         </div>
       </div>
-      <p class="intro-pop-note">제주어 번역은 「개정증보 제주어사전」(2009)을 바탕으로 한 참고용 번역이에요.</p>
+      <div class="site-footer__bottom">
+        <p class="site-footer__links"><a class="site-footer__privacy" href="privacy.html" data-i18n="footer.privacy">개인정보처리방침</a><a class="site-footer__en" href="en/" lang="en" hreflang="en">Welcome to Jeju (English)</a><a class="site-footer__en" href="https://www.hankyung.com/travel">한경 트래블 메인</a></p>
+        <p data-i18n="footer.published" data-edit="footer-published">발행 [발행 연월 입력]</p>
+        <p aria-hidden="true">JEJU · POSTCARD · VOL.01</p>
+      </div>
     </div>
-    <!-- 단추는 팝업 아래에 늘 붙어 있음 (글을 스크롤하지 않아도 보임) -->
-    <div class="intro-pop-foot">
-      <button type="button" class="intro-pop-btn" id="introStart">
-        <span>제주어 엽서 써보기</span>
-        <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M4 10h11M11 5.5 15.5 10 11 14.5"/></svg>
-        <img class="intro-pop-btn-stamp" src="images/intro/stamp-citrus.webp" width="180" height="241" alt="">
-      </button>
-    </div>
-  </dialog>
-
-  <script src="config.js?v=4"></script>
-  <script src="track.js?v=1"></script>
-  <script src="jeju-dict.js?v=1"></script>
-  <script src="translate.js?v=5"></script>
-  <script src="badwords.js?v=1"></script>
-  <script src="app.js?v=236"></script>
+  </footer>
+  <!-- ▲ 푸터 끝 -->
 </body>
-
 </html>

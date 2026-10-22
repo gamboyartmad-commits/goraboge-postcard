@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 감귤색 우표 모양 파비콘 -->
+  <defs>
+    <mask id="perf">
+      <rect x="4" y="4" width="56" height="56" fill="#fff"/>
+      <g fill="#000"><circle cx="4" cy="4" r="2.3"/><circle cx="4" cy="60" r="2.3"/><circle cx="60" cy="4" r="2.3"/><circle cx="11" cy="4" r="2.3"/><circle cx="11" cy="60" r="2.3"/><circle cx="4" cy="11" r="2.3"/><circle cx="60" cy="11" r="2.3"/><circle cx="18" cy="4" r="2.3"/><circle cx="18" cy="60" r="2.3"/><circle cx="4" cy="18" r="2.3"/><circle cx="60" cy="18" r="2.3"/><circle cx="25" cy="4" r="2.3"/><circle cx="25" cy="60" r="2.3"/><circle cx="4" cy="25" r="2.3"/><circle cx="60" cy="25" r="2.3"/><circle cx="32" cy="4" r="2.3"/><circle cx="32" cy="60" r="2.3"/><circle cx="4" cy="32" r="2.3"/><circle cx="60" cy="32" r="2.3"/><circle cx="39" cy="4" r="2.3"/><circle cx="39" cy="60" r="2.3"/><circle cx="4" cy="39" r="2.3"/><circle cx="60" cy="39" r="2.3"/><circle cx="46" cy="4" r="2.3"/><circle cx="46" cy="60" r="2.3"/><circle cx="4" cy="46" r="2.3"/><circle cx="60" cy="46" r="2.3"/><circle cx="53" cy="4" r="2.3"/><circle cx="53" cy="60" r="2.3"/><circle cx="4" cy="53" r="2.3"/><circle cx="60" cy="53" r="2.3"/><circle cx="60" cy="60" r="2.3"/></g>
+    </mask>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" fill="#fbf6ea" mask="url(#perf)"/>
+  <rect x="11" y="11" width="42" height="42" fill="#ee8420"/>
+  <g fill="none" stroke="#1f2123" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="41" cy="23" r="4.2" fill="#fbf6ea" stroke="none"/>
+    <path d="M15 44c6-1 8-12 13-13q4 2.8 8 0c5 1 7 12 13 13"/>
+    <path d="M15 44h34"/>
+  </g>
+</svg>

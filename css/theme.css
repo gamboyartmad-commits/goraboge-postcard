@@ -1,0 +1,524 @@
+/* ==========================================================================
+   theme.css — 직접 고치는 '모양' 설정: 글꼴 · 색 · 로고 크기 · 사진 자리 · 섹션 크기
+   세 페이지(index.html · interview-01.html · interview-02.html)가 CSS 가운데 맨 마지막에 불러옵니다.
+   → 여기서 켠 값이 다른 CSS 파일의 값보다 우선합니다.
+
+   ✏️ 쓰는 법
+   · 설정 줄은 모두 '꺼진' 상태(주석)로 들어 있습니다. 그래서 지금은 이 파일이 화면을 하나도 바꾸지 않습니다.
+     꺼진 줄에 적힌 값은 지금 쓰고 있는 값입니다(다른 값을 적은 줄은 바로 위 설명에 '예시'라고 적었습니다).
+   · 켜는 법: 바꾸고 싶은 줄의 맨 앞 /* 두 글자와 맨 끝의 닫는 두 글자(별표 + 빗금)를 지우고, 값을 고친 뒤 저장 → 브라우저 새로고침.
+     되돌리려면 그 줄을 다시 주석으로 감싸거나 지우면 됩니다(원래 값은 각 섹션의 CSS 파일에 그대로 있습니다).
+   · 화면 크기마다 값이 다른 것은 @media (…) { } 안에 화면 범위별로 따로 적었습니다. 켠 줄은 그 범위의 화면에만 적용됩니다.
+   · 사진 한 장씩의 자리는 이 파일이 아니라 데이터 · HTML 에서 고칩니다(두 수 = 사진 안에서 보여 줄 중심, 왼쪽에서 몇 % · 위에서 몇 %).
+       인용 인물 사진    data/quotes.json 의 그 항목에 "face": "50% 30%"(인물 아이콘에 보일 얼굴 자리),
+                         배경이 있는 사진이면 "frame": true(종이 테두리 사진으로 — 잘라 보여 줄 중심은 아래 '4.' 의 --q-frame-pos),
+                         큰 사진 한 장만 고치려면 "photoPos": "50% 20%"(frame 사진의 잘라 보여 줄 중심) · "photoShift": "0rem -2rem"(사진 자리 옮기기 — 가로 · 세로)
+       인터뷰 엽서 사진  data/interviews.json 의 그 항목에 "coverPos": "50% 20%"
+       기사 대표 사진    interview-01.html · interview-02.html 의 대표 이미지 <img> 에 style="object-position: 50% 20%"
+   · 따라 하기 예시는 README 의 '직접 고치기 — 글꼴 · 색 · 사진 위치(css/theme.css)' 에 있습니다.
+
+   ★ 예외: '0. 글자 크기 · 자간 · 줄 간격 · 문단'은 켜져 있습니다 — 숫자만 바꾸고 저장 → 새로고침하면 바로 바뀝니다.
+
+   차례: 0. 글자 크기 · 자간 · 줄 간격 · 문단(켜져 있음)  1. 글꼴  2. 색  3. 로고 · 인트로  4. 인용(Voices)  5. 인터뷰 엽서  6. 기사  7. 지도  8. 플로팅 버튼  9. 언어 전환 단추  10. 스크랩북(테두리 · 찢어진 종이 · 사진 효과)
+   ========================================================================== */
+
+/* 0. 글자 크기 · 자간 · 줄 간격 · 문단 ★ 켜져 있음 -------------------------------------
+   숫자만 바꾸고 저장 → 브라우저 새로고침. 화면 폭 세 범위마다 따로 적습니다:
+     휴대폰(767px 이하) = 첫 블록 · 태블릿(768~1199px) = 둘째 블록 · 데스크톱(1200px 이상) = 셋째 블록
+     (세 블록 모두 같은 이름의 줄이 다 있습니다 — 그 화면 폭의 블록에서 그 줄의 숫자만 바꾸면 됩니다)
+   눈으로 보면서 고르기: 주소 끝에 ?tune 을 붙여 열면(예: http://localhost:4174/jeju-webzine/index.html?tune)
+     화면 왼쪽 아래에 '글자 조절판'이 뜹니다. 막대를 움직이면 바로 바뀌고, [복사]를 누르면 지금 화면 폭의 블록이 복사됩니다
+     → 아래의 같은 블록 안의 같은 이름 줄을 바꾸고 저장(조절판 값은 그 브라우저에만 임시로 남습니다 — 붙여 넣어야 모두에게 보입니다).
+   글 자체를 고치거나 문단을 더하려면: 주소 끝에 ?edit (README '글 편집 모드').
+
+   단위: px = 글자 크기 · em = 글자 크기의 몇 배(자간 · 문단 사이 · 한 줄 길이) · 숫자만 = 줄 간격(글자 크기의 몇 배)
+   자간: 0 = 글꼴 그대로 · -0.01em 조금 좁게 · -0.03em 좁게 · 0.05em 넓게      줄 간격: 1.3 좁게 · 1.8 보통 · 2.0 넓게
+
+   [메인 화면(엽서 앞면)] ※ 27차에 메인 화면을 빼서 지금은 쓰이지 않는다(다시 넣을 때를 위해 값만 남겨 둔다)
+     --front-photo-h                           (휴대폰만) 메인 사진 높이
+     --front-copy-y                            사진 위 제목 글의 높이: 사진 높이의 몇 %에 글 가운데가 오는지(50% = 한가운데, 작을수록 위)
+     --front-title-top-size / -tracking        제목 위 줄 '제주 여행의 마지막 밤,'(작고 가늘게) 크기 / 자간
+     --front-title-size / -tracking / -lh      제목 아래 줄 '제주어로 엽서 써 보는 건 어떨까요?'(크고 굵게) 크기 / 자간 / 줄 간격
+     --front-text-size / -tracking / -lh       그 아래 글 크기 / 자간 / 줄 간격
+     --front-closing-size / -tracking          마지막 굵은 한 줄 크기 / 자간
+     --front-toc-size / --front-toc-no-size    아래 차례(목차) 제목 크기 / 번호(01 · Write) · 왼쪽 이름 크기
+     --front-text-gap                          그 아래 글의 줄(문단)과 줄 사이
+   [Voices(목소리)]
+     --voice-size / --voice-lines-size         큰 말 크기 / 그 아래 말 크기
+   [섹션 큰 제목] '왜 제주어로 써야 할까요?' · '알고 가면 더 재밌는 제주어 상호 지도' · 인터뷰 제목
+     --title-size / --title-tracking / --title-lh   크기 / 자간 / 줄 간격(아래 네 제목은 따로)
+     --write-title-size                        '당신의 엽서 한 장이'(엽서 쓰기) 크기
+     --voices-title-size / -lh / -tracking     '제주어가 사라진다는 것은 / 어떤 의미인가요?'(Voices) 크기 / 줄 간격 / 자간
+     --interviews-title-size                   '사라져가는 제주어를 지키는 사람들'(인터뷰) 크기('인터뷰 —'는 이 크기의 0.55배)
+     --map-title-size                          '제주어 상호 지도' 크기
+     --map-title-top-size / -tracking          그 윗줄 '알고 가면 더 재밌는' 크기 / 자간
+     (26차: 휴대폰 값 = 편집 모드로 고른 크기 그대로, 태블릿 · 데스크톱은 화면에 맞게 키운 값)
+   [본문]
+     --text-size           본문 문단: '왜 제주어로 써야 할까요?' 글 · 엽서 쓰기 설명 · 인터뷰 소개 · 지도 소개 · 기사 본문
+     --text-tracking       본문 자간(사이트 전체 글자의 기본 자간도 이 값)
+     --text-lh             본문 줄 간격
+     --text-gap            문단과 문단 사이(0.9em ≒ 한 줄의 반)
+     --text-width          한 줄의 최대 길이(em ≒ 한글 글자 수. 30em 짧게 · 34em 보통 · 40em 길게)
+     --text-lead           소제목 아래 굵은 한 줄(엽서 쓰기의 '지금 전하지 않으면 사라지는 말, …')
+     --text-small          작은 설명(지도의 숫자 동그라미 안내 · 유네스코 카드 아래 설명)
+   ※ 글 한 줄 · 몇 글자만 따로 크기 · 자간 · 줄 간격을 바꾸려면 글 편집 모드(?edit)의 서식 막대(README '글 편집 모드'). */
+:root {
+  /* 휴대폰(767px 이하) — 태블릿 · 데스크톱 블록은 모든 값을 따로 적어 두어서, 이 블록을 고쳐도 휴대폰에만 적용된다 */
+  --front-photo-h: 400px; /* (24차) 메인 사진 높이 — 휴대폰에서만 쓰인다. 화면이 낮으면 이보다 작아진다(목차는 늘 사진 바로 아래) */
+  --front-copy-y: 50%;
+  --front-title-top-size: 16px;
+  --front-title-top-tracking: 0em;
+  --front-title-size: 24px;
+  --front-title-tracking: -0.045em;
+  --front-title-lh: 1.3;
+  --front-text-size: 14px;
+  --front-text-tracking: -0.015em;
+  --front-text-lh: 1;
+  --front-closing-size: 15.5px;
+  --front-closing-tracking: -0.01em;
+  --front-toc-size: 17px;
+  --front-toc-no-size: 13.5px;
+  --front-text-gap: 0.2em;
+  --voice-size: 16px;
+  --voice-lines-size: 14px;
+  --title-size: 34px;
+  --title-tracking: -0.025em;
+  --title-lh: 1.16;
+  --write-title-size: 30px;
+  --voices-title-size: 31px;
+  --voices-title-lh: 1.3;
+  --voices-title-tracking: -0.029em;
+  --interviews-title-size: 26px;
+  --map-title-size: 29px;
+  --map-title-top-size: 19px;
+  --map-title-top-tracking: -0.045em;
+  --text-size: 16px;
+  --text-tracking: -0.01em;
+  --text-lh: 1.8;
+  --text-gap: 0.9em;
+  --text-width: 34em;
+  --text-lead: 18px;
+  --text-small: 14px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    /* 태블릿(768~1199px) */
+    --front-copy-y: 50%;
+    --front-title-top-size: 20px;
+    --front-title-top-tracking: 0em;
+    --front-title-size: 32px;
+    --front-title-tracking: -0.02em;
+    --front-title-lh: 1.3;
+    --front-text-size: 15px;
+    --front-text-tracking: -0.01em;
+    --front-text-lh: 1.8;
+    --front-closing-size: 17px;
+    --front-closing-tracking: -0.01em;
+    --front-toc-size: 19px;
+    --front-toc-no-size: 14px;
+    --front-text-gap: 0.2em;
+    --voice-size: 19px;
+    --voice-lines-size: 15px;
+    --title-size: 44px;
+    --title-tracking: -0.025em;
+    --title-lh: 1.16;
+    --write-title-size: 36px;
+    --voices-title-size: 38px;
+    --voices-title-lh: 1.25;
+    --voices-title-tracking: -0.029em;
+    --interviews-title-size: 34px;
+    --map-title-size: 36px;
+    --map-title-top-size: 21px;
+    --map-title-top-tracking: -0.035em;
+    --text-size: 17px;
+    --text-tracking: -0.01em;
+    --text-lh: 1.8;
+    --text-gap: 0.9em;
+    --text-width: 34em;
+    --text-lead: 19px;
+    --text-small: 14px;
+  }
+}
+
+@media (min-width: 1200px) {
+  :root {
+    /* 데스크톱(1200px 이상) */
+    --front-copy-y: 50%;
+    --front-title-top-size: 26px;
+    --front-title-top-tracking: -0.04em;
+    --front-title-size: 40px;
+    --front-title-tracking: -0.02em;
+    --front-title-lh: 1.3;
+    --front-text-size: 17.5px;
+    --front-text-tracking: -0.04em;
+    --front-text-lh: 1.5;
+    --front-closing-size: 19px;
+    --front-closing-tracking: -0.01em;
+    --front-toc-size: 22px;
+    --front-toc-no-size: 15px;
+    --front-text-gap: 0.2em;
+    --voice-size: 26px;
+    --voice-lines-size: 17px;
+    --title-size: 34px;
+    --title-tracking: -0.025em;
+    --title-lh: 1.16;
+    --write-title-size: 42px;
+    --voices-title-size: 44px;
+    --voices-title-lh: 1.22;
+    --voices-title-tracking: -0.029em;
+    --interviews-title-size: 40px;
+    --map-title-size: 42px;
+    --map-title-top-size: 23px;
+    --map-title-top-tracking: -0.03em;
+    --text-size: 16.5px;
+    --text-tracking: -0.05em;
+    --text-lh: 1.45;
+    --text-gap: 0.9em;
+    --text-width: 34em;
+    --text-lead: 21px;
+    --text-small: 15px;
+  }
+}
+
+/* 1. 글꼴 ---------------------------------------------------------------------
+   네 가지 글꼴 변수가 사이트의 글자를 정합니다(아래 :root 안).
+     --font-body     본문 · 단추 · 작은 글자 · 도입 문구    지금 Pretendard
+     --font-display  섹션 큰 제목 · 기사 제목               지금 Pretendard 굵게(--font-display-weight: 800)
+     --font-hand     손글씨 메모 · 안내 · 사진 설명         지금 나눔손글씨 가람연꽃
+     --font-jeju     제주어 문장 · 사람들의 말(인용)        지금 고운바탕(Gowun Batang) — J4
+       (제주어로 쓴 글에 lang="jje" 나 class="jeju" 를 붙이면 이 글꼴. 제주어 화면에서는 본문 글 전체 — css/scrapbook.css 8.)
+   값은 쉼표로 늘어놓은 글꼴 이름이고, 앞의 것부터 씁니다(앞 글꼴에 없는 글자는 뒤 글꼴이 그립니다).
+   맨 앞의 "Araea Sans" · "Araea Serif" · "Araea Display" · "Araea Hand" 는 아래아(ᄒᆞ 같은 옛한글 조합형) 글자에만 쓰이는 보조 글꼴입니다
+   (제주어판의 아래아를 그린다. css/base.css 맨 위 — 그 글자가 화면에 있을 때만 내려받는다).
+   새 글꼴은 이 "Araea …" 바로 뒤에 더하고 나머지는 그대로 두세요. "Araea …" 를 지우거나 뒤로 옮기면 아래아가 자모로 흩어져 보일 수 있습니다.
+   손글씨 글꼴을 바꾸면 css/base.css 의 Araea Hand(size-adjust 80%) 값을 새 글꼴의 글자 크기에 맞춰 고칩니다.
+   손글씨 가람연꽃은 사이트에 쓰인 글자만 남긴 조각(assets/fonts/NanumGaRamYeonGgoc-site.woff2)을 먼저 쓰고, 그 밖의 글자는 원본을 내려받습니다
+   — 글을 많이 고친 뒤에는 .work/fonts/subset_hand.py 로 조각을 다시 만들면 빨라집니다(README '글꼴').
+
+   새 글꼴을 쓰는 방법
+     (가) Google Fonts(fonts.google.com): 글꼴을 고르고 'Get embed code' 의 <link> 에 나오는 주소(https://fonts.googleapis.com/css2?family=…)를 복사해,
+          세 HTML(index.html · interview-01.html · interview-02.html)의 <head> 에 있는 글꼴 <link> 두 줄 바로 아래에 아래 모양 그대로 한 줄을 더합니다(세 파일 모두).
+            <link rel="stylesheet" crossorigin="anonymous" href="복사한 주소" media="print" onload="this.media='all'">
+          media="print" onload="…" 는 글꼴 서버의 답이 늦거나 없어도 화면부터 그리게 하는 장치이고, crossorigin="anonymous" 는 엽서 이미지 저장에 필요합니다 — 둘 다 지우지 마세요.
+          ※ 이 파일 맨 위에 @import 한 줄((가-2) 예시)로 불러올 수도 있지만 권하지 않습니다: 글꼴 서버가 답 없이 멈추면 세 페이지 모두 화면이 그려지지 않습니다(빈 화면).
+     (나) 눈누(noonnu.cc) 같은 무료 글꼴 모음: 글꼴 쪽의 '웹폰트로 사용' 에 있는 @font-face 덩어리를 (나) 자리(아래 :root 보다 앞)에 붙입니다(@font-face 는 화면을 붙잡지 않습니다).
+          글꼴 파일을 직접 받아 쓰려면 assets/fonts/ 폴더에 넣고 src: url("../assets/fonts/파일이름.woff2") 처럼 적습니다(이 파일 기준 경로).
+     그다음 :root 의 변수 줄을 켜고, 맨 앞에 새 글꼴 이름(@font-face 의 font-family 또는 Google Fonts 의 이름 그대로, 큰따옴표 포함)을 더합니다.
+     ※ 쓰기 전에 라이선스(웹사이트 게시 · 이용 범위)를 확인하고, 세 HTML 푸터의 '출처' 줄에 글꼴 이름을 적으세요.
+     ※ 한글이 들어 있는 글꼴인지 확인하세요(없으면 한글은 뒤의 글꼴로 보입니다).
+   따로 고치는 곳
+     · 저장하거나 메일로 보내는 엽서 그림의 글꼴은 이 파일과 따로입니다: css/maker.css 의 .postcard font-family 와
+       js/postcard-image.js 의 FONT_FAMILY · FONT_CSS_URL 을 함께(그림에 글꼴을 싣는 방식 때문에 Google Fonts 에 있는 글꼴만 됩니다).
+       .postcard 의 맨 앞 "Araea Hand" 는 그대로 두세요(엽서 글의 아래아를 그림에도 싣는다).
+     · 엽서 쓰기 창의 엽서 글씨는 아직 나눔손글씨 펜입니다(그림 저장 방식 때문에 Google Fonts 글꼴만 — 위 항목). */
+
+/* (가-2) Google Fonts 를 이 파일에서 불러오는 예시 — 노토 세리프(명조). 권하지 않음(위 ※): 되도록 (가)처럼 HTML 의 <link> 로 불러오세요 */
+/* @import url("https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap"); */
+
+/* (나) @font-face 예시 — 대괄호 자리를 복사한 값으로 바꿉니다 */
+/* @font-face { font-family: "내 손글씨"; src: url("[글꼴 파일 주소 — 예: 눈누에서 복사한 woff2 주소]") format("woff2"); font-weight: 400; font-display: swap; } */
+
+:root {
+  /* 예시(위 (가)로 노토 세리프를 불러온 뒤): --font-jeju: "Araea Serif", "Noto Serif KR", "Gowun Batang", serif; */
+  /* --font-body: "Araea Sans", "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; */
+  /* --font-display: "Araea Display", "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", sans-serif; */
+  /* --font-display-weight: 800; */
+  /* --font-hand: "Araea Hand", "Garam Hand", "Garam Hand Full", "Gowun Batang", cursive; */
+  /* --font-jeju: "Araea Serif", "Gowun Batang", "Noto Serif KR", serif; */
+  /* 손글씨체 크기 배율: 손글씨체는 같은 크기의 고딕보다 작아 보여서 이만큼 키워 씁니다(새 손글씨 글꼴이 크면 1.1 쯤으로) */
+  /* --hand-scale: 1.12; */
+}
+
+/* 2. 색 -----------------------------------------------------------------------
+   사이트의 색은 css/base.css 맨 위의 색 이름(토큰)에서 나옵니다. 여기서 같은 이름에 새 값을 주면 그 색을 쓰는 곳이 모두 바뀝니다.
+   지금 색은 레퍼런스(주황 테두리 + 크림 종이 스크랩북)에 맞춘 것입니다. 숫자가 클수록 진합니다(모든 단계는 css/base.css).
+   이름은 예전 그대로입니다 — '바다(sea)'는 지금 벽돌색(소인 · 링크 잉크), '현무암(basalt)'은 밤색(글자)입니다.
+   ※ 글자와 바탕의 대비(본문 4.5:1 이상)를 확인하세요. 크림 위의 작은 주황 글자에는 진한 --tangerine-700 이 쓰입니다.
+   ※ 따라 바뀌지 않는 곳: css/map.css 의 --map-paper(지도 땅색, 미리 섞은 값),
+     세 HTML <head> 의 <meta name="theme-color">, 메일 템플릿(README 4-3), assets/og-image.svg · 파비콘 그림 */
+:root {
+  /* 스크랩북 — 화면 둘레 테두리 · 주황 띠(인터뷰 · 푸터) · 띠 위의 글자 */
+  /* --frame: #e1653a; */
+  /* --band: #b84a26; */
+  /* --band-ink: #fff4e4; */
+  /* 포인트(주황): 500 = 단추 · 강조 선 · 우표, 600 = 큰 제목, 700 = 작은 주황 글자 */
+  /* --tangerine-500: #e1653a; */
+  /* --tangerine-600: #cc5428; */
+  /* --tangerine-700: #a8401c; */
+  /* --tangerine-300: #f29a72; */
+  /* --tangerine-100: #fbd8c2; */
+  /* 잉크(벽돌색): 800 = 링크 · 소인 잉크, 600 = 작은 라벨 */
+  /* --sea-800: #8c3518; */
+  /* --sea-600: #a8401c; */
+  /* 바탕(크림 종이): 50 = 흰 종이(폴라로이드 · 카드), 100 = 기본 바탕, 200 = 한 톤 진한 크림(엽서 쓰기 · 인용), 400 = 괘선 · 테두리 */
+  /* --paper-50: #fffaf0; */
+  /* --paper-100: #fbe6c0; */
+  /* --paper-200: #f6d9a8; */
+  /* --paper-400: #d7a873; */
+  /* 글자(밤색): 800 = 본문 글자, 500 = 보조 글자, 700 = 지도 명소 우표 */
+  /* --basalt-800: #4a2a1c; */
+  /* --basalt-500: #7a5442; */
+  /* 큰 제목 색만 따로 */
+  /* --color-title: var(--tangerine-600); */
+}
+
+/* 3. 로고 · 인트로 -------------------------------------------------------------
+   로고 그림은 assets/logo-hayeong.png(가로 860 × 세로 556). 다른 그림으로 바꿀 때 함께 고칠 곳은 README 3-1.
+   봉인 스티커를 눌렀을 때 인트로 끝까지 저절로 넘어가는 시간은 js/intro.js 맨 위의 PLAY_SECONDS(2초). */
+.intro {
+  /* 스크롤하는 동안 인트로가 머무는 길이(화면 높이의 몇 배). 클수록 장면이 천천히 흐릅니다 */
+  /* --intro-screens: 1.3; */
+  /* 봉인 스티커(로고)의 크기 — 스크롤 연출 첫 화면은 css/intro.css '0.' 의 html.motion-ok 줄(--seal-w: 18%), 정적 화면은 .intro 줄(18%) */
+}
+
+/* 로고 높이의 한계(화면이 낮을 때 로고가 부제 · 우표와 부딪히지 않게 — 로고는 이 높이를 넘지 않습니다): 화면 높이의 40%.
+   높이 480px 이하의 아주 낮은 화면(가로로 눕힌 휴대폰)은 css/intro.css '8. 반응형' 에서 34% · 30% */
+@media (min-height: 481px) {
+  /* .intro { --intro-logo-max-h: calc(var(--stage-h) * 0.4); } */
+}
+
+/* 엽서 앞면의 로고(웹진 타이틀) 폭 — 세로로 긴 화면이 아닐 때(데스크톱 · 가로 화면): 화면 폭의 44%, 최소 15rem · 최대 38rem */
+@media not all and (max-width: 1023px) and (orientation: portrait) {
+  /* .intro { --intro-logo-w: clamp(15rem, 44vw, 38rem); } */
+}
+
+/* 태블릿 세로(폭 768~1023px) */
+@media (min-width: 768px) and (max-width: 1023px) and (orientation: portrait) {
+  /* .intro { --intro-logo-w: 56vw; } */
+}
+
+/* 휴대폰 세로(폭 767px 이하) */
+@media (max-width: 767px) and (orientation: portrait) {
+  /* .intro { --intro-logo-w: 68vw; } */
+}
+
+/* 기사 페이지 헤더의 로고 높이 · 세 페이지 푸터의 로고 높이 */
+.site-header__brand {
+  /* --brand-logo-h: 2.4rem; */
+}
+
+.site-footer__name {
+  /* --brand-logo-h: 3.5rem; */
+}
+
+/* 인트로 첫 화면의 사진 · 소품(index.html 의 .intro__desk) — 3 우리 사진 · 10 이름표(혼저 옵서) · 13 필름 띠 · 12 색 견본 · 14 메모 · 11 이름표(와랑와랑) ·
+   6 제주 배경2 · 9 제주 배경3 · 7 제주 배경1(클립) · 5 우표 · 8 항공우편 라벨 · 2 해녀 엽서. 자리가 어색하면 여기서 옮깁니다.
+     --x · --y  조각 왼쪽 위 모서리의 자리. 봉투 가운데가 0, 단위는 '봉투 폭의 몇 배'(-1 = 봉투 폭만큼 왼쪽 · 위)
+     --w        조각 폭(봉투 폭의 몇 배)      --r  기울기(+ 시계 방향)
+   ※ 오른쪽 위 조각(가로 화면의 6 · 9번, 세로 화면의 6번)과 휴대폰의 3 · 6번은 --y 를 더 올려도 오른쪽 위 언어 전환 단추 · 위쪽 라벨
+     아래까지만 올라갑니다(css/intro.css '8. 반응형' 의 --scrap-min-top — 단추와 겹치지 않게)
+   세로로 긴 화면이 아닐 때(데스크톱 · 가로 화면) */
+@media not all and (max-width: 1023px) and (orientation: portrait) {
+  /* .intro__scrap--3 { --x: -1.25; --y: -0.74; --w: 0.52; --r: -6deg; } */
+  /* .intro__scrap--10 { --x: -0.78; --y: -0.7; --w: 0.29; --r: 10deg; } */
+  /* .intro__scrap--13 { --x: -1.33; --y: -0.06; --w: 0.7; --r: -5deg; } */
+  /* .intro__scrap--12 { --x: -1.28; --y: 0.3; --w: 0.42; --r: -4deg; } */
+  /* .intro__scrap--14 { --x: -0.84; --y: 0.2; --w: 0.3; --r: 5deg; } */
+  /* .intro__scrap--11 { --x: -1.0; --y: 0.66; --w: 0.27; --r: 8deg; } */
+  /* .intro__scrap--6 { --x: 0.54; --y: -0.8; --w: 0.38; --r: 7deg; } */
+  /* .intro__scrap--9 { --x: 0.96; --y: -0.72; --w: 0.3; --r: -6deg; } */
+  /* .intro__scrap--7 { --x: 0.95; --y: -0.2; --w: 0.36; --r: 8deg; } */
+  /* .intro__scrap--5 { --x: 0.55; --y: -0.08; --w: 0.15; --r: 10deg; } */
+  /* .intro__scrap--8 { --x: 0.33; --y: 0.06; --w: 0.3; --r: 8deg; } */
+  /* .intro__scrap--2 { --x: 0.25; --y: 0.34; --w: 0.84; --r: -3deg; } */
+}
+
+/* 세로로 긴 화면(태블릿 · 휴대폰 세로). 휴대폰 세로에서는 3 · 6 · 5 · 2 · 10번만, 태블릿 세로는 12번도 */
+@media (max-width: 1023px) and (orientation: portrait) {
+  /* .intro__scrap--3 { --x: -0.68; --y: -1.06; --w: 0.56; --r: -6deg; } */
+  /* .intro__scrap--6 { --x: 0.14; --y: -0.94; --w: 0.46; --r: 7deg; } */
+  /* .intro__scrap--5 { --x: -0.14; --y: -0.66; --w: 0.2; --r: -8deg; } */
+  /* .intro__scrap--2 { --x: -0.52; --y: 0.56; --w: 1.04; --r: -3deg; } */
+  /* .intro__scrap--10 { --x: 0.28; --y: 0.4; --w: 0.32; --r: 9deg; } */
+  /* .intro__scrap--12 { --x: -1.02; --y: 0.36; --w: 0.4; --r: -5deg; } */
+}
+
+/* 4. 인용(No.02 · Voices) -------------------------------------------------------
+   인물 사진은 세로 4:5 이고 폭은 높이를 따라 정해집니다(높이 × 0.8). 배치는 두 가지:
+   폭 600px 이상 + 가로가 긴 화면은 글 · 사진 2단, 그 밖(휴대폰 · 세로로 든 태블릿)은 사진 위 · 글 아래 */
+.quotes {
+  /* 사진 자리 옮기기 — 가로(+ 오른쪽 · − 왼쪽), 세로(+ 아래 · − 위). 예: 1.5rem · -2rem. 모든 인물에 함께
+     (한 사람만 옮기려면 data/quotes.json 의 그 항목에 "photoShift": "1.5rem -2rem" — 그 값이 이 값보다 우선합니다) */
+  /* --q-photo-x: 0px; */
+  /* --q-photo-y: 0px; */
+  /* 배경이 있는 사진("frame": true)을 잘라 보여 줄 중심(왼쪽에서 % · 위에서 %) — 모든 인물에 함께(한 사람만: 그 항목의 "photoPos") */
+  /* --q-frame-pos: 50% 30%; */
+  /* 섹션 제목 크기(데스크톱 48px) */
+  /* --q-title: clamp(1.9rem, 1.3rem + 2.4vw, 3rem); */
+  /* 이전 · 다음 단추 지름(44px — 손가락으로 누르기 쉽게 이보다 작게 하지 않기를 권합니다) */
+  /* --q-arrow: 2.75rem; */
+  /* 인물 아이콘에서 얼굴을 얼마나 확대해 보여 줄지(사진을 아이콘 폭의 몇 배로) */
+  /* --q-thumb-zoom: 2.3; */
+}
+
+/* 인물 아이콘 지름(44px). 폭 360px 미만 휴대폰은 6개가 한 줄에 들어가게 2.375rem(38px) */
+@media (min-width: 360px) {
+  /* .quotes { --q-thumb: 2.75rem; } */
+}
+
+/* 사진 위 · 글 아래 배치 — 휴대폰(폭 599px 이하): 사진 높이는 화면 높이의 31%(11 ~ 26rem) */
+@media (max-width: 599px) {
+  /* .quotes { --q-photo-h: clamp(11rem, calc(var(--q-vh) * 0.31), 26rem); } */
+}
+
+/* 사진 위 · 글 아래 배치 — 세로로 든 태블릿(폭 600px 이상 · 세로): 화면 높이의 40%(14 ~ 30rem) */
+@media (min-width: 600px) and (orientation: portrait) {
+  /* .quotes { --q-photo-h: clamp(14rem, calc(var(--q-vh) * 0.4), 30rem); } */
+}
+
+/* 인용문 글자 크기 — 사진 위 · 글 아래 배치일 때(= 폭 600px 이상의 가로 화면이 아닐 때) */
+@media not all and (min-width: 600px) and (orientation: landscape) {
+  /* 인용문 글자 크기는 이제 '0.' 의 --voice-size · --voice-lines-size 에서 고친다 */
+}
+
+/* 글 · 사진 2단 배치(폭 600px 이상 · 가로). 지금 사진 높이는 화면 높이에 맞춘 계산식(css/quotes.css '6.')이라
+   첫 줄은 고정값 '예시'입니다(고정값이면 낮은 화면에서 섹션이 한 화면보다 길어집니다). 둘째 줄은 인용문 글자 크기(데스크톱 36px) */
+@media (min-width: 600px) and (orientation: landscape) {
+  /* .quotes { --q-photo-h: 24rem; } */
+  /* 인용문 글자 크기는 이제 '0.' 의 --voice-size · --voice-lines-size 에서 고친다 */
+}
+
+/* 넘기는 시간(바탕색이 바뀌는 시간도 같습니다). '동작 줄이기'를 켠 사람에게는 이 값과 상관없이 바로 바뀝니다 */
+@media (prefers-reduced-motion: no-preference) {
+  /* .quotes { --q-dur: 0.5s; } */
+}
+
+/* 5. 인터뷰 엽서(No.03 · Interview) ------------------------------------------------ */
+:root {
+  /* 엽서 앞면 사진에서 보여 줄 기본 중심(왼쪽에서 % · 위에서 %). 사진은 칸을 가득 채우고 넘치는 부분이 잘립니다
+     (바다색 엽서는 위아래, 휴대폰의 세로 엽서는 양옆). data/interviews.json 에 "coverPos" 가 있는 엽서는 그 값을 따릅니다 */
+  /* --pcard-photo-pos: 50% 50%; */
+  /* 엽서 기울기 배율: 0 = 반듯하게, 1 = 지금, 1.5 = 1.5배 더 기울게(모든 화면 · 기사 아래의 엽서까지) */
+  /* --pcard-tilt-scale: 1; */
+}
+
+.interviews {
+  /* 섹션 위아래 여백 · 머리말과 엽서 사이(화면 높이에 맞춰 줄어드는 값). 아래 여백은 플로팅 버튼에 엽서가 가리지 않을 만큼 */
+  /* --iv-pad-top: clamp(2.5rem, calc(9 * var(--iv-vh)), 6rem); */
+  /* --iv-pad-bottom: max(clamp(3rem, calc(11 * var(--iv-vh)), 8rem), calc(var(--fab-clear, 0px) + var(--space-2))); */
+  /* --iv-head-gap: clamp(1.5rem, calc(5.5 * var(--iv-vh)), 4rem); */
+  /* 넓은 화면에서 가로 엽서 한 장의 가장 큰 폭(540px). 화면이 낮으면 머리말 + 두 장이 한 화면에 들어오게 저절로 줄어듭니다 */
+  /* --pcard-max: clamp(16.25rem, calc(var(--iv-card-h) * 1.5), 540px); */
+  /* 둘째 장을 내려 놓는 만큼 */
+  /* --pcard-drop: clamp(0.75rem, 3vw, 4rem); */
+}
+
+/* 엽서 한 장이 차지하는 폭(두 장이 놓이는 자리 폭의 몇 %) — 폭 1023px 이하 48%, 1024px 이상 46% */
+@media (max-width: 1023px) {
+  /* .pcards:not(.pcards--single) { --pcard-col: 48%; } */
+}
+
+@media (min-width: 1024px) {
+  /* .pcards:not(.pcards--single) { --pcard-col: 46%; } */
+}
+
+/* 가로 엽서 ↔ 세로 엽서가 바뀌는 폭: 두 장이 놓이는 자리의 폭이 541px 이하(엽서 한 장 260px 미만, 화면 폭 약 590px 아래)이면 세로 엽서.
+   이 기준은 변수로 바꿀 수 없어서 css/interviews.css '6. 세로 엽서' 의 @container pcards (max-width: 541px) 숫자를 고칩니다
+   (같은 곳의 312px 는 요약을 두 줄로 줄이는 기준). 엽서마다의 기울기 값 자체는 같은 파일 '1.' · '6.' · '7.' 의 --pcard-tilt */
+
+/* 6. 인터뷰 기사(interview-01.html · interview-02.html) ----------------------------- */
+.article {
+  /* 맨 위 대표 이미지의 높이. 지금: 화면 높이의 62% · 640px · 화면 폭의 72% 가운데 가장 작은 값. 예: 30rem */
+  /* --article-cover-h: min(62svh, 640px, 72vw); */
+  /* 대표 이미지에서 보여 줄 기본 중심(두 기사 함께. 한 기사만 바꾸려면 그 HTML 의 <img> 에 style="object-position: 50% 20%") */
+  /* --article-cover-pos: 50% 50%; */
+  /* 본문 한 줄의 가장 큰 폭 */
+  /* --measure: 42rem; */
+  /* 기사 본문 글자 크기만 따로 정하기(지금은 '0.' 의 --text-size 와 같다 — 휴대폰 16px · 태블릿 17px · 데스크톱 18px). 예: 19px */
+  /* --article-fs: 19px; */
+}
+
+/* 7. 제주어 상호 지도(No.04 · Map) --------------------------------------------------
+   목록에 처음 보여 줄 곳 수는 config.js 의 map.listFirst(기본 4 — 나머지는 '더보기'), 휴대폰은 map.listFirstPhone(2). 바꾸면 아래 --map-rows(접힌 목록의 줄 수)를
+   '곳 수 ÷ 단 수, 올림' 으로 함께 고칩니다. 단 수: 폭 767px 이하 1단 · 768~1023px 2단 · 1024px 이상 4단 (예: 8곳 → 8 · 4 · 2).
+   목록 한 칸의 높이 = --map-row(지금 5.25rem ≒ 84px), '더보기'로 펼친 목록의 최대 높이 = --map-list-max(넘치면 목록 안에서 스크롤).
+   그 밖에 처음 보이는 범위 · 묶음 우표 기준 · 손글씨 지명은 js/map.js 맨 위, 지도의 색감(필터)은 css/map.css '3-1' */
+.map {
+  /* 땅(종이)의 색 — 지도 타일에 곱해지는 색 */
+  /* --map-paper: #f0e5ce; */
+  /* --map-row: 5.25rem; */
+  /* --map-list-max: min(60vh, 34rem); */
+}
+
+/* 휴대폰(폭 767px 이하) — 지도 높이 = clamp(가장 낮게, 화면 높이의 몇 %, 가장 높게), 우표 마커 크기(폭 · 가로 톱니 수 · 세로 톱니 수), 접힌 목록 줄 수 */
+@media (max-width: 767px) {
+  /* (24차) 휴대폰 지도를 가로로 긴 직사각형(폭 : 높이 ≈ 3 : 2)으로 낮췄다. 375px 폭에서 225px. 예전 값: clamp(min(20rem, var(--map-h-room)), calc(68 * var(--map-vh)), 35rem) */
+  .map { --map-h: clamp(13rem, 60vw, 15.5rem); }
+  /* .map { --pin-w: 32px; --pin-cols: 8; --pin-rows: 10; } */
+  .map { --map-rows: 2; } /* (25차) 휴대폰은 2곳만 먼저(config.js 의 map.listFirstPhone) */
+}
+
+/* 태블릿(폭 768~1023px) — 지도 높이 */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* .map { --map-h: clamp(min(24rem, var(--map-h-room)), calc(72 * var(--map-vh)), 40rem); } */
+}
+
+/* 데스크톱(폭 1024px 이상) — 지도 높이 */
+@media (min-width: 1024px) {
+  /* .map { --map-h: clamp(min(26rem, var(--map-h-room)), calc(78 * var(--map-vh)), 47.5rem); } */
+}
+
+/* 태블릿 이상(폭 768px 이상) — 우표 마커 크기 */
+@media (min-width: 768px) {
+  /* .map { --pin-w: 36px; --pin-cols: 9; --pin-rows: 11; } */
+}
+
+/* 접힌 목록 줄 수 — 2단(폭 768~1023px) · 4단(폭 1024px 이상) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* .map { --map-rows: 2; } */
+}
+
+@media (min-width: 1024px) {
+  /* .map { --map-rows: 1; } */
+}
+
+/* 8. 플로팅 버튼('제주어 엽서 써보기') -------------------------------------------------
+   버튼 글자는 js/maker.js 맨 위의 TEXT.fab(영어 · 제주어는 data/i18n/*.json 의 maker.fab), 누르면 가는 곳은 config.js 의 links.postcard.
+   버튼 높이를 바꾸면 버튼에 가리지 않게 비켜 두는 자리(--fab-clear)도 저절로 따라갑니다 */
+:root {
+  /* 화면 오른쪽 · 아래 가장자리와의 간격 */
+  /* --fab-gap: clamp(1rem, 0.62rem + 1.6vw, 1.75rem); */
+}
+
+/* 버튼 높이 — 폭 768px 이상 */
+@media (min-width: 768px) {
+  /* :root { --fab-size: 3.75rem; } */
+}
+
+/* 버튼 높이 — 휴대폰(폭 767px 이하). 글자 크기 · 우표 크기는 버튼 높이를 따라간다. 버튼 색은 css/maker.css 의 .fab 의 --fab-bg */
+@media (max-width: 767px) {
+  /* :root { --fab-size: 3.25rem; } */
+}
+
+/* 9. 언어 전환 단추(한국어 / English / 제주어) ------------------------------------------
+   index 는 화면 오른쪽 위에 떠 있고, 기사 페이지는 머리글의 '목록으로' 옆. 모양은 css/base.css 의 '언어 전환'.
+   단추 글자(한국어 · English · 제주어 / 좁은 화면 KO · EN · 제주)는 js/i18n.js 맨 위의 LANG_NAMES.
+   인트로의 우표 · 라벨 · 종이 조각과 인용 섹션의 우표는 단추가 차지하는 높이(--lang-clear)만큼 아래로 비켜나므로 아래 값을 바꾸면 함께 따라갑니다 */
+:root {
+  /* 단추 하나의 높이 · 최소 폭(44px — 손가락으로 누르기 쉽게 이보다 작게 하지 않기를 권합니다) */
+  /* --lang-btn: 2.75rem; */
+  /* 화면 오른쪽 · 위 가장자리와의 간격(index) */
+  /* --lang-gap: clamp(0.5rem, 1.2vw, 1rem); */
+}
+
+/* 10. 스크랩북 — 주황 테두리 · 찢어진 종이 · 사진 효과 ----------------------------------
+   원래 값과 설명은 css/scrapbook.css 맨 위. 색(테두리 주황 --frame, 띠 주황 --band, 띠 위 글자 --band-ink)은 위 '2. 색' 처럼 같은 이름으로 바꿉니다.
+   찢어진 가장자리를 섹션에 더하거나 빼는 법: HTML 의 <div class="tear …"> 한 줄(css/scrapbook.css '3.' 설명) */
+:root {
+  /* 사진 색바랜 효과 — 끄려면 none */
+  /* --photo-filter: sepia(0.28) saturate(0.72) contrast(0.86) brightness(1.08); */
+  /* 화면 둘레 주황 테두리 두께(없애려면 0px) · 안쪽 모서리 둥글기 */
+  /* --page-frame-w: clamp(6px, 1.1vw, 16px); */
+  /* --page-frame-r: clamp(8px, 1.3vw, 18px); */
+  /* 찢어진 가장자리의 높이 · 무늬 한 칸의 폭 */
+  /* --tear-h: clamp(16px, 2.4vw, 32px); */
+  /* --tear-tile: clamp(640px, 80vw, 1200px); */
+  /* 예시 — 테두리를 띠 색(조금 진한 주황)으로: */
+  /* --frame: var(--band); */
+}
+
+/* 지도와 엽서 쓰기 사이의 사진 띠 높이 */
+.photo-strip {
+  /* --strip-h: clamp(9rem, 22vw, 17rem); */
+}

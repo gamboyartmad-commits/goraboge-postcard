@@ -1,0 +1,98 @@
+[
+  {
+    "id": "voice-01",
+    "quote": "제주어가 사라진다면, ‘제주 사람’이라는 말 자체가 없어지지 않을까요.",
+    "lines": [
+      "잊혀진 것을 기억해 내는 걸 제주에서는 ‘튼내다’라고 해요. 오랫동안 제주어를 튼낼 수 있는 세상이 되었으면 좋겠습니다."
+    ],
+    "name": "김미진",
+    "interview": "articles/interview01.html#02-1",
+    "affiliation": "제주학연구센터 연구원",
+    "photo": "assets/quotes/voice-01-paper.webp",
+    "photoAlt": "김미진 제주학연구센터 연구원의 일러스트 초상",
+    "tone": "paper",
+    "face": "50% 20%"
+  },
+  {
+    "id": "voice-02",
+    "quote": "단어 하나가 사라지면, 그 문화도 함께 사라지는 거예요.",
+    "lines": [
+      "따뜻하게 들리든 투박하게 들리든, 그건 어떻게 받아들이느냐에 달린 거예요."
+    ],
+    "name": "백종진",
+    "interview": "articles/interview01.html#02-2",
+    "affiliation": "제주문화원 사무국장",
+    "photo": "assets/quotes/voice-02-paper.webp",
+    "photoAlt": "백종진 제주문화원 사무국장의 일러스트 초상",
+    "tone": "paper",
+    "face": "63% 23%"
+  },
+  {
+    "id": "voice-03",
+    "quote": "투박하고 억세지만, 마음에서 우러나오는 정은 정말 따뜻합니다.",
+    "lines": [
+      "‘여기 와서 점심 먹어라’, 투박하게 들려도 그건 끼니 놓치지 말고 와서 밥 먹으라는 따뜻한 말이에요."
+    ],
+    "name": "정예실",
+    "interview": "articles/interview01.html#02-3",
+    "affiliation": "제주어보전회 이사장",
+    "photo": "assets/quotes/voice-03-paper.webp",
+    "photoAlt": "정예실 제주어보전회 이사장의 일러스트 초상",
+    "tone": "paper",
+    "face": "50% 20%"
+  },
+  {
+    "id": "voice-04",
+    "quote": "제주에만 있는 게 아니에요. 제주에만 유일하게 잘 남아 있는 거예요.",
+    "lines": [
+      "제주어가 사라지면, 제가 제주 이야기를 쓰고 책을 낼 이유도 사라지는 거죠."
+    ],
+    "name": "김형훈",
+    "affiliation": "36년차 기자",
+    "photo": "assets/quotes/voice-04-paper.webp",
+    "photoAlt": "김형훈 36년차 기자의 일러스트 초상",
+    "tone": "paper",
+    "face": "50% 19%"
+  },
+  {
+    "id": "voice-05",
+    "quote": "아들이 ‘엄마, 이건 무슨 뜻이야?’ 물을 때마다, 소멸 위기 제주어가 와랑와랑 살아나는 것 같았어요.",
+    "lines": [
+      "‘아이고 나 똘(내 딸).’ 지금도 이 말만 들으면 어머니가 생각나요. 정겹고도 먹먹한 말이에요."
+    ],
+    "name": "김신자",
+    "interview": "articles/interview02.html#02-2",
+    "affiliation": "시인 · 제주 방언 연구자",
+    "photo": "assets/quotes/voice-05-paper.webp",
+    "photoAlt": "김신자 시인의 일러스트 초상",
+    "tone": "paper",
+    "face": "48% 30%"
+  },
+  {
+    "id": "voice-06",
+    "quote": "사라져 가는 소중한 것들을, 할머니의 이야기를 받아 젊은 감각으로 이어가고 싶어요.",
+    "lines": [
+      "빠르게 변하는 세상에서 소중한 것들이 정말 많이 사라지고 있어요."
+    ],
+    "name": "신의주",
+    "interview": "articles/interview02.html#02-1",
+    "affiliation": "책방지기 · 어나더 페이지 대표",
+    "photo": "assets/quotes/voice-06-paper.webp",
+    "photoAlt": "신의주 책방지기의 일러스트 초상",
+    "tone": "paper",
+    "face": "70% 27%"
+  },
+  {
+    "id": "voice-07",
+    "quote": "제주어는 우리 제주도의 보물이에요. 잊어서는 안 되는 건데…",
+    "lines": [
+      "밖에서 들으면 욕 같아도, 저한테는 그게 제일 정겨운 말이에요."
+    ],
+    "name": "송명철",
+    "affiliation": "25년차 제주 관광 기사",
+    "photo": "assets/quotes/voice-07-paper.webp",
+    "photoAlt": "송명철 25년차 제주 관광 기사의 일러스트 초상",
+    "tone": "paper",
+    "face": "50% 21%"
+  }
+]

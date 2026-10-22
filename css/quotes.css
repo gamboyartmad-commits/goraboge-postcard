@@ -1,0 +1,753 @@
+/* quotes.css — 3. 인용(No.02 · Voices): 한 화면짜리 좌우 슬라이드(캐러셀)
+   index.html 에서만 불러온다. 두 페이지가 함께 쓰는 조각은 base.css 끝에 둔다.
+
+   구조는 모든 화면 폭에서 같고, 폭에 따라 배치만 달라진다.
+     .quotes                  섹션. data-tone = 지금 보이는 사람의 바탕색 → 넘길 때 0.5초 동안 서서히 바뀐다
+       .quotes__head          라벨 + 제목
+       .quotes__body
+         .quotes__viewport    슬라이드 창(창 밖으로 나간 슬라이드는 잘려 보이지 않는다)
+           .quotes__list      슬라이드를 모두 같은 칸에 겹쳐 둔다 → 창의 높이 = 가장 긴 슬라이드의 높이(넘겨도 높이가 변하지 않는다)
+                              휴대폰(600px 미만)만: 창의 높이 = 지금 슬라이드의 높이(넘길 때 부드럽게 바뀐다)
+             .quotes__item    슬라이드 하나 = 사진 + 인용문 + 이름 · 소속. '지금 슬라이드'에만 .is-active
+         .quotes__controls    인물 아이콘 줄 + [이전] 01 / 06 [다음]
+   움직임은 이 파일의 transition(transform · opacity)이 맡는다. js/quotes.js 는 .is-active 와 data-side 만 바꾼다(GSAP 을 쓰지 않는다).
+   슬라이드 수는 data/quotes.json 의 항목 수를 그대로 따른다(여기에 개수를 적는 곳은 없다) */
+
+/* 0. 치수 --------------------------------------------------------------------
+   ✏️ 교체: 사진 크기 · 인용문 글자 크기 · 넘기는 빠르기는 아래 값으로 조절한다
+            (가로 2단 배치일 때의 값은 '6. 가로로 넓은 화면'에 따로 있다) */
+.quotes {
+  --q-vh: 100vh;
+  --q-pad: var(--gutter);
+  --q-edge: max(var(--q-pad), calc((100% - var(--container)) / 2)); /* 내용의 좌우 여백(내용 폭은 최대 1200px) */
+  --q-top: clamp(1.5rem, 6vh, 4rem); /* 섹션 윗변 ~ 라벨 */
+  --q-title: clamp(1.9rem, 1.3rem + 2.4vw, 3rem); /* 섹션 제목 크기(데스크톱 48px) */
+  --q-photo-h: clamp(11rem, calc(var(--q-vh) * 0.31), 26rem); /* 사진 높이(폭은 높이의 0.8배 — 세로 4:5) */
+  --q-photo-x: 0px; /* 사진 자리를 옆으로 옮긴다(+ 오른쪽 · − 왼쪽. 예: 1.5rem) */
+  --q-photo-y: 0px; /* 사진 자리를 아래위로 옮긴다(+ 아래 · − 위) */
+  --q-quote: var(--voice-size); /* 인용문(큰 말) 글자 크기 — css/theme.css '0.' 의 --voice-size(화면 폭별) */
+  --q-dur: 0.5s; /* 넘기는 시간(바탕색이 바뀌는 시간도 같다) */
+  --q-thumb: 2.75rem; /* 인물 아이콘(44px) */
+  --q-thumb-gap: clamp(0.5rem, 1.7vw, 0.875rem); /* 아이콘 사이(지금 인물의 링과 포커스 링이 옆 아이콘에 닿지 않을 만큼) */
+  --q-thumb-zoom: 2.3; /* 아이콘: 인물 사진을 아이콘 폭의 몇 배로 키워 얼굴만 보이게 할지 */
+  --q-thumb-dim: 0.74; /* 지금 인물이 아닌 아이콘의 사진은 조금 흐리게 */
+  --q-arrow: 2.75rem; /* 이전 · 다음 단추(44px) */
+  /* 슬라이드 창의 최소 높이: 사진 + 글 자리. 데이터가 도착하기 전에도 같은 자리를 잡아 둔다
+     (기본 플레이스홀더보다 글이 훨씬 길어지면 창이 그만큼 더 길어진다) */
+  --q-slide-min: calc(var(--q-photo-h) + 13rem);
+  /* 섹션 아래 여백. --fab-clear: 화면 오른쪽 아래에 고정되는 플로팅 버튼(css/maker.css 의 .fab)이 차지하는 높이
+     → 섹션이 화면에 꼭 맞게 놓였을 때 아래 단추 줄이 버튼에 가리지 않게 그만큼 띄운다 */
+  --q-bottom: max(var(--space-6), calc(var(--fab-clear, 0px) + var(--space-3)));
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: var(--q-vh); /* 한 화면. 화면이 낮아 내용이 다 들어가지 않으면 내용 높이만큼 길어진다 */
+  padding-top: var(--q-top);
+  padding-bottom: var(--q-bottom);
+}
+
+@supports (height: 100svh) {
+  .quotes {
+    --q-vh: 100svh;
+    --q-top: clamp(1.5rem, 6svh, 4rem);
+  }
+}
+
+/* 휴대폰(600px 미만): 글이 오른쪽 좁은 칸에 들어가므로 인용문을 조금 작게.
+   (24차) 한 화면을 채우지 않고, 창 높이 = '지금 사람'의 슬라이드 높이 → 인물 아이콘 줄이 인용문 바로 아래에 온다.
+   넘길 때 창 높이가 부드럽게 바뀐다(js/quotes.js 의 resize — 높이를 바꾸는 시간 = --q-dur).
+   여기에는 치수(변수)와 이 파일의 기본 규칙과 겹치지 않는 것만 둔다 — 기본 규칙을 덮어쓰는 휴대폰 배치는 아래 '6-9.'(파일 뒤쪽이라야 이긴다) */
+@media (max-width: 599px) {
+  .quotes {
+    --q-quote: var(--voice-size);
+    --q-slide-min: 15rem;
+    --q-thumb: 2.375rem; /* (25차) 인물 아이콘 38px — 7명이 한 줄에 */
+    --q-thumb-gap: 0.5rem;
+    --q-arrow: 2rem; /* (25차) 이전 · 다음 단추를 작게(32px) */
+    min-height: 0;
+  }
+
+  .quotes__list {
+    position: relative;
+  }
+
+  /* 지금 슬라이드가 아닌 것은 자리를 차지하지 않는다(창 밖에 겹쳐 둔다) */
+  .quotes__item:not(.is-active) {
+    position: absolute;
+    inset: 0 0 auto;
+  }
+
+  .quotes__who {
+    padding-left: calc(1.1rem + var(--space-2));
+  }
+
+  .quotes__who::before {
+    width: 1.1rem;
+  }
+}
+
+/* 아주 좁은 휴대폰(360px 미만): 아이콘 7개가 한 줄에 들어가게 더 줄인다(34px) */
+@media (max-width: 359px) {
+  .quotes {
+    --q-thumb: 2.125rem;
+    --q-thumb-gap: 0.3rem;
+  }
+}
+
+/* 세로로 든 태블릿: 사진을 조금 더 크게 */
+@media (min-width: 600px) and (orientation: portrait) {
+  .quotes {
+    --q-photo-h: clamp(14rem, calc(var(--q-vh) * 0.4), 30rem);
+  }
+}
+
+/* '동작 줄이기': 미끄러지지 않고 바로 바뀐다 */
+@media (prefers-reduced-motion: reduce) {
+  .quotes {
+    --q-dur: 0s;
+  }
+}
+
+/* 1. 바탕색(tone) ---------------------------------------------------------------
+   data/quotes.json 의 tone 값 → 바탕색(--q-bg) · 글자색(--q-ink) · 장식색(--q-accent)
+   ✏️ 교체: 색을 바꾸려면 아래 네 묶음의 값을 고친다. 글자색은 바탕과 대비 4.5:1 이상이 되게 한다 */
+.quotes,
+.quotes [data-tone] {
+  /* paper(기본): 한 톤 진한 크림(도입 문구의 크림과 찢어진 가장자리로 갈린다).
+     섞은 색은 미리 계산한 값으로 적는다 — color-mix() 를 모르는 브라우저(Safari 16.1 이하 등)에서 이 값을 쓰는
+     글자색 · 포커스 테두리 · 바탕색이 통째로 빠지지 않게 */
+  --q-bg: var(--oat); /* 오트밀 — 메인 화면과 같은 종이(css/base.css 의 --oat) */
+  --q-ink: var(--basalt-800);
+  --q-accent: var(--tangerine-700);
+  --q-soft: var(--q-ink); /* 소속 같은 보조 글자(color-mix 를 아는 브라우저에서는 바로 아래에서 조금 옅게 한다) */
+  --surface-ink: var(--q-ink);
+  --surface-soft: var(--q-soft);
+  --focus-ring: var(--q-ink);
+}
+
+@supports (color: color-mix(in srgb, red, blue)) {
+  .quotes,
+  .quotes [data-tone] {
+    --q-soft: color-mix(in srgb, var(--q-ink) 88%, var(--q-bg));
+  }
+}
+
+/* sea: 연한 살구(예전 '바다' 자리) */
+.quotes[data-tone="sea"],
+.quotes [data-tone="sea"] {
+  --q-bg: var(--sea-100);
+  --q-ink: var(--sea-800);
+  --q-accent: var(--sea-600);
+}
+
+/* tangerine: 연한 감귤 */
+.quotes[data-tone="tangerine"],
+.quotes [data-tone="tangerine"] {
+  --q-bg: var(--tangerine-100);
+  --q-ink: #6b3b1a; /* = color-mix(in srgb, var(--tangerine-700) 45%, var(--basalt-900)) */
+  --q-accent: var(--tangerine-700);
+}
+
+/* basalt: 연한 현무암 */
+.quotes[data-tone="basalt"],
+.quotes [data-tone="basalt"] {
+  --q-bg: var(--basalt-100);
+  --q-ink: var(--basalt-800);
+  --q-accent: var(--tangerine-700);
+}
+
+/* 섹션의 바탕색 · 글자색 = 지금 보이는 사람의 tone. 넘기면 서서히 바뀐다(크로스페이드) */
+.quotes {
+  --q-stage-ink: var(--q-ink); /* 인물 아이콘의 테두리 링이 '지금 바탕'의 글자색을 따르게(아이콘은 저마다 자기 tone 을 갖는다) */
+  background-color: var(--q-bg);
+  background-image: var(--tex-paper);
+  color: var(--q-ink);
+  transition: background-color var(--q-dur) ease, color var(--q-dur) ease;
+}
+
+/* 2. 제목 ----------------------------------------------------------------------
+   (25차) 오른쪽 위 우표 · 소인과 '옆으로 밀면 다음 사람의 이야기' 안내를 뺐다(사용자) — 예전 모습은 .work/index.before-r25.html */
+.quotes__head {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  padding-inline: var(--q-edge);
+}
+
+/* 라벨은 섹션의 글자색을 그대로 물려받는다 → 바탕색이 바뀔 때 제목과 함께 서서히 바뀐다 */
+.quotes__head .eyebrow {
+  color: inherit;
+}
+
+.quotes .eyebrow::before {
+  background-color: var(--q-accent);
+  transition: background-color var(--q-dur) ease;
+}
+
+/* 크기 · 줄 간격 · 자간 = 화면 폭마다 css/theme.css '0.' 의 --voices-title-…(26차 — 휴대폰 값은 편집 모드로 고른 값 그대로) */
+.quotes .quotes__title {
+  font-size: var(--voices-title-size, var(--q-title));
+  line-height: var(--voices-title-lh, var(--title-lh));
+  letter-spacing: var(--voices-title-tracking, var(--title-tracking));
+}
+
+/* 3. 슬라이드 창 ------------------------------------------------------------------ */
+.quotes__body {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+  margin-top: var(--space-4);
+}
+
+/* 창: 옆으로 나간 슬라이드를 잘라 낸다.
+   touch-action: 세로로 미는 손가락은 브라우저가 평소처럼 페이지를 스크롤하고, 가로로 미는 손가락만 js 가 받아 슬라이드를 넘긴다 */
+.quotes__viewport {
+  display: grid;
+  flex: 1 0 auto;
+  min-height: var(--q-slide-min);
+  overflow: hidden;
+  overflow: clip;
+  touch-action: pan-y pinch-zoom;
+}
+
+/* 슬라이드를 모두 한 칸에 겹친다 */
+.quotes__list {
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  min-width: 0;
+}
+
+/* 4. 슬라이드 하나 (기본 = 휴대폰 · 세로 화면: 사진 왼쪽 · 글 오른쪽. 손가락으로 좌우로 밀면 다음 사람) ----------
+   옆에 비켜 서 있는 슬라이드: 창 밖(오른쪽, data-side="left" 면 왼쪽)에 숨어 있다.
+   지금 슬라이드(.is-active): 제자리. 둘 사이를 transform 으로 미끄러진다(--q-dur) */
+.quotes__item {
+  --q-side: 1;
+  display: grid;
+  grid-area: 1 / 1;
+  grid-template-columns: minmax(0, 0.62fr) minmax(0, 1.38fr); /* 휴대폰: 글 칸을 넓게(사진은 작게) */
+  grid-template-rows: auto;
+  grid-template-areas: "photo text";
+  column-gap: clamp(0.875rem, 3.5vw, 2rem);
+  align-items: start;
+  min-width: 0;
+  padding-inline: var(--q-edge);
+  color: var(--q-ink);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(calc(var(--q-side) * 100%));
+  /* 나갈 때: 다 나간 뒤에 감춘다(visibility 를 --q-dur 만큼 늦춘다) */
+  transition: transform var(--q-dur) var(--ease-out), opacity var(--q-dur) ease, visibility 0s linear var(--q-dur);
+}
+
+.quotes__item[data-side="left"] {
+  --q-side: -1;
+}
+
+.quotes__item.is-active {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: transform var(--q-dur) var(--ease-out), opacity var(--q-dur) ease, visibility 0s;
+}
+
+/* js 가 '들어올 쪽'에 미리 가져다 놓는 순간에는 움직임 없이 옮긴다 */
+.quotes__item.is-ready {
+  transition: none;
+}
+
+/* 4-1. 사진 — 배경을 뺀 인물 PNG 가 바닥선(글 위의 점선) 위에 선다
+   ✏️ 교체: 크기는 맨 위의 --q-photo-h, 자리는 --q-photo-x · --q-photo-y. 배경이 있는 보통 사진은 data/quotes.json 의 그 항목에 "frame": true (4-1-1) */
+.quotes__photo {
+  position: relative;
+  grid-area: photo;
+  justify-self: center;
+  width: min(100%, calc(var(--q-photo-h) * 0.8));
+  aspect-ratio: 4 / 5;
+  margin-top: var(--space-5);
+  translate: var(--q-photo-x) var(--q-photo-y);
+}
+
+/* 인물 뒤의 밝은 원 + 소인처럼 끊어진 테두리(장식).
+   원은 안쪽(content-box)에만 칠하고, 그 바깥 0.7rem 에 점선 테두리를 두른다 */
+.quotes__photo::before {
+  content: "";
+  position: absolute;
+  bottom: calc(9% - 0.7rem);
+  left: 50%;
+  box-sizing: border-box;
+  width: calc(82% + 1.4rem);
+  aspect-ratio: 1;
+  padding: 0.7rem;
+  border: 1.5px dashed color-mix(in srgb, var(--q-ink) 30%, transparent);
+  border-radius: 50%;
+  background-color: rgb(var(--paper-rgb) / 0.42);
+  background-clip: content-box;
+  translate: -50% 0;
+}
+
+.quotes__img {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: 50% 100%;
+}
+
+/* 4-1-1. 배경이 있는 보통 사진(data/quotes.json 의 그 항목에 "frame": true):
+   배경을 뺀 인물 컷처럼 바닥에 세우지 않고, 종이 테두리를 두른 인화 사진 한 장으로 살짝 기울여 놓는다(세로 4:5 로 잘라 보여 준다) */
+.quotes__item--framed .quotes__photo {
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr); /* 칸 크기를 사진 자리에 묶는다(그림의 원래 크기를 따라 커지지 않게) */
+  place-items: center;
+}
+
+.quotes__item--framed .quotes__photo::before {
+  display: none;
+}
+
+.quotes__item--framed .quotes__img {
+  width: auto;
+  max-width: 92%;
+  height: 88%;
+  aspect-ratio: 4 / 5;
+  padding: clamp(0.4rem, 1.2vh, 0.75rem);
+  background-color: var(--paper-50);
+  box-shadow: var(--shadow-paper);
+  object-fit: cover;
+  object-position: var(--q-frame-pos, 50% 30%); /* 잘라 보여 줄 중심(가로 · 세로) — css/theme.css 의 --q-frame-pos */
+  rotate: 1.6deg;
+}
+
+.quotes__item--flip.quotes__item--framed .quotes__img {
+  rotate: -1.6deg;
+}
+
+/* 4-2. 글: 따옴표 장식 → 인용문 → 이름 · 소속 */
+.quotes__fig {
+  grid-area: text;
+  justify-self: start;
+  width: 100%;
+  min-width: 0;
+  max-width: 36rem;
+  padding-block: var(--space-4) var(--space-5);
+}
+
+.quotes__mark {
+  display: block;
+  width: 2.25rem;
+  height: auto;
+  margin-bottom: var(--space-3);
+  fill: var(--q-accent);
+}
+
+/* 인용문이 길면(js 가 글자 수를 세어 data-size 를 붙인다) 글자를 조금 줄인다 */
+.quotes__item[data-size="l"] { --q-quote-scale: 0.92; }
+.quotes__item[data-size="xl"] { --q-quote-scale: 0.84; }
+
+.quotes__quote {
+  font-family: var(--font-jeju); /* 사람들의 말 = 제주어가 섞이는 자리 → J4(고운바탕 + 아래아 조각) */
+  font-size: calc(var(--q-quote) * var(--q-quote-scale, 1));
+  font-weight: 700;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+}
+
+/* 감동 한 줄(data/quotes.json 의 "lines"): 큰 인용 아래에 조금 작게, 왼쪽에 가는 주황 줄 */
+.quotes__lines {
+  display: grid;
+  gap: 0.5em;
+  margin-top: var(--space-4);
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--q-accent);
+  color: var(--q-soft);
+  font-family: var(--font-jeju);
+  font-size: var(--voice-lines-size); /* 큰 말 아래의 말 — css/theme.css '0.' 의 --voice-lines-size */
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+.quotes__who {
+  position: relative;
+  display: grid;
+  gap: 0.1em;
+  margin-top: var(--space-4);
+  padding-left: calc(1.75rem + var(--space-3));
+}
+
+/* 이름 앞의 짧은 줄 */
+.quotes__who::before {
+  content: "";
+  position: absolute;
+  top: 0.78em;
+  left: 0;
+  width: 1.75rem;
+  height: 2px;
+  border-radius: 2px;
+  background-color: var(--q-accent);
+}
+
+.quotes__name {
+  font-size: var(--fs-m);
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.quotes__aff {
+  color: var(--q-soft);
+  font-size: var(--fs-s);
+  line-height: 1.55;
+}
+
+/* 5. 아래 단추 줄: 인물 아이콘 + [이전] 01 / 06 [다음] --------------------------------
+   좁은 화면(600px 미만)에서는 아이콘 줄이 한 줄을 다 쓰고 그 아래에 [이전] 순번 [다음] 이 온다 */
+.quotes__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3) clamp(1rem, 3vw, 2rem);
+  margin: var(--space-2) var(--q-edge) 0;
+}
+
+.quotes__nav {
+  flex: 0 0 100%;
+  min-width: 0;
+}
+
+.quotes__thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--q-thumb-gap);
+  min-height: var(--q-thumb); /* 데이터를 그리기 전에도 자리를 잡아 둔다 */
+}
+
+.quotes__thumb {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  width: var(--q-thumb);
+  height: var(--q-thumb);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: var(--q-bg);
+  box-shadow: 0 0 0 2px rgb(var(--paper-rgb) / 0.8), 0 2px 5px rgb(var(--ink-rgb) / 0.22);
+  color: var(--q-ink);
+  font-size: var(--fs-s);
+  font-weight: 700;
+  transition: scale var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 키보드 포커스: '지금 인물'의 실선 링과 헷갈리지 않게 그 바깥에 점선 링을 두른다(색은 '지금 바탕'의 글자색) */
+.quotes .quotes__thumb:focus-visible {
+  outline: 3px dashed var(--q-stage-ink);
+  outline-offset: 4px;
+}
+
+@media (hover: hover) {
+  .quotes__thumb:hover {
+    scale: 1.06;
+  }
+
+  .quotes__thumb:hover img {
+    opacity: 1;
+  }
+}
+
+/* 지금 인물: 크게 + 테두리 링 */
+.quotes__thumb[aria-current="true"] {
+  box-shadow: 0 0 0 2px var(--paper-50), 0 0 0 4.5px var(--q-stage-ink), 0 4px 9px rgb(var(--ink-rgb) / 0.26);
+  scale: 1.14;
+}
+
+/* 큰 인물 사진에서 얼굴 언저리만 잘라 보여 준다:
+   사진을 아이콘 폭의 --q-thumb-zoom 배로 키우고, 얼굴 한가운데(--face-x · --face-y)를 아이콘 한가운데에 맞춘다.
+   지금 인물이 아닌 얼굴은 조금 흐리게(--q-thumb-dim. 단추가 아니라 그림만 — 사진이 없을 때 들어가는 번호 글자는 또렷하게 남는다).
+   ✏️ 교체: 실제 사진으로 바꾼 뒤 얼굴이 어긋나면 data/quotes.json 의 그 항목에 "face": "50% 30%" 처럼
+            '사진 안에서 얼굴 한가운데가 있는 자리(왼쪽에서 몇 % · 위에서 몇 %)'를 적는다(적지 않으면 아래 기본값 50% · 42%).
+            정사각형 얼굴 사진을 따로 쓰려면 "thumb": "사진 경로" 를 더한다(그 사진을 그대로 보여 준다) */
+.quotes__thumb img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(100% * var(--q-thumb-zoom));
+  max-width: none;
+  height: auto;
+  opacity: var(--q-thumb-dim, 1);
+  translate: calc(var(--face-x, 50%) * -1) calc(var(--face-y, 42%) * -1);
+  transition: opacity var(--dur-fast);
+  pointer-events: none;
+}
+
+.quotes__thumb:focus-visible img,
+.quotes__thumb[aria-current="true"] img {
+  opacity: 1;
+}
+
+/* "thumb" 로 따로 넣은 얼굴 사진은 키우지 않고 아이콘에 꽉 채운다 */
+.quotes__thumb--plain img {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  translate: none;
+}
+
+/* [이전] 01 / 06 [다음] */
+.quotes__step {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.quotes__arrow {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--q-arrow);
+  height: var(--q-arrow);
+  padding: 0;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  background-color: rgb(var(--paper-rgb) / 0.45);
+  color: inherit; /* 섹션의 글자색 → 바탕색과 함께 서서히 바뀐다 */
+  transition: background-color var(--dur-fast), scale var(--dur-fast) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.quotes__arrow svg {
+  width: 1.3rem;
+  height: 1.3rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+@media (hover: hover) {
+  .quotes__arrow:hover {
+    background-color: var(--paper-50);
+  }
+}
+
+.quotes__arrow:active {
+  scale: 0.94;
+}
+
+/* 순번 쪽지: 01 / 06 (지금 번호는 명조 숫자 — 손글씨체의 01 은 한글 '이'로 읽힌다. 전체 개수는 손글씨) */
+.quotes__count {
+  display: flex;
+  flex: none;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.35em;
+  min-width: 4.4em;
+  padding: 0.14em 0.7em 0.04em;
+  background-color: var(--paper-50);
+  background-image: var(--tex-paper);
+  box-shadow: var(--shadow-paper);
+  color: var(--basalt-500);
+  font-family: var(--font-hand);
+  font-size: 1.45rem;
+  line-height: 1.1;
+  white-space: nowrap;
+  rotate: -3deg;
+}
+
+.quotes__count-now {
+  color: var(--tangerine-700);
+  font-family: var(--font-body);
+  font-size: 1.08em;
+  font-weight: 700;
+}
+
+/* 한 사람뿐이면 넘길 것이 없다 → 아이콘과 단추를 감춘다(js 가 섹션에 .quotes--single 을 붙인다).
+   줄 자체는 남긴다 — 2단 배치에서 사진이 서는 바닥선이 이 줄의 윗변이다 */
+.quotes--single .quotes__controls > * {
+  display: none;
+}
+
+/* 폭 600px 부터: 아이콘과 [이전] 순번 [다음] 을 한 줄에 */
+@media (min-width: 600px) {
+  .quotes__nav {
+    flex: 0 1 auto;
+  }
+}
+
+/* 6. 가로로 넓은 화면(폭 600px 이상 + 가로가 세로보다 긴 화면): 글 · 사진 2단 ------------------
+   홀수 번째 = 글 왼쪽 · 사진 오른쪽, 짝수 번째(.quotes__item--flip) = 사진 왼쪽 · 글 오른쪽.
+   사진은 아래 단추 줄 위의 점선을 바닥 삼아 선다 */
+@media (min-width: 600px) and (orientation: landscape) {
+  .quotes {
+    /* ✏️ 교체: 2단 배치일 때의 사진 높이 · 인용문 글자 크기(데스크톱 36px).
+       사진 높이 = 화면 높이 − (위 여백 + 제목 두 줄 + 아래 여백 + 라벨 · 단추 줄 8.25rem) → 섹션이 한 화면에 꼭 맞는다.
+       최소 12rem · 최대 34rem. 고정된 크기를 쓰려면 이 줄을 --q-photo-h: 24rem; 처럼 바꾼다(화면이 낮으면 섹션이 한 화면보다 길어진다) */
+    --q-photo-h: clamp(12rem, calc(var(--q-vh) - var(--q-top) - var(--q-title) * 2.32 - var(--q-bottom) - 8.25rem), 34rem);
+    --q-quote: var(--voice-size);
+    --q-slide-min: calc(var(--q-photo-h) + var(--space-3));
+  }
+
+  .quotes__item {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-areas: "text photo";
+    column-gap: var(--space-6);
+    align-items: center;
+  }
+
+  .quotes__item--flip {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    grid-template-areas: "photo text";
+  }
+
+  .quotes__photo {
+    align-self: end;
+    margin-top: var(--space-3);
+  }
+
+  .quotes__fig {
+    justify-self: start;
+    max-width: 40rem;
+    padding-block: var(--space-3);
+    border-top: 0;
+  }
+
+  .quotes__mark {
+    width: clamp(2.25rem, 3.4vw, 3.25rem);
+  }
+
+  .quotes__item[data-size="l"] { --q-quote-scale: 0.86; }
+  .quotes__item[data-size="xl"] { --q-quote-scale: 0.74; }
+
+  .quotes__quote {
+    line-height: 1.45;
+  }
+
+  /* 사진이 서는 바닥선 */
+  .quotes__controls {
+    margin-top: 0;
+    padding-top: var(--space-4);
+    border-top: 1.5px dashed color-mix(in srgb, var(--q-ink) 34%, transparent);
+  }
+}
+
+/* 6-9. 휴대폰(600px 미만) 배치 — 위 기본 규칙보다 뒤에 있어야 덮어쓴다 ---------------------------------
+   (24차) 창 높이 = 지금 슬라이드(위 '0.' 휴대폰 블록) · (25차) 따옴표 작게, [이전] 01 / 07 [다음] 을 작게 해서 슬라이드 위로, 인물 아이콘 7명을 한 줄에 */
+@media (max-width: 599px) {
+  .quotes__viewport {
+    flex: 0 0 auto;
+    transition: height var(--q-dur) var(--ease-out);
+  }
+
+  .quotes__mark {
+    width: 1.5rem; /* (25차) 2.25rem → 조금 작게 */
+    margin-bottom: var(--space-2);
+  }
+
+  /* (25차) [이전] 01 / 07 [다음] 을 작게 해서 슬라이드 위(제목 아래 오른쪽)로 올린다.
+     아이콘 줄 · 단추 줄을 감싼 .quotes__controls 를 풀어 .quotes__body(세로 flex)의 차례(order)로 자리를 바꾼다 */
+  .quotes__controls {
+    display: contents;
+  }
+
+  .quotes__step {
+    order: -1;
+    align-self: flex-end;
+    gap: var(--space-2);
+    margin-inline: var(--q-edge);
+  }
+
+  .quotes__arrow svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .quotes__count {
+    min-width: 3.6em;
+    font-size: 1.05rem;
+    rotate: -2deg;
+  }
+
+  /* 인물 아이콘: 줄을 바꾸지 않는다(7명이 한 줄). 누르는 자리는 아이콘 둘레 3px 까지 넓힌다(js/quotes.js 가 이 자리를 그 아이콘으로 받는다) */
+  .quotes__nav {
+    margin: var(--space-4) var(--q-edge) 0;
+  }
+
+  .quotes__thumbs {
+    flex-wrap: nowrap;
+  }
+
+  .quotes__thumbs li {
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .quotes__thumbs li::before {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+}
+
+/* 7. 데이터를 그리지 못했을 때 -----------------------------------------------------
+   main.js · quotes.js 가 섹션 끝에 안내 쪽지(.placeholder-note)를 붙인다(shared.js 의 showNote — 섹션에 .has-note 도 함께 붙는다)
+   → 미리 잡아 둔 자리를 거두고 제목과 쪽지만 보여 준다 */
+.quotes.has-note {
+  min-height: 0;
+  padding-bottom: var(--space-8);
+}
+
+.quotes.has-note .quotes__body {
+  display: none;
+}
+
+.quotes > .placeholder-note {
+  align-self: center;
+  max-width: min(100% - var(--q-pad) * 2, 34rem);
+  margin: var(--space-7) var(--q-pad) 0;
+}
+
+/* 8. 고대비 모드(Windows) — 그림자가 그려지지 않으므로 아이콘의 경계와 '지금 인물'을 테두리로 보여 준다 */
+@media (forced-colors: active) {
+  .quotes__thumb {
+    border: 1px solid ButtonText;
+  }
+
+  .quotes__thumb[aria-current="true"] {
+    border: 3px solid Highlight;
+  }
+}
+
+/* 인터뷰 기사로 가는 링크(data/quotes.json 의 "interview" 가 있는 사람만 — js/quotes.js) */
+.quotes__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  min-height: 2.75rem;
+  margin-top: var(--space-1);
+  margin-left: calc(1.75rem + var(--space-3)); /* 이름과 같은 줄에서 시작 */
+  color: var(--tangerine-700);
+  font-size: var(--text-small);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.25em;
+}
+
+.quotes__more-arrow {
+  transition: translate var(--dur-fast) var(--ease-out);
+}
+
+.quotes__more:hover .quotes__more-arrow {
+  translate: 3px 0;
+}

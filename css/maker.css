@@ -1,0 +1,2075 @@
+/* maker.css — 제주어 엽서 쓰기: 플로팅 버튼 · 변환 모달 · 엽서 미리보기 · '엽서 쓰기' 섹션
+   index.html 과 기사 페이지가 함께 불러온다.
+   1. 값  2. 플로팅 버튼(.fab)  3. 엽서(.postcard)  4. 모달 틀(.maker)  5. 쓰기 칸  6. 엽서 칸
+   7. '엽서 쓰기' 섹션(#write)  8. 화면 크기별  9. 동작 줄이기
+   플로팅 버튼 · 모달 마크업은 js/maker.js 가 <body> 끝에 넣는다. */
+
+/* 1. 값 --------------------------------------------------------------------------
+   ✏️ 교체: 플로팅 버튼의 크기와 화면 가장자리 여백 */
+:root {
+  --fab-size: 3.75rem; /* 버튼 높이 */
+  --fab-gap: clamp(1rem, 0.62rem + 1.6vw, 1.75rem); /* 화면 오른쪽 · 아래 가장자리와의 간격 */
+  /* 버튼이 차지하는 높이(버튼 + 아래 여백). 화면 오른쪽 아래에 놓이는 다른 요소(인용 섹션의 순번 쪽지 등)가
+     이만큼 위로 비켜난다 — css/quotes.css · css/intro.css 가 읽는다 */
+  --fab-clear: calc(var(--fab-size) + var(--fab-gap) + env(safe-area-inset-bottom, 0px));
+  /* 버튼의 폭 — 글자에 따라 달라지므로 js/maker.js 가 실제 폭을 재서 <html> 에 적어 준다(--fab-w). 이 값을 직접 고칠 일은 없다 */
+}
+
+/* 휴대폰: 조금 작은 알약(두 줄 글자는 그대로) */
+@media (max-width: 767px) {
+  :root {
+    --fab-size: 3.25rem;
+  }
+}
+
+/* 페이지 맨 아래까지 내려갔을 때 푸터 마지막 줄이 버튼에 가려지지 않게 자리를 남긴다 */
+.site-footer {
+  padding-bottom: calc(var(--fab-clear) - var(--space-5));
+}
+
+/* 휴대폰: 지도 저작권 표시(왼쪽 아래)는 지도 폭을 다 써서 두 줄로 짧게 놓고, 표시가 버튼 자리에 들어오는 동안은
+   버튼이 비켜 숨는다(js/map.js 가 표시에 data-fab-avoid 를 붙인다 — 아래 '2.' 의 html.fab-avoid).
+   (예전에는 버튼 폭만큼 표시를 좁혀 피했는데, 그러면 표시가 여섯 줄로 길어져 지도를 가렸다) */
+@media (max-width: 767px) {
+  .map .leaflet-control-attribution {
+    font-size: 0.625rem;
+    line-height: 1.45;
+  }
+}
+
+/* 2. 플로팅 버튼 -------------------------------------------------------------------
+   짙은 알약(레퍼런스: 앱의 안내 배너) + 두 줄 글자 + 오른쪽 위로 삐져나온 우표. 누르면 편지(엽서) 사이트로 간다.
+   보통은 변환 창을 여는 <button>, config.js 의 links.postcard 에 주소가 있으면 그 주소로 가는 <a>(js/maker.js) — 생김새는 같다.
+   ✏️ 교체: 색 = --fab-bg · --fab-ink, 글자 = js/maker.js 의 TEXT.fab · TEXT.fabSub */
+.fab {
+  --fab-bg: #2e2d36;
+  --fab-ink: #fffaf0;
+  position: fixed;
+  right: calc(var(--fab-gap) + env(safe-area-inset-right, 0px));
+  bottom: calc(var(--fab-gap) + env(safe-area-inset-bottom, 0px));
+  z-index: var(--z-fab);
+  display: inline-flex;
+  align-items: center;
+  height: var(--fab-size);
+  padding: 0 calc(var(--fab-size) * 1.25) 0 calc(var(--fab-size) * 0.42);
+  border: 0;
+  border-radius: 999px;
+  background-color: var(--fab-bg);
+  box-shadow: 0 0 0 2px rgb(var(--paper-rgb) / 0.9), 0 14px 26px -10px rgb(0 0 0 / 0.55);
+  color: var(--fab-ink);
+  font-family: var(--font-body);
+  line-height: 1.2;
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-user-select: none; /* Safari */
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    opacity 0.45s var(--ease-out),
+    translate 0.45s var(--ease-out),
+    visibility 0s,
+    background-color 0.18s;
+}
+
+.fab__text {
+  display: grid;
+  gap: 0.1em;
+}
+
+.fab__title {
+  font-size: calc(var(--fab-size) * 0.29);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.fab__sub {
+  color: rgb(var(--paper-rgb) / 0.78);
+  font-size: calc(var(--fab-size) * 0.215);
+  font-weight: 500;
+}
+
+/* 우표: 알약 오른쪽 위로 비스듬히 삐져나온다 */
+.fab__stamp {
+  position: absolute;
+  right: calc(var(--fab-size) * 0.18);
+  bottom: calc(var(--fab-size) * 0.12);
+  width: calc(var(--fab-size) * 0.9);
+  max-width: none;
+  height: auto;
+  rotate: 9deg;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.4));
+  transition: rotate 0.3s var(--ease-out), translate 0.3s var(--ease-out);
+  pointer-events: none;
+}
+
+/* 포커스 고리: 버튼은 여러 바탕 위를 떠다닌다 → 고리 바깥에 종이색 테를 한 겹 더 */
+.fab:focus-visible {
+  outline: 3px solid var(--sea-600);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 8px var(--paper-50), 0 14px 26px -10px rgb(0 0 0 / 0.55);
+}
+
+.fab:active {
+  translate: 0 2px;
+  transition-duration: 0.06s;
+}
+
+@media (hover: hover) {
+  .fab:hover {
+    background-color: #3d3c48;
+  }
+
+  /* 마우스를 올리면 우표가 한 번 들썩인다 */
+  .fab:hover .fab__stamp {
+    animation: fab-hop 0.62s var(--ease-out);
+    rotate: 14deg;
+    translate: 0 -0.3rem;
+  }
+}
+
+.fab:focus-visible .fab__stamp {
+  rotate: 14deg;
+  translate: 0 -0.3rem;
+}
+
+@keyframes fab-hop {
+  0% {
+    rotate: 9deg;
+    translate: 0 0;
+  }
+
+  38% {
+    rotate: 20deg;
+    translate: 0 -0.7rem;
+  }
+
+  70% {
+    rotate: 11deg;
+    translate: 0 -0.1rem;
+  }
+
+  100% {
+    rotate: 14deg;
+    translate: 0 -0.3rem;
+  }
+}
+
+/* 숨는 때: 인트로가 진행 중일 때(index 의 <html data-intro="active">) · 모달이 열려 있을 때.
+   visibility 까지 꺼서 키보드 포커스도 가지 않는다 */
+html[data-intro="active"] .fab,
+html.maker-open .fab {
+  opacity: 0;
+  visibility: hidden;
+  translate: 0 1.25rem;
+  pointer-events: none;
+  transition: opacity 0.25s, translate 0.25s, visibility 0s 0.25s;
+}
+
+/* 휴대폰: '제주어 엽서 써보기' 단추(엽서 쓰기 섹션)가 화면에 보이는 동안에도 숨는다(js 가 <html class="write-in-view"> 를 붙인다).
+   그 단추가 화면 폭을 다 써서 버튼이 그 위에 얹히고, 같은 창을 여는 단추가 한 화면에 둘이 되기 때문.
+   키보드 포커스가 버튼에 있을 때는 숨기지 않는다 */
+@media (max-width: 767px) {
+  html.write-in-view .fab:not(:focus-visible) {
+    opacity: 0;
+    visibility: hidden;
+    translate: 0 1.25rem;
+    pointer-events: none;
+    transition: opacity 0.25s, translate 0.25s, visibility 0s 0.25s;
+  }
+}
+
+/* 버튼 자리에 눌러야 하는 단추가 들어와 있는 동안에도 숨는다(인용 섹션의 아래 단추 줄 — HTML 의 data-fab-avoid.
+   js 가 <html class="fab-avoid"> 를 붙인다). 모든 화면 폭. 키보드 포커스가 버튼에 있을 때는 숨기지 않는다 */
+html.fab-avoid .fab:not(:focus-visible) {
+  opacity: 0;
+  visibility: hidden;
+  translate: 0 1.25rem;
+  pointer-events: none;
+  transition: opacity 0.25s, translate 0.25s, visibility 0s 0.25s;
+}
+
+/* Tab 으로 화면 아래쪽 요소에 갔을 때 브라우저가 그 요소를 버튼 위까지만 올려 보이게(버튼에 가리지 않게) */
+html {
+  scroll-padding-bottom: var(--fab-clear);
+}
+
+/* 3. 엽서 --------------------------------------------------------------------------
+   모달의 미리보기와 '엽서 쓰기' 섹션의 견본이 함께 쓴다. 미리보기는 이 노드를 그대로 그림(PNG · JPEG)으로 옮긴다.
+   그래서 지키는 규칙:
+   · 글꼴은 "Nanum Pen Script" 하나만(그림에 통째로 실리는 글꼴이라 다른 글꼴을 더하면 그만큼 무거워진다)
+   · 바깥 그림 파일을 쓰지 않는다(인라인 SVG 와 css 만) · ::before/::after · mask · filter 를 쓰지 않는다
+   · 인라인 SVG 의 안쪽(path · rect · text)은 css 클래스로 꾸미지 않는다 — 그림으로 옮길 때 따라가지 않는다(색은 js 가 속성으로 적는다)
+   · 이 노드 자신에는 여백 · 기울기 · 그림자를 주지 않는다(감싸는 요소가 맡는다)
+   안쪽 치수는 모두 --u(= 엽서 폭의 1%)의 배수 → 엽서가 넓든 좁든 같은 구도(가는 선의 굵기 --pc-rule 도).
+   글자 크기는 1px 단위로 내림한다(그림으로 옮길 때 글자 크기가 소수점 아래에서 달라져 줄바꿈이 바뀌는 일을 막는다) */
+.postcard {
+  --u: 4.6px; /* cqw 를 모르는 브라우저용 어림값 */
+  --pc-fs: 8; /* 제주어 본문 글자 크기(× --u). js 가 글 길이에 맞춰 2.5 ~ 13 사이에서 정한다 */
+  --pc-sub: 4; /* 원문(표준어) 글자 크기(× --u). js 가 2.2 ~ 4.4 사이에서 정한다 */
+  --pc-name: 4.8; /* 받는 사람 · 보내는 사람 글자 크기(× --u). 이름이 길면 js 가 줄인다 */
+  --pc-rule: calc(var(--u) * 0.22); /* 가는 선(구분선 · 주소 줄 · 꼬리표 테두리)의 굵기 — 저장한 그림에서 약 3px */
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 2; /* 가로 엽서 */
+  container-type: inline-size; /* 안쪽의 cqw 가 이 요소를 기준으로 삼는다 */
+  overflow: hidden;
+  margin: 0;
+  background-color: var(--paper-50);
+  color: var(--color-text);
+  font-family: "Araea Hand", "Nanum Pen Script"; /* Araea Hand = 아래아(조합형 옛한글) 자모만 그리는 보조 글꼴(css/base.css). 저장 그림에도 실린다(js/postcard-image.js) */
+  font-weight: 400;
+  line-height: 1.14;
+  letter-spacing: 0;
+  text-align: left;
+}
+
+@supports (width: 1cqw) {
+  .postcard {
+    --u: 1cqw;
+  }
+}
+
+.postcard p {
+  margin: 0;
+}
+
+/* 항공우편 띠(감귤 · 종이 · 바다) — 종이 뒤에 깔려 테두리처럼 보인다 */
+.postcard__band {
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--tangerine-500) 0 calc(var(--u) * 1.5),
+    var(--paper-50) 0 calc(var(--u) * 3),
+    var(--sea-600) 0 calc(var(--u) * 4.5),
+    var(--paper-50) 0 calc(var(--u) * 6)
+  );
+}
+
+.postcard__paper {
+  position: absolute;
+  inset: calc(var(--u) * 2.2);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) calc(var(--u) * 31);
+  padding: calc(var(--u) * 3.8) calc(var(--u) * 4.4) calc(var(--u) * 3.6);
+  background-color: var(--paper-50);
+  box-shadow: 0 0 0 1px rgb(var(--ink-rgb) / 0.1);
+}
+
+/* 종이의 결 두 겹.
+   __laid  = 가로로 잔잔한 결 + 가장자리의 옅은 그늘(css 그라디언트). 저장하는 그림에도 들어가고,
+             메일용 가벼운 그림에서는 뺀다(data-capture-detail)
+   __grain = 고운 낟알 무늬(--tex-paper). 화면에서만 보인다(data-capture-skip) —
+             이 무늬(SVG 필터를 품은 data URI)는 그림으로 옮기면 깨지고, 낟알은 PNG 용량을 몇 배로 키운다 */
+.postcard__laid,
+.postcard__grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.postcard__laid {
+  background-image:
+    radial-gradient(ellipse 78% 74% at 50% 46%, transparent 60%, rgb(var(--ink-rgb) / 0.05) 100%),
+    repeating-linear-gradient(to bottom, rgb(var(--ink-rgb) / 0.028) 0 calc(var(--u) * 0.2), transparent 0 calc(var(--u) * 0.95));
+}
+
+.postcard__grain {
+  background-image: var(--tex-paper);
+  background-size: calc(var(--u) * 80);
+}
+
+/* 3-1. 왼쪽: 제주어 본문(크게) + 원문(작게) */
+.postcard__message {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 calc(var(--u) * 3) calc(var(--u) * 1.2) calc(var(--u) * 0.4);
+}
+
+.postcard__message-in {
+  flex: none;
+  min-width: 0;
+}
+
+/* 글이 가장 작은 크기로도 다 들어가지 않을 때(js 가 붙인다): 위에서부터 채우고 넘치는 끝은 잘린다 */
+.postcard[data-overflow="true"] .postcard__message {
+  justify-content: flex-start;
+}
+
+.postcard__jeju {
+  color: var(--color-ink);
+  font-size: calc(var(--u) * var(--pc-fs));
+  line-height: 1.14;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  text-wrap: balance; /* 짧은 글이 두세 줄로 나뉠 때 줄 길이를 고르게(마지막 줄에 한 낱말만 남지 않게) */
+}
+
+.postcard__original {
+  margin-top: 0.5em;
+  padding-top: 0.4em;
+  border-top: var(--pc-rule) dashed var(--color-line);
+  color: var(--color-text-soft);
+  font-size: calc(var(--u) * var(--pc-sub));
+  line-height: 1.16;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* 원문 앞의 꼬리표 */
+.postcard__tag {
+  display: inline-block;
+  margin-right: 0.5em;
+  padding: 0 0.42em;
+  border: var(--pc-rule) solid currentColor;
+  border-radius: 0.25em;
+  color: var(--color-sub);
+  font-size: 0.86em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* 아직 바꾼 글이 없을 때의 안내(미리보기 전용) */
+.postcard__hint {
+  color: var(--color-text-soft);
+  font-size: calc(var(--u) * 5.6);
+  line-height: 1.2;
+}
+
+.postcard[data-empty="true"] .postcard__jeju,
+.postcard[data-empty="true"] .postcard__original,
+.postcard[data-empty="false"] .postcard__hint {
+  display: none;
+}
+
+/* 3-2. 오른쪽: 우표 + 소인 + 주소 줄 + 인쇄 글자 */
+.postcard__side {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding-left: calc(var(--u) * 3);
+  border-left: var(--pc-rule) solid var(--color-line);
+}
+
+.postcard__post {
+  position: relative;
+  flex: none;
+  height: calc(var(--u) * 17.4);
+}
+
+.postcard__stamp {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: calc(var(--u) * 12.6);
+  rotate: 3deg;
+}
+
+.postcard__stamp svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* 우표에 겹쳐 찍힌 소인(오늘 날짜) */
+.postcard__postmark {
+  --postmark-w: calc(var(--u) * 25);
+  --postmark-tilt: -9deg;
+  position: absolute;
+  top: calc(var(--u) * 4.6);
+  right: calc(var(--u) * 4.8);
+}
+
+.postcard__lines {
+  margin-top: auto;
+}
+
+.postcard__line {
+  display: flex;
+  align-items: flex-end;
+  gap: calc(var(--u) * 1.2);
+  height: calc(var(--u) * 7.4);
+  padding-bottom: calc(var(--u) * 0.5);
+  border-bottom: var(--pc-rule) solid var(--color-line);
+}
+
+.postcard__line-label {
+  flex: none;
+  color: var(--color-text-soft);
+  font-size: calc(var(--u) * 3.5);
+  line-height: 1.1;
+}
+
+.postcard__line-name {
+  flex: 1;
+  min-width: 0;
+  max-height: 2.1em;
+  overflow: hidden;
+  color: var(--color-ink);
+  font-size: calc(var(--u) * var(--pc-name));
+  line-height: 1.05;
+  white-space: nowrap;
+}
+
+/* 가장 작은 글자로도 한 줄에 다 들어가지 않는 긴 이름은 두 줄로 */
+.postcard__line-name[data-wrap="true"] {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* 아래 작은 인쇄 글자(웹진 이름). 손글씨가 아니라 '인쇄된' 느낌이 나게 SVG 글자로 그린다 */
+.postcard__print {
+  display: block;
+  flex: none;
+  width: 100%;
+  height: calc(var(--u) * 2.5);
+  margin-top: calc(var(--u) * 2.3);
+  overflow: visible;
+}
+
+/* 글자 크기를 1px 단위로 내림(round() 를 아는 브라우저에서만) */
+@supports (width: round(down, 10.5px, 1px)) {
+  .postcard__jeju {
+    font-size: round(down, calc(var(--u) * var(--pc-fs)), 1px);
+  }
+
+  .postcard__original {
+    font-size: round(down, calc(var(--u) * var(--pc-sub)), 1px);
+  }
+
+  .postcard__hint {
+    font-size: round(down, calc(var(--u) * 5.6), 1px);
+  }
+
+  .postcard__line-label {
+    font-size: round(down, calc(var(--u) * 3.5), 1px);
+  }
+
+  .postcard__line-name {
+    font-size: round(down, calc(var(--u) * var(--pc-name)), 1px);
+  }
+}
+
+/* 4. 모달 틀 -----------------------------------------------------------------------
+   .maker(화면 전체) > .maker__backdrop(어두운 배경) + .maker__panel(종이 책상)
+   --maker-vh · --maker-top 은 js 가 '실제로 보이는 화면'(화면 키보드를 뺀 높이)에 맞춰 넣는다 */
+html.maker-open {
+  overflow: hidden; /* 배경 스크롤 잠금(사라진 스크롤바만큼의 자리는 js 가 body 여백으로 채운다) */
+}
+
+.maker {
+  --maker-pad: var(--space-6);
+  position: fixed;
+  top: var(--maker-top, 0px);
+  left: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: var(--maker-vh, 100vh);
+  padding: var(--space-5);
+}
+
+/* 엽서를 그림으로 옮기는 도중에 닫았을 때(js 가 붙인다): 그리기가 끝날 때까지 자리 · 크기는 그대로 두고 눈에만 안 보이게.
+   (display: none 으로 숨기면 그림이 깨진다. opacity 는 엽서 노드에 물려지지 않아 그림에는 영향이 없다) */
+.maker[data-closing] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 주소창이 접히고 펴지는 휴대폰에서 '지금 보이는 높이'를 쓴다(dvh 를 아는 브라우저만) */
+@supports (height: 100dvh) {
+  .maker {
+    height: var(--maker-vh, 100dvh);
+  }
+}
+
+.maker__backdrop {
+  position: absolute;
+  inset: -50vh -50vw; /* 화면 키보드가 오르내리는 동안에도 빈틈이 보이지 않게 넉넉히 */
+  background-color: rgb(var(--ink-rgb) / 0.66);
+  animation: maker-fade 0.3s var(--ease-out) both;
+}
+
+.maker__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 980px);
+  max-height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-s);
+  box-shadow: 0 0 0 1px rgb(var(--ink-rgb) / 0.3), var(--shadow-lift);
+  animation: maker-pop 0.38s var(--ease-out) both;
+}
+
+/* 태블릿 · 데스크톱: 패널을 화면 한가운데에 두면 '메일로 받기' 를 눌러 내용이 늘 때 패널이 위아래로 함께 자라
+   방금 누른 단추가 손끝에서 달아난다 → 메일 칸이 펼쳐진 높이(약 50rem)를 기준으로 가운데 자리를 잡아
+   위쪽을 붙잡아 두고, 아래로만 자라게 한다(--maker-lift = 그 위쪽 여백) */
+@media (min-width: 768px) {
+  .maker {
+    align-items: start;
+  }
+
+  .maker__panel {
+    --maker-lift: max(0px, calc((var(--maker-vh, 100vh) - 53rem) / 2));
+    max-height: calc(100% - var(--maker-lift));
+    margin-top: var(--maker-lift);
+  }
+}
+
+@keyframes maker-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes maker-pop {
+  from {
+    opacity: 0;
+    transform: translateY(18px) rotate(-0.6deg) scale(0.985);
+  }
+}
+
+.maker__strip {
+  --airmail-w: 8;
+  --airmail-stripe: 10px;
+  flex: none;
+}
+
+.maker__head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--maker-pad) var(--space-3);
+  border-bottom: 1px dashed var(--color-line);
+}
+
+.maker__title {
+  margin-top: var(--space-1);
+  font-size: var(--fs-xl);
+}
+
+/* 닫기 단추: 손으로 그린 동그라미 + ✕ */
+.maker__close {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 2px solid var(--basalt-900);
+  border-radius: var(--radius-hand);
+  background-color: var(--paper-50);
+  box-shadow: 2px 3px 0 0 var(--basalt-900);
+  color: var(--basalt-900);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.18s var(--ease-out), box-shadow 0.18s var(--ease-out), background-color 0.18s;
+}
+
+.maker__close svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+@media (hover: hover) {
+  .maker__close:hover {
+    background-color: var(--tangerine-100);
+    transform: rotate(6deg);
+  }
+}
+
+.maker__close:active {
+  box-shadow: 0 0 0 0 var(--basalt-900);
+  transform: translate(2px, 3px);
+}
+
+/* 내용: 왼쪽 쓰기 칸 + 오른쪽 엽서 칸(넓은 화면). 좁은 화면은 8번에서 한 칸씩 차례로 */
+.maker__body {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 0.86fr) minmax(0, 1fr);
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* 5. 쓰기 칸 ----------------------------------------------------------------------- */
+.maker__write {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-5) var(--maker-pad) var(--space-5);
+}
+
+/* 안내 한 줄(입력칸의 이름표) — 손글씨 */
+.maker__guide {
+  display: block;
+  color: var(--color-ink);
+  font-family: var(--font-hand);
+  font-size: calc(var(--fs-m) * var(--hand-scale));
+  line-height: 1.2;
+}
+
+/* 편지지: 줄이 그어진 종이 + 아래 글자 수 */
+.maker__sheet {
+  --sheet-lh: 2rem; /* 줄 간격 = 괘선 간격 */
+  position: relative;
+  border: 1.5px solid var(--basalt-900);
+  border-radius: 3px;
+  background-color: var(--paper-50);
+  box-shadow: 3px 4px 0 0 rgb(var(--ink-rgb) / 0.16);
+}
+
+.maker__sheet:focus-within {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.maker__text {
+  display: block;
+  width: 100%;
+  height: calc(var(--sheet-lh) * 5 + var(--space-2));
+  min-height: calc(var(--sheet-lh) * 3 + var(--space-2));
+  max-height: calc(var(--sheet-lh) * 8 + var(--space-2));
+  padding: var(--space-2) var(--space-4) 0;
+  border: 0;
+  border-radius: 3px 3px 0 0;
+  background-color: transparent;
+  /* 괘선: 글과 함께 스크롤된다(local) */
+  background-image: linear-gradient(to bottom, transparent calc(100% - 1px), var(--paper-300) calc(100% - 1px));
+  background-position: 0 var(--space-2);
+  background-size: 100% var(--sheet-lh);
+  background-attachment: local;
+  color: var(--color-text);
+  font-size: max(1rem, var(--fs-base)); /* 16px 아래로 내려가면 iOS 가 화면을 확대한다 */
+  line-height: var(--sheet-lh);
+  resize: vertical;
+}
+
+.maker__text::placeholder,
+.maker__input::placeholder {
+  color: var(--color-text-soft);
+  opacity: 1; /* 예시를 알려 주는 글자라 읽혀야 한다(Firefox 는 기본으로 흐리게 한다) */
+}
+
+/* 포커스 테두리는 편지지 전체에 두른다(위의 :focus-within) */
+.maker__text:focus-visible {
+  outline: none;
+}
+
+.maker__count {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.3em;
+  padding: var(--space-1) var(--space-3) var(--space-2);
+  color: var(--color-text-soft);
+  font-size: var(--fs-s);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+
+/* 180자를 넘으면 강조(색만이 아니라 굵기 · 밑줄로도) */
+.maker__count[data-warn="true"] {
+  color: var(--basalt-900);
+  font-weight: 800;
+}
+
+.maker__count[data-warn="true"] b {
+  box-shadow: inset 0 -0.42em 0 var(--tangerine-300);
+}
+
+.maker__count b {
+  font-weight: inherit;
+}
+
+/* 예시 문장: 누르면 입력칸에 채워진다 */
+.maker__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-2);
+}
+
+.maker__chips-label {
+  margin-right: var(--space-1);
+  color: var(--surface-soft);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.maker__chip {
+  min-height: 2.5rem;
+  padding: 0.12em 0.8em 0.16em;
+  border: 1px solid var(--paper-400);
+  border-radius: 2px;
+  background-color: var(--paper-50);
+  box-shadow: 1px 2px 0 0 rgb(var(--ink-rgb) / 0.14);
+  color: var(--color-ink);
+  font-family: var(--font-hand);
+  font-size: calc(var(--fs-base) * var(--hand-scale));
+  line-height: 1.15;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.18s var(--ease-out), background-color 0.18s, box-shadow 0.18s var(--ease-out);
+}
+
+.maker__chip:nth-of-type(odd) {
+  rotate: -1.2deg;
+}
+
+.maker__chip:nth-of-type(even) {
+  rotate: 0.9deg;
+}
+
+@media (hover: hover) {
+  .maker__chip:hover {
+    background-color: var(--tangerine-100);
+    box-shadow: 2px 4px 0 0 rgb(var(--ink-rgb) / 0.18);
+    transform: translateY(-2px);
+  }
+}
+
+.maker__chip:active {
+  box-shadow: none;
+  transform: translate(1px, 2px);
+}
+
+/* 받는 사람 · 보내는 사람 */
+.maker__names {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.maker__field {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.maker__label {
+  color: var(--color-text);
+  font-size: var(--fs-s);
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.maker__label small {
+  color: var(--surface-soft);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+}
+
+/* 입력칸: 엽서의 주소 줄처럼 밑줄만(밑줄이 입력칸임을 알리는 유일한 표시라 또렷한 색으로) */
+.maker__input {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: 0.3em 0.25em;
+  border: 0;
+  border-bottom: 2px solid var(--basalt-500);
+  border-radius: 2px 2px 0 0;
+  background-color: rgb(var(--paper-rgb) / 0.7);
+  color: var(--color-text);
+  font-size: max(1rem, var(--fs-base));
+  line-height: 1.4;
+  transition: border-color 0.18s, background-color 0.18s;
+}
+
+.maker__input:hover {
+  border-bottom-color: var(--basalt-900);
+}
+
+.maker__input:focus {
+  border-bottom-color: var(--sea-600);
+  background-color: var(--paper-50);
+}
+
+.maker__input[aria-invalid="true"] {
+  border-bottom: 2px dashed var(--tangerine-700);
+  background-color: var(--tangerine-100);
+}
+
+.maker__write-foot {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: auto;
+  padding-top: var(--space-2);
+}
+
+.maker__convert {
+  width: 100%;
+}
+
+/* 진행 중인 단추: 점선 동그라미가 돈다(소인을 닮은) */
+.maker .btn[aria-busy="true"]::before {
+  content: "";
+  flex: none;
+  width: 1em;
+  height: 1em;
+  border: 2px dashed currentColor;
+  border-radius: 50%;
+  animation: maker-spin 1.4s linear infinite;
+}
+
+.maker .btn[aria-busy="true"] {
+  opacity: 0.82;
+  cursor: progress;
+}
+
+@keyframes maker-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 상태 메시지(aria-live). 비어 있어도 한 줄 높이를 지켜 화면이 들썩이지 않게 한다 */
+.maker__status {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0 var(--space-2);
+  min-height: 1.5em;
+  color: var(--color-text);
+  font-size: var(--fs-s);
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.maker__status:empty::before {
+  content: none;
+}
+
+/* 앞머리 표시: 색만으로 구분하지 않게 기호를 함께 쓴다 */
+.maker__status::before {
+  content: "·";
+  content: "·" / ""; /* 안내 줄의 가운뎃점은 화면 낭독기가 읽지 않게(윗줄은 이 문법을 모르는 브라우저용). 오류 '!' · 성공 '✓' 는 읽힌다 */
+  display: grid;
+  place-items: center;
+  width: 1.25em;
+  height: 1.25em;
+  margin-top: 0.125em;
+  border-radius: 50%;
+  background-color: var(--sea-200);
+  color: var(--basalt-900);
+  font-size: 0.95em;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.maker__status[data-tone="error"]::before {
+  content: "!";
+  background-color: var(--tangerine-500);
+}
+
+.maker__status[data-tone="ok"]::before {
+  content: "✓";
+  background-color: var(--sea-800);
+  color: var(--paper-50);
+}
+
+.maker__status-note {
+  grid-column: 2;
+  margin-top: var(--space-1);
+  color: var(--surface-soft);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+}
+
+/* 메시지에 덧붙는 링크(저장이 안 됐을 때 새 탭에서 열기) */
+.maker__status-link {
+  grid-column: 2;
+  justify-self: start;
+  padding-block: var(--space-1);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+
+/* 6. 엽서 칸 ----------------------------------------------------------------------- */
+.maker__result {
+  --surface-soft: var(--color-text-soft-strong); /* 진한 종이 위의 보조 글자 */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-5) var(--maker-pad) var(--space-5);
+  border-left: 1px solid var(--color-line);
+  background-color: var(--paper-200);
+  background-image: var(--tex-paper);
+  box-shadow: inset 14px 0 16px -16px rgb(var(--ink-rgb) / 0.3);
+}
+
+/* 책상 위에 놓인 엽서(기울기 · 그림자 · 테이프는 여기서 — 엽서 노드 자신에는 주지 않는다) */
+.maker__desk {
+  position: relative;
+  padding: var(--space-3) var(--space-2) var(--space-2);
+}
+
+.maker__card {
+  position: relative;
+  rotate: -1.2deg;
+  box-shadow: var(--shadow-lift);
+  transition: opacity 0.25s, filter 0.25s;
+}
+
+.maker__tape {
+  --tape-w: 5.5rem;
+  --tape-h: 1.5rem;
+  --tape-tilt: -3deg;
+  top: 0;
+  left: calc(50% - 2.75rem);
+  z-index: 1;
+}
+
+/* 글을 고친 뒤(다시 바꿔야 함): 엽서를 흐리게 하고 쪽지를 얹는다 */
+.maker__desk[data-stale="true"] .maker__card {
+  opacity: 0.4;
+  filter: grayscale(0.5);
+}
+
+.maker__stale {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  width: max-content;
+  max-width: 86%;
+  padding: var(--space-2) var(--space-4);
+  border: 1.5px solid var(--basalt-900);
+  border-radius: 2px;
+  background-color: var(--tangerine-100);
+  box-shadow: 2px 3px 0 0 var(--basalt-900);
+  color: var(--basalt-900);
+  font-family: var(--font-hand);
+  font-size: calc(var(--fs-m) * var(--hand-scale));
+  line-height: 1.2;
+  text-align: center;
+  rotate: -2deg;
+  translate: -50% -50%;
+}
+
+/* 바꾼 글 크게 보기: 엽서의 글자가 작게 줄었을 때만 나온다(js). 펼치면 본문 글꼴로 읽을 수 있다 */
+.maker__plain summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.75rem;
+  padding-inline: 0.2em;
+  color: var(--color-text);
+  font-size: var(--fs-s);
+  font-weight: 700;
+  list-style: none;
+  /* 선 모양은 낱개 속성으로 적는다 — 짧은 표기(text-decoration: underline dashed)는 Safari 18.3 이하에서 통째로 무시된다 */
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.32em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.maker__plain summary::-webkit-details-marker {
+  display: none;
+}
+
+.maker__plain summary::before {
+  content: "+";
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.25em;
+  height: 1.25em;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.maker__plain[open] summary::before {
+  content: "−";
+}
+
+.maker__plain-text {
+  margin-top: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--paper-400);
+  border-radius: 2px;
+  background-color: var(--paper-50);
+  color: var(--color-text);
+  font-size: var(--fs-base);
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+/* 원문 함께 보기 */
+.maker__toggle {
+  display: inline-flex;
+  align-items: center;
+  align-self: start;
+  gap: var(--space-2);
+  min-height: 2.5rem;
+  color: var(--color-text);
+  font-size: var(--fs-s);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.maker__toggle input {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+  accent-color: var(--sea-800);
+  cursor: pointer;
+}
+
+.maker__toggle:has(input:disabled) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.maker__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* '다시 쓰기' — 작은 글자 단추 */
+.maker__again {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  margin-left: auto;
+  padding: 0.3em 0.4em;
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  font-size: var(--fs-s);
+  font-weight: 700;
+  text-decoration-line: underline; /* 낱개 속성으로(위 '바꾼 글 크게 보기' 와 같은 이유) */
+  text-decoration-style: dashed;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.32em;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.maker__again:hover {
+  text-decoration-style: solid;
+  text-decoration-color: var(--color-point);
+  text-decoration-thickness: 2px;
+}
+
+/* 메일로 받기: 펼쳐지는 쪽지 */
+.maker__mail {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1.5px dashed var(--basalt-500);
+  border-radius: 3px;
+  background-color: var(--paper-50);
+  animation: maker-unfold 0.3s var(--ease-out) both;
+}
+
+@keyframes maker-unfold {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+.maker__mail-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.maker__mail-row .maker__input {
+  flex: 1;
+}
+
+.maker__mail-row .btn {
+  flex: none;
+}
+
+.maker__note {
+  color: var(--color-text-soft);
+  font-size: var(--fs-xs);
+  line-height: 1.55;
+}
+
+/* 7. '엽서 써보기' 섹션(#write) --------------------------------------------------------
+   메인 화면 바로 다음. 한 섹션 안에 두 덩이(12차 — 엽서 써보기를 먼저):
+     ① .write__make 엽서 써보기 — 왼쪽 제목(크고 굵게 + 작게) · 세 걸음 · 짙은 알약 단추, 오른쪽 견본 엽서
+     ② .write__why  왜 제주어로 써야 할까요? — 글 없이 '이 말이 사라지면' 애니메이션 하나(iframe .story__frame — 아래 '6-9.', js/story.js. 점선으로 ①과 나눈다) */
+.write {
+  position: relative;
+  overflow: hidden; /* clip 을 모르는 브라우저(Safari 15)용 */
+  overflow: clip; /* 기울어진 견본 엽서의 모서리가 가로 스크롤을 만들지 않게 */
+  padding-block: var(--space-9);
+  background-color: var(--tangerine-100);
+  background-image: var(--tex-paper);
+  box-shadow: inset 0 14px 16px -16px rgb(var(--ink-rgb) / 0.26);
+}
+
+.write__inner {
+  display: grid;
+  gap: var(--space-8);
+}
+
+/* ① 엽서 써보기 — 왼쪽 글은 내용 폭만큼, 오른쪽 견본 엽서는 최대 35rem. 두 칸을 가운데로 모아 사이를 좁힌다(18차).
+   ✏️ 교체: 글과 엽서 사이 = column-gap */
+.write__make {
+  display: grid;
+  grid-template-columns: minmax(0, max-content) minmax(0, 35rem);
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-6) clamp(2.5rem, 5vw, 5rem);
+}
+
+/* ② 왜 제주어로 — 가운데 제목 한 줄 + 영상(점선으로 ①과 나눈다) */
+.write__why {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-5);
+  padding-top: var(--space-8);
+  border-top: 1.5px dashed var(--paper-400);
+}
+
+.write__why-title {
+  color: var(--color-title);
+  font-family: var(--font-display);
+  font-size: var(--fs-l);
+  font-weight: var(--font-display-weight);
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+
+.write__copy {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* 제목 두 줄: 위 '당신의 엽서 한 장이,' = 크고 굵게, 아래 '제주어를 지켜요' = 작게.
+   ✏️ 교체: 크기 = 아래 두 font-size(위 줄은 css/theme.css '0.' 의 --title-size 를 따른다) */
+.write__title {
+  display: grid;
+  gap: 0.35em;
+  color: var(--color-title);
+  font-family: var(--font-display);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.write__title-main {
+  font-size: var(--write-title-size, var(--title-size, var(--fs-2xl))); /* 화면 폭마다 css/theme.css '0.' (26차) */
+  font-weight: var(--font-display-weight);
+  letter-spacing: var(--title-tracking, -0.02em);
+}
+
+.write__title-sub {
+  color: var(--color-ink);
+  font-size: var(--fs-m);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* 소제목 아래 굵은 한 줄(고딕) → 설명 문단. 크기는 css/theme.css '0.' 의 --text-lead · --text-size */
+.write__lede {
+  max-width: var(--text-width);
+  color: var(--color-ink);
+  font-size: var(--text-lead);
+  font-weight: 700;
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+}
+
+.write__desc {
+  max-width: var(--text-width);
+  font-size: var(--text-size);
+  line-height: var(--text-lh);
+}
+
+/* 예시 엽서 두 장(그림 — 글은 그림 안에): 같은 자리에 겹쳐 두고 하나씩 보인다(js/maker.js 의 initExamples).
+   휴대폰(599px 이하)에서는 세로 엽서 그림(example-0N-m.jpg)을 쓴다 — index.html 의 <source> */
+.write__examples {
+  display: grid;
+  justify-self: center;
+  width: min(100%, 560px);
+}
+
+.write__example {
+  grid-area: 1 / 1;
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+  margin: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.7s var(--ease-out), visibility 0.7s;
+}
+
+.write__example.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.write__example picture {
+  display: block;
+}
+
+.write__example img {
+  width: 100%;
+  height: auto;
+  rotate: -1.5deg;
+  box-shadow: 0 2px 3px rgb(var(--ink-rgb) / 0.18), 0 18px 30px -16px rgb(var(--ink-rgb) / 0.45);
+}
+
+.write__example:nth-of-type(2) img { rotate: 1.2deg; }
+
+.write__dots {
+  display: flex;
+  grid-area: 2 / 1;
+  justify-content: center;
+  gap: 0.2rem;
+  margin-top: var(--space-2);
+}
+
+/* (27차) 좌우 꺾쇠: 예시 엽서 왼쪽 · 오른쪽 가운데. 넓은 화면은 엽서 바깥에 반쯤 걸치고, 휴대폰은 엽서 가장자리 안쪽에 얹는다.
+   ✏️ 교체: 크기 = --step-size */
+.write__examples {
+  position: relative;
+}
+
+.write__step {
+  --step-size: 2.75rem;
+  z-index: 2;
+  display: grid;
+  grid-area: 1 / 1;
+  align-self: center;
+  place-items: center;
+  width: var(--step-size);
+  height: var(--step-size);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background-color: rgb(var(--paper-rgb) / 0.94);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.18), 0 10px 18px -8px rgb(0 0 0 / 0.45);
+  color: var(--basalt-900);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--dur-fast), scale var(--dur-fast) var(--ease-out);
+}
+
+.write__step--prev {
+  justify-self: start;
+  margin-left: calc(var(--step-size) * -0.5);
+}
+
+.write__step--next {
+  justify-self: end;
+  margin-right: calc(var(--step-size) * -0.5);
+}
+
+.write__step svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+@media (hover: hover) {
+  .write__step:hover {
+    background-color: #fff;
+    scale: 1.06;
+  }
+}
+
+.write__step:active {
+  scale: 0.94;
+}
+
+.write__step:focus-visible {
+  outline: 3px solid var(--paper-50);
+  outline-offset: 3px;
+}
+
+/* 휴대폰: 엽서가 화면 폭을 거의 다 쓰므로 꺾쇠를 엽서 가장자리 안쪽에 조금 작게 */
+@media (max-width: 599px) {
+  .write__step {
+    --step-size: 2.375rem;
+  }
+
+  .write__step--prev {
+    margin-left: 0.35rem;
+  }
+
+  .write__step--next {
+    margin-right: 0.35rem;
+  }
+}
+
+.write__dot {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.write__dot::before {
+  content: "";
+  width: 0.7rem;
+  height: 0.7rem;
+  border: 1.5px solid var(--tangerine-700);
+  border-radius: 50%;
+}
+
+.write__dot[aria-pressed="true"]::before {
+  background-color: var(--tangerine-700);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .write__example {
+    transition: none;
+  }
+}
+
+/* 세 걸음(14차): 번호 동그라미를 점선으로 잇는 세로 흐름. 1 · 2 걸음 아래에 예시 한 쌍(표준어 → 제주어).
+   ✏️ 교체: 걸음 글 크기 = --text-size(css/theme.css '0.'), 예시 칸 색 = .write__flow-sample · --jeju */
+.write__flow {
+  display: grid;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 30rem;
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+.write__flow-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-3);
+}
+
+/* 번호를 잇는 점선(마지막 걸음 아래에는 없다) */
+.write__flow-step:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  top: 1.9rem;
+  bottom: calc(var(--space-3) * -1 + 0.15rem);
+  left: calc(0.875rem - 0.75px);
+  border-left: 1.5px dashed var(--tangerine-300);
+}
+
+.write__flow-no {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background-color: var(--basalt-800);
+  color: var(--paper-50);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.write__flow-step:nth-child(2) .write__flow-no {
+  background-color: var(--tangerine-700);
+}
+
+.write__flow-body {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+  padding-top: 0.15rem;
+}
+
+.write__flow-label {
+  font-size: var(--text-size);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+/* 예시: 표준어는 흰 쪽지, 제주어는 주황 테를 두른 쪽지(제주어 글꼴) */
+.write__flow-sample {
+  justify-self: start;
+  padding: 0.5em 0.85em;
+  border: 1px solid var(--paper-400);
+  border-radius: 10px 10px 10px 2px;
+  background-color: var(--paper-50);
+  color: var(--basalt-700);
+  font-size: calc(var(--text-size) * 0.94);
+  line-height: 1.45;
+}
+
+.write__flow-sample--jeju {
+  border-color: var(--tangerine-500);
+  background-color: #fff3e6;
+  color: var(--basalt-900);
+  font-family: var(--font-jeju);
+  font-weight: 700;
+}
+
+/* 단추: 오른쪽 아래 플로팅 배너(.fab)와 같은 짙은 알약 + 오른쪽 위로 삐져나온 우표. 아래에 새 창 안내 한 줄(아주 작게).
+   ✏️ 교체: 색 = --btn-bg, 높이 = --btn-h, 문구 = index.html 의 .write__btn-text · .write__cta-note */
+.write__cta {
+  display: grid;
+  justify-items: start;
+  gap: 0.6rem;
+  margin-top: var(--space-3);
+}
+
+.write__btn {
+  --btn-h: 3.75rem;
+  --btn-bg: #2e2d36;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  height: var(--btn-h);
+  padding: 0 calc(var(--btn-h) * 1.3) 0 calc(var(--btn-h) * 0.5);
+  border: 0;
+  border-radius: 999px;
+  background-color: var(--btn-bg);
+  box-shadow: 0 0 0 2px rgb(var(--paper-rgb) / 0.9), 0 14px 26px -12px rgb(0 0 0 / 0.5);
+  color: #fffaf0;
+  font-family: var(--font-body);
+  font-size: var(--fs-m);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.18s, translate 0.18s var(--ease-out);
+}
+
+.write__btn-icon {
+  flex: none;
+  width: 1.05em;
+  height: 1.05em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.8;
+}
+
+.write__btn-stamp {
+  position: absolute;
+  right: calc(var(--btn-h) * 0.2);
+  bottom: calc(var(--btn-h) * 0.14);
+  width: calc(var(--btn-h) * 0.88);
+  max-width: none;
+  height: auto;
+  rotate: 9deg;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.4));
+  transition: rotate 0.3s var(--ease-out), translate 0.3s var(--ease-out);
+  pointer-events: none;
+}
+
+.write__btn:focus-visible {
+  outline: 3px solid var(--sea-600);
+  outline-offset: 3px;
+}
+
+.write__btn:active {
+  translate: 0 2px;
+}
+
+@media (hover: hover) {
+  .write__btn:hover {
+    background-color: #3d3c48;
+  }
+
+  .write__btn:hover .write__btn-stamp {
+    animation: fab-hop 0.62s var(--ease-out);
+    rotate: 14deg;
+    translate: 0 -0.3rem;
+  }
+}
+
+.write__cta-note {
+  padding-left: calc(var(--btn-h, 3.75rem) * 0.5);
+  color: var(--color-text-soft-strong);
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+}
+
+/* 견본 엽서: 뒤에 빈 엽서 한 장을 겹쳐 놓고, 위에 테이프와 손글씨 한마디 */
+.write__sample {
+  position: relative;
+  justify-self: center;
+  width: min(100%, 520px);
+  margin: 0;
+}
+
+/* 엽서가 그려지기 전에도 같은 자리를 차지한다(문서 길이가 달라지지 않게) */
+.write__sample::before {
+  content: "";
+  display: block;
+  aspect-ratio: 3 / 2;
+  border: 1px solid rgb(var(--ink-rgb) / 0.12);
+  background-color: var(--paper-100);
+  background-image: var(--tex-paper);
+  box-shadow: var(--shadow-paper);
+  rotate: -5deg;
+  translate: -3% 2%;
+}
+
+.write__card {
+  position: absolute;
+  inset: 0;
+  rotate: 2.4deg;
+  box-shadow: var(--shadow-lift);
+}
+
+.write__tape {
+  --tape-w: 6.5rem;
+  --tape-h: 1.75rem;
+  --tape-tilt: -5deg;
+  --tape-color: var(--sea-200);
+  top: -0.8rem;
+  left: 12%;
+  z-index: 1;
+}
+
+/* ✏️ 교체: 견본 엽서 옆의 손글씨 한마디(index.html 의 .write__memo) */
+.write__memo {
+  position: absolute;
+  right: 4%;
+  bottom: -2.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  color: var(--color-ink);
+  font-family: var(--font-hand);
+  font-size: calc(var(--fs-m) * var(--hand-scale));
+  line-height: 1.2;
+  rotate: -2deg;
+}
+
+.write__memo svg {
+  flex: none;
+  width: 2.1rem;
+  height: auto;
+  fill: none;
+  stroke: var(--color-point-strong);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  translate: 0 -0.3em;
+}
+
+/* 엽서 기능의 스크립트를 불러오지 못했을 때(js/main.js 가 안내 쪽지를 붙이며 섹션에 .has-note 를 단다):
+   눌러도 반응이 없는 단추와 비어 있는 견본 자리는 거두고, 안내만 남긴다 */
+.write.has-note .write__cta,
+.write.has-note .write__sample {
+  display: none;
+}
+
+.write.has-note .write__make {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.write.has-note .placeholder-note {
+  margin-top: var(--space-6);
+}
+
+/* 8. 화면 크기별 -------------------------------------------------------------------- */
+/* 900px 미만: 쓰기 → 엽서, 한 칸씩 차례로(패널의 data-step 을 js 가 바꾼다) */
+@media (max-width: 899px) {
+  .maker__panel {
+    width: min(100%, 600px);
+  }
+
+  .maker__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .maker__panel[data-step="write"] .maker__result,
+  .maker__panel[data-step="card"] .maker__write {
+    display: none;
+  }
+
+  .maker__result {
+    border-left: 0;
+    box-shadow: none;
+  }
+}
+
+/* 태블릿: 섹션은 두 칸을 유지하되 간격을 줄인다. 유네스코 카드는 860px 아래에서 글 아래로 */
+@media (max-width: 1023px) {
+  .write__make {
+    gap: var(--space-6);
+  }
+}
+
+/* 휴대폰: 모달은 화면 전체를 덮는 종이 한 장, 버튼은 글자를 두 줄로 접은 작은 알약(글자는 숨기지 않는다) */
+@media (max-width: 767px) {
+
+  .maker {
+    --maker-pad: var(--gutter);
+    padding: 0;
+  }
+
+  .maker__panel {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    animation-name: maker-rise;
+  }
+
+  .maker__head {
+    padding-block: var(--space-3) var(--space-2);
+  }
+
+  .maker__head .eyebrow {
+    display: none;
+  }
+
+  .maker__title {
+    margin-top: 0;
+    font-size: var(--fs-l);
+  }
+
+  .maker__write {
+    padding-block: var(--space-4) 0;
+  }
+
+  .maker__text {
+    height: calc(var(--sheet-lh) * 4 + var(--space-2));
+  }
+
+  /* 아래에 붙은 단추 줄(바로 아래 규칙)에 포커스가 간 입력칸이 깔리지 않게, 스크롤할 때 그만큼 띄운다 */
+  .maker__body {
+    scroll-padding-bottom: 7.5rem;
+  }
+
+  /* '제주어로 바꾸기' 는 화면 아래에 붙어 있다 — 화면 키보드가 올라와도 그 바로 위에 보인다 */
+  .maker__write-foot {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    margin-inline: calc(var(--maker-pad) * -1);
+    padding: var(--space-3) var(--maker-pad) calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+    border-top: 1px dashed var(--color-line);
+    background-color: var(--color-bg);
+    background-image: var(--tex-paper);
+    box-shadow: 0 -12px 14px -14px rgb(var(--ink-rgb) / 0.35);
+  }
+
+  .maker__result {
+    flex: 1;
+    padding-bottom: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .maker__desk {
+    padding-inline: 0;
+  }
+
+  .maker__actions .btn {
+    flex: 1 1 8.5rem;
+  }
+
+  .maker__again {
+    margin-inline: auto;
+  }
+
+  .write {
+    padding-block: var(--space-8) var(--space-9);
+  }
+
+  .write__make {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-7);
+  }
+
+  .write__why {
+    padding-top: var(--space-7);
+  }
+
+  .write__sample {
+    width: min(92%, 440px);
+  }
+
+  .write__btn {
+    --btn-h: 3.5rem;
+  }
+}
+
+@keyframes maker-rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+}
+
+/* 휴대폰에서 보이는 높이가 낮을 때(화면 키보드가 올라왔거나 가로로 눕혔을 때 — js 가 .maker 에 data-short 를 붙인다):
+   머리글 · 편지지 · 아래 단추 줄을 줄여, 쓰는 칸이 단추 줄에 가려지지 않게 한다 */
+@media (max-width: 767px) {
+  .maker[data-short] .maker__strip {
+    display: none;
+  }
+
+  .maker[data-short] .maker__head {
+    padding-block: var(--space-1);
+  }
+
+  .maker[data-short] .maker__title {
+    font-size: var(--fs-m);
+  }
+
+  .maker[data-short] .maker__write {
+    gap: var(--space-3);
+    padding-top: var(--space-3);
+  }
+
+  .maker[data-short] .maker__guide {
+    font-size: calc(var(--fs-base) * var(--hand-scale));
+  }
+
+  .maker[data-short] .maker__text {
+    height: calc(var(--sheet-lh) * 3 + var(--space-2));
+  }
+
+  .maker[data-short] .maker__write-foot {
+    padding-block: var(--space-2) calc(var(--space-2) + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* 빈 상태 줄은 접어 둔다(메시지가 생기면 나타난다) */
+  .maker[data-short] .maker__write-foot .maker__status:empty {
+    display: none;
+  }
+
+  .maker[data-short] .maker__body {
+    scroll-padding-bottom: 5.5rem;
+  }
+
+  /* 아주 낮을 때(가로로 눕힌 휴대폰 + 화면 키보드 · 크게 확대한 화면): 단추 줄을 붙여 두지 않고 글 아래에 그냥 둔다 */
+  .maker[data-short="tiny"] .maker__write-foot {
+    position: static;
+    border-top: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .maker[data-short="tiny"] .maker__body {
+    scroll-padding-bottom: 0;
+  }
+}
+
+/* 낮은 화면(가로로 눕힌 태블릿 · 작은 노트북): 편지지를 한 줄 줄여 단추가 화면 안에 들어오게 */
+@media (min-width: 768px) and (max-height: 800px) {
+  .maker {
+    padding-block: var(--space-3);
+  }
+
+  .maker__text {
+    height: calc(var(--sheet-lh) * 4 + var(--space-2));
+  }
+
+  .maker__write,
+  .maker__result {
+    gap: var(--space-3);
+    padding-block: var(--space-4);
+  }
+}
+
+/* 아주 좁은 화면: 받는 사람 · 보내는 사람을 위아래로 */
+@media (max-width: 359px) {
+  .maker__names {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+}
+
+/* 9. 동작 줄이기 -------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .fab,
+  .fab__stamp,
+  .maker__close,
+  .maker__chip,
+  .maker__card,
+  .write__btn,
+  .write__btn-stamp {
+    transition: none;
+  }
+
+  /* 숨을 때도 미끄러지지 않고 바로(위의 숨는 규칙이 더 구체적이라 따로 적는다) */
+  html[data-intro="active"] .fab,
+  html.maker-open .fab,
+  html.write-in-view .fab:not(:focus-visible),
+  html.fab-avoid .fab:not(:focus-visible) {
+    transition: none;
+    translate: none;
+  }
+
+  .fab:hover .fab__stamp,
+  .maker__backdrop,
+  .maker__panel,
+  .maker__mail,
+  .maker .btn[aria-busy="true"]::before {
+    animation: none;
+  }
+
+  .maker__close:hover,
+  .maker__chip:hover {
+    transform: none;
+  }
+}
+
+/* 10. 고대비 모드(Windows) — 그림자가 그려지지 않으므로 창의 가장자리를 테두리로 보여 주고, 뒤의 페이지가 비치지 않게 한다 */
+@media (forced-colors: active) {
+  .maker__panel {
+    border: 2px solid CanvasText;
+  }
+
+  .maker__backdrop {
+    background-color: Canvas;
+    opacity: 0.85;
+  }
+}
+
+/* 7-2. 견본 엽서 크게 보기 -------------------------------------------------------------
+   엽서(.write__zoom 단추)를 누르면 화면 가운데에 크게(.zoom — js/maker.js 의 initZoom).
+   휴대폰에서는 섹션 안의 엽서도 가로판 그대로 작게 두고, 크게 볼 때만 글이 읽히는 세로판을 쓴다 */
+.write__zoom {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.write__zoom:focus-visible {
+  outline: 3px solid var(--sea-600);
+  outline-offset: 6px;
+}
+
+/* 오른쪽 아래 돋보기(크게 볼 수 있다는 표시) */
+.write__zoom-icon {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 0.6rem;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background-color: rgb(30 28 32 / 0.72);
+  color: #fffaf0;
+  transition: scale var(--dur-fast) var(--ease-out);
+}
+
+.write__zoom-icon svg {
+  width: 1.3rem;
+  height: 1.3rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+@media (hover: hover) {
+  .write__zoom:hover .write__zoom-icon {
+    scale: 1.08;
+  }
+}
+
+/* 크게 보기 창 */
+html.zoom-open {
+  overflow: hidden; /* 뒤 페이지가 같이 스크롤되지 않게 */
+}
+
+.zoom {
+  position: fixed;
+  inset: 0;
+  z-index: 1100; /* 플로팅 버튼(900) · 언어 단추(950) · 엽서 쓰기 창(1000) 위 */
+  display: grid;
+  place-items: center;
+  padding: max(3.5rem, env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) max(1.5rem, env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-left, 0px));
+}
+
+.zoom[hidden] {
+  display: none;
+}
+
+.zoom__backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: rgb(24 20 16 / 0.78);
+  animation: zoom-fade 0.25s ease-out;
+}
+
+.zoom__figure {
+  position: relative;
+  margin: 0;
+  line-height: 0;
+}
+
+.zoom__img {
+  display: block;
+  width: auto;
+  max-width: min(100%, 1100px);
+  height: auto;
+  max-height: calc(100vh - 6rem);
+  max-height: calc(100svh - 6rem);
+  border-radius: 2px;
+  box-shadow: 0 24px 48px -16px rgb(0 0 0 / 0.6);
+}
+
+.zoom__btn {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background-color: rgb(255 250 240 / 0.92);
+  color: var(--basalt-900);
+  cursor: pointer;
+}
+
+.zoom__btn svg {
+  width: 1.3rem;
+  height: 1.3rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.zoom__btn:hover {
+  background-color: #fff;
+}
+
+.zoom__btn:focus-visible {
+  outline: 3px solid var(--tangerine-300);
+  outline-offset: 2px;
+}
+
+.zoom__close {
+  top: max(0.6rem, env(safe-area-inset-top, 0px));
+  right: max(0.6rem, env(safe-area-inset-right, 0px));
+}
+
+.zoom__nav {
+  top: 50%;
+  translate: 0 -50%;
+}
+
+.zoom__nav--prev {
+  left: max(0.6rem, env(safe-area-inset-left, 0px));
+}
+
+.zoom__nav--next {
+  right: max(0.6rem, env(safe-area-inset-right, 0px));
+}
+
+/* 휴대폰: 세로판이 화면 높이에 맞게. 좌우 단추는 아래쪽 가운데에 나란히(그림을 가리지 않게) */
+@media (max-width: 599px) {
+  .zoom {
+    padding-bottom: 5rem;
+  }
+
+  .zoom__img {
+    max-height: calc(100vh - 9rem);
+    max-height: calc(100svh - 9rem);
+  }
+
+  .zoom__nav {
+    top: auto;
+    bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+    translate: none;
+  }
+
+  .zoom__nav--prev {
+    left: calc(50% - 3.25rem);
+  }
+
+  .zoom__nav--next {
+    right: calc(50% - 3.25rem);
+  }
+}
+
+@keyframes zoom-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zoom__backdrop {
+    animation: none;
+  }
+}
+
+/* 6-9. '왜 제주어로 써야 할까요?' 의 애니메이션(iframe — assets/story/jeju-disappear.html) -------------------------
+   비율 1673:940 · 최대 폭 1100px · 테두리 없음. 휴대폰(599px 이하)에서는 좌우 여백 없이 화면 폭을 다 쓴다(애니메이션 속 글이 조금이라도 크게 보이게).
+   ✏️ 교체: 최대 폭 = --story-w */
+.story__frame {
+  --story-w: 1100px;
+  display: block;
+  width: 100%;
+  max-width: var(--story-w);
+  aspect-ratio: 1673 / 940;
+  height: auto;
+  margin-inline: auto;
+  border: 0;
+  background-color: #3a2e22; /* 애니메이션이 불러와지기 전의 자리(애니메이션 액자와 같은 색) */
+}
+
+@media (max-width: 599px) {
+  .write__why .story__frame {
+    width: calc(100% + var(--gutter) * 2);
+    max-width: none;
+    margin-inline: calc(var(--gutter) * -1);
+  }
+}
+
+/* 애니메이션의 '제주어 엽서 쓰러가기'로 내려오면 이 제목으로 포커스가 옮겨 온다(js/story.js — 화면 낭독기 · 키보드가 여기서 이어 읽게).
+   제목은 누르는 것이 아니므로 포커스 테두리는 그리지 않는다 */
+.write__title:focus {
+  outline: none;
+}

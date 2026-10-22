@@ -1,0 +1,26 @@
+[
+  {
+    "id": "01",
+    "href": "articles/interview01.html",
+    "variant": "a",
+    "title": "문화를 지키는 일입니다",
+    "interviewee": "김미진 · 백종진 · 정예실",
+    "affiliation": "제주학연구센터 · 제주문화원 · 제주어보전회",
+    "summary": "제주어를 연구하고 알리는 사람들",
+    "cover": "assets/interviews/interview-01-thumb.jpg",
+    "coverAlt": "제주어 자료와 지도, 책을 펼쳐 놓은 책상에 둘러앉아 이야기를 나누는 네 사람을 그린 그림",
+    "coverPos": "50% 50%"
+  },
+  {
+    "id": "02",
+    "href": "articles/interview02.html",
+    "variant": "a",
+    "title": "어멍을 기억하는 일입니다",
+    "interviewee": "신의주 · 김신자",
+    "affiliation": "책방 ‘어나더 페이지’ · 시인",
+    "summary": "부모님의 제주어를 책으로 엮는 사람들",
+    "cover": "assets/interviews/interview-02-thumb.jpg",
+    "coverAlt": "노을 지는 제주 바닷가 돌담 곁에서 할머니의 이야기를 녹음하며 귀 기울이는 두 사람을 그린 그림",
+    "coverPos": "50% 55%"
+  }
+]

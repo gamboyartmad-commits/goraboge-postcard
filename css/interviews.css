@@ -1,0 +1,1303 @@
+/* interviews.css — 4. 뒤집히는 인터뷰 엽서 (index 와 기사 하단 공용)
+   index.html 과 기사 페이지가 함께 불러온다.
+   index 에서는 두 장이 어느 화면 폭에서도 좌우로 나란히 놓인다(넓으면 가로 엽서 3:2, 좁으면 세로 엽서 3:4 — '6. 세로 엽서').
+   기사 하단의 한 장(.pcards--single)은 늘 가로 엽서다.
+
+   엽서 한 장의 구조(js/postcards.js 가 data/interviews.json 을 읽어 그린다):
+     .pcards > .pcards__item[data-reveal] > article.pcard > .pcard__inner > .pcard__front + .pcard__back
+   · .pcard        기울기와 hover 를 맡는 바깥. 돌지 않는다(그래서 뒤집히는 동안 hover 가 깜빡이지 않는다)
+   · .pcard__inner rotateY 로 도는 판
+   · 뒤집힘 상태는 js 가 data-flipped="true|false" 로 알려 주고, 여기서는 그 값을 --flip(0 → 1)으로 바꿔 쓴다
+   · 엽서 안의 치수는 모두 --u(= 엽서 폭의 1%)의 배수 → 엽서가 넓든 좁든 같은 구도로 줄어든다 */
+
+/* 0. 엽서를 놓는 자리 ------------------------------------------------------------
+   데이터가 오기 전에는 점선으로 그린 빈 엽서(::before · ::after)가 같은 자리를 차지한다
+   → 엽서가 그려지기 전후로 문서 길이가 달라지지 않는다(새로고침했을 때 스크롤 위치가 어긋나지 않게).
+   ✏️ 교체: 인터뷰가 2편이 아니게 되면 빈 자리 수가 맞지 않는다(빈 자리는 2개까지만 그릴 수 있다) */
+.pcards {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  row-gap: var(--space-7);
+}
+
+.pcards__item,
+.pcards:not(.is-ready)::before,
+.pcards:not(.is-ready)::after {
+  width: min(100%, 540px);
+  aspect-ratio: 3 / 2; /* 가로 엽서 */
+}
+
+.pcards:not(.is-ready)::before,
+.pcards:not(.is-ready)::after {
+  content: "";
+  border: 1.5px dashed var(--paper-400);
+  border-radius: 3px;
+  background-color: rgb(var(--paper-rgb) / 0.45);
+  rotate: calc(-2deg * var(--pcard-tilt-scale, 1));
+}
+
+.pcards:not(.is-ready)::after {
+  rotate: calc(2deg * var(--pcard-tilt-scale, 1));
+}
+
+/* 기사 하단: 엽서 한 장 */
+.pcards--single:not(.is-ready)::after {
+  content: none;
+}
+
+/* 0-1. 두 장을 좌우로 나란히(index 의 인터뷰 섹션) — 어느 화면 폭에서도 나란하다.
+   --pcard-col = 한 장의 폭(자리 폭에 대한 %), --pcard-max = 한 장의 가장 큰 폭(화면이 낮으면 '5.' 가 더 줄인다),
+   --pcard-drop = 둘째 장을 내려 놓는 만큼.
+   container: 이 자리의 폭을 엽서들이 물어볼 수 있게 이름(pcards)을 붙인다 → 자리가 좁으면 세로 엽서로 바뀐다('6. 세로 엽서') */
+.pcards:not(.pcards--single) {
+  --pcard-col: 48%;
+  --pcard-share: 0.0048; /* cqw 를 모르는 브라우저용 어림('2.' 의 --u) */
+  container: pcards / inline-size;
+  grid-template-columns: repeat(2, min(var(--pcard-col), var(--pcard-max, 540px)));
+  justify-content: center;
+  align-items: start;
+  column-gap: 4%;
+}
+
+.pcards:not(.pcards--single) > .pcards__item,
+.pcards:not(.pcards--single):not(.is-ready)::before,
+.pcards:not(.pcards--single):not(.is-ready)::after {
+  width: 100%;
+}
+
+/* 둘째 장은 조금 내려 놓는다(책상에 흩어 놓은 듯이) */
+.pcards:not(.pcards--single) > :nth-child(2),
+.pcards:not(.pcards--single):not(.is-ready)::after {
+  margin-top: var(--pcard-drop, 1rem);
+}
+
+/* 컨테이너 쿼리를 모르는 옛 브라우저(Safari 15 이하 등): 좁은 화면에서는 세로 엽서로 바꿀 수 없으므로 전처럼 한 장씩 세로로 놓는다 */
+@supports not (container-type: inline-size) {
+  @media (max-width: 599px) {
+    .pcards:not(.pcards--single) {
+      --pcard-share: 0.01;
+      grid-template-columns: minmax(0, min(100%, 540px));
+      row-gap: var(--space-6);
+    }
+
+    .pcards:not(.pcards--single) > :nth-child(2),
+    .pcards:not(.pcards--single):not(.is-ready)::after {
+      margin-top: 0;
+    }
+  }
+}
+
+/* 엽서를 그리지 못했을 때(main.js · article.js · postcards.js 가 안내 쪽지를 붙인다): 빈 자리와 '엽서를 누르면…' 안내를 거둔다 */
+.has-note .pcards,
+.has-note .pcards-hint {
+  display: none;
+}
+
+/* 안내 한 줄(손글씨). 기본은 '누르면', 마우스를 쓰는 기기에서만 '올리면' */
+.pcards-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  color: var(--color-ink);
+  font-family: var(--font-hand);
+  font-size: calc(var(--fs-m) * var(--hand-scale));
+  line-height: 1.2;
+}
+
+.pcards-hint__mouse {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pcards-hint__mouse {
+    display: inline;
+  }
+
+  .pcards-hint__touch {
+    display: none;
+  }
+}
+
+/* 1. 엽서 바깥(기울기 · hover · 원근) ------------------------------------------------ */
+.pcard {
+  /* ✏️ 교체: 엽서의 포인트색 · 기울기 · 뒤집히는 빠르기 */
+  --pcard-accent: var(--tangerine-500);
+  --pcard-accent-strong: var(--tangerine-700);
+  --pcard-ink: var(--sea-800); /* 소인 잉크 */
+  --pcard-tilt: -3deg; /* 책상에 놓인 기울기 */
+  --pcard-settle: 1.6deg; /* 뒤집히면 읽기 좋게 이만큼 바로 선다 */
+  --pcard-turn: 180deg; /* 도는 방향(-180deg 면 반대쪽으로 돈다) */
+  --pcard-dur: 0.7s;
+  --pcard-ease: cubic-bezier(0.45, 0.05, 0.2, 1);
+
+  /* 뒤집힘 상태: 0 = 앞면, 1 = 뒷면 */
+  --flip: 0;
+  --front-events: auto;
+  --back-events: none;
+
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  container-type: inline-size; /* 안쪽의 cqw(= 엽서 폭의 1%)가 이 요소를 기준으로 삼는다 */
+  perspective: 1600px;
+  /* --pcard-tilt-scale: 모든 엽서의 기울기에 곱하는 배율(css/theme.css — 0 이면 반듯하게, 1 이 지금, 2 면 두 배) */
+  rotate: calc(var(--pcard-tilt) * var(--pcard-tilt-scale, 1));
+  touch-action: manipulation; /* 두 번 누를 때 화면이 확대되지 않게 */
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pcard--b {
+  --pcard-accent: var(--sea-600);
+  --pcard-accent-strong: var(--sea-800);
+  --pcard-ink: var(--tangerine-700);
+  --pcard-tilt: 2.5deg;
+  --pcard-settle: -1.4deg;
+  --pcard-turn: -180deg;
+}
+
+/* 뒤집힌 상태 — js 가 data-flipped 를 바꾼다 */
+.pcard[data-flipped="true"] {
+  --flip: 1;
+  --front-events: none;
+  --back-events: auto;
+}
+
+/* 스크립트가 뒤집기를 맡지 못했을 때(.is-live 가 없다)의 대비책: css 만으로 뒤집는다 */
+.pcard:not(.is-live):focus-within {
+  --flip: 1;
+  --front-events: none;
+  --back-events: auto;
+}
+
+@media (hover: hover) {
+  .pcard:not(.is-live):hover {
+    --flip: 1;
+    --front-events: none;
+    --back-events: auto;
+  }
+}
+
+/* 바로 가는 엽서(js/postcards.js 의 DIRECT = true — 앞면 전체가 기사 링크): 가리키면 살짝 들린다 */
+.pcard--direct {
+  transition: translate 0.3s var(--ease-out);
+}
+
+@media (hover: hover) {
+  .pcard--direct:hover {
+    translate: 0 -6px;
+  }
+}
+
+/* 2. 도는 판 · 앞뒷면 공통 ---------------------------------------------------------- */
+.pcard__inner {
+  /* --u = 엽서 폭의 1%. cqw 를 모르는 브라우저는 화면 폭으로 어림한다
+     (--pcard-share = 화면 안쪽 폭 가운데 엽서 한 장이 차지하는 몫의 1% — 두 장을 나란히 놓으면 0.0048 · 0.0046, '0-1.' 과 '7.') */
+  --u: min(5.4px, calc((100vw - var(--gutter) * 2) * var(--pcard-share, 0.01)));
+  position: absolute;
+  inset: 0;
+  transform: rotateY(calc(var(--flip) * var(--pcard-turn)));
+  transform-style: preserve-3d;
+  rotate: calc(var(--flip) * var(--pcard-settle) * var(--pcard-tilt-scale, 1));
+  scale: calc(1 + var(--flip) * 0.025); /* 살짝 들어 올린다 */
+  transition:
+    transform var(--pcard-dur) var(--pcard-ease),
+    rotate var(--pcard-dur) var(--pcard-ease),
+    scale var(--pcard-dur) var(--pcard-ease);
+}
+
+@supports (width: 1cqw) {
+  .pcard__inner {
+    --u: 1cqw;
+  }
+}
+
+.pcard__face {
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
+  border-radius: calc(var(--u) * 0.45);
+  background-color: var(--paper-50);
+  background-image: var(--tex-paper);
+  /* 놓여 있을 때의 낮은 그림자 + 뒤집히며 떠오를 때 짙어지는 그림자(--flip 에 비례) */
+  box-shadow:
+    0 0 0 1px rgb(var(--ink-rgb) / 0.07),
+    0 calc(var(--flip) * var(--u) * 5) calc(var(--flip) * var(--u) * 9) calc(var(--flip) * var(--u) * -3.4) rgb(var(--ink-rgb) / calc(var(--flip) * 0.38)),
+    var(--shadow-paper);
+  color: var(--color-text);
+  font-size: calc(var(--u) * 3);
+  -webkit-backface-visibility: hidden; /* Safari */
+  backface-visibility: hidden;
+  transition: box-shadow var(--pcard-dur) var(--pcard-ease);
+}
+
+.pcard__front {
+  pointer-events: var(--front-events);
+}
+
+.pcard__back {
+  pointer-events: var(--back-events);
+  transform: rotateY(180deg);
+}
+
+/* 3. 앞면 — 대표 사진 + 인터뷰 제목 + 꼬리표 ------------------------------------------
+   사진은 자리를 가득 채우고 넘치는 부분은 잘린다(가운데 기준). 3:2 사진이면 A형은 그대로, B형은 위아래가 합쳐 3분의 1쯤 잘린다
+   (휴대폰의 세로 엽서에서는 A형 · B형 모두 양옆이 잘린다).
+   ✏️ 교체: 보여 줄 중심을 옮기려면 data/interviews.json 의 그 항목에 "coverPos": "50% 20%"(가로 세로)를 더한다
+            (모든 엽서에 함께 적용할 기본 중심은 css/theme.css 의 --pcard-photo-pos. coverPos 가 있는 엽서는 coverPos 를 따른다) */
+.pcard__photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background-color: var(--paper-200);
+  object-fit: cover;
+  object-position: var(--pcard-photo-pos, 50% 50%);
+}
+
+/* 사진을 불러오지 못했을 때(js 가 .pcard--nophoto 를 붙인다): 깨진 그림 표시 대신 사진 자리에 빈 종이 */
+.pcard--nophoto .pcard__photo {
+  visibility: hidden;
+}
+
+.pcard--nophoto .pcard__front::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-color: var(--paper-200);
+  background-image: var(--tex-paper);
+}
+
+.pcard__tag {
+  position: absolute;
+  z-index: 2;
+  font-size: max(calc(var(--u) * 2.25), 0.625rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  white-space: nowrap;
+}
+
+.pcard__tag b {
+  font-weight: inherit;
+}
+
+/* 꼬리표의 낱말 INTERVIEW (세로 엽서에서는 자리가 좁아 번호만 남긴다 — '6. 세로 엽서') */
+.pcard__tag-word {
+  font: inherit;
+}
+
+.pcard__label {
+  position: absolute;
+  z-index: 2;
+  min-width: 0;
+}
+
+/* 제목: 길면 js 가 data-len 을 m · l 로 붙여 글자를 한 단계씩 줄이고, 그래도 넘치면 줄 수를 자른다(작은 엽서에서도 12px 아래로는 줄이지 않는다) */
+.pcard__title {
+  display: -webkit-box;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: max(calc(var(--u) * 5.6), 0.75rem);
+  font-weight: 400;
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.pcard__title[data-len="m"] {
+  font-size: max(calc(var(--u) * 4.8), 0.75rem);
+}
+
+.pcard__title[data-len="l"] {
+  font-size: max(calc(var(--u) * 4), 0.75rem);
+}
+
+/* 앞면 전체를 덮는 뒤집기 단추(투명). 포커스 테두리는 엽서 바깥 둘레에 그려진다 */
+.pcard__flip {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 구석의 작은 '뒤집기' 표시 */
+.pcard__turn {
+  position: absolute;
+  right: calc(var(--u) * 3.4);
+  bottom: calc(var(--u) * 3.4);
+  display: grid;
+  place-items: center;
+  width: max(calc(var(--u) * 7.6), 1.75rem);
+  height: max(calc(var(--u) * 7.6), 1.75rem);
+  border: 1.5px solid var(--basalt-900);
+  border-radius: 50%;
+  background-color: var(--paper-50);
+  box-shadow: 1px 2px 0 0 var(--basalt-900);
+  color: var(--basalt-900);
+}
+
+.pcard__turn svg,
+.pcard__unflip-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pcard__turn svg {
+  width: 58%;
+  height: 58%;
+}
+
+/* 3-A. A형(감귤): 사진이 엽서를 가득 채우고, 왼쪽 아래에 테이프로 붙인 종이 라벨 */
+/* 사진 안쪽의 가는 흰 테두리(인쇄된 엽서 느낌) */
+.pcard--a .pcard__front::after {
+  content: "";
+  position: absolute;
+  inset: calc(var(--u) * 2);
+  z-index: 1;
+  border: 1px solid rgb(var(--paper-rgb) / 0.8);
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+/* 꼬리표: 왼쪽이 뾰족하고 구멍이 뚫린 짐표 모양 */
+.pcard--a .pcard__tag {
+  top: calc(var(--u) * 4.6);
+  left: calc(var(--u) * 4);
+  rotate: -4deg;
+  filter: drop-shadow(0 1px 1px rgb(var(--ink-rgb) / 0.4));
+}
+
+.pcard--a .pcard__tag > span {
+  position: relative;
+  display: block;
+  padding: 0.66em 1.1em 0.66em 2.2em;
+  background-color: var(--pcard-accent);
+  color: var(--basalt-900);
+  clip-path: polygon(0.95em 0, 100% 0, 100% 100%, 0.95em 100%, 0 50%);
+}
+
+.pcard--a .pcard__tag > span::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 1.05em;
+  width: 0.46em;
+  height: 0.46em;
+  margin-top: -0.23em;
+  border-radius: 50%;
+  background-color: var(--paper-50);
+  box-shadow: inset 0 0 0 1px rgb(var(--ink-rgb) / 0.45);
+}
+
+.pcard--a .pcard__label {
+  bottom: calc(var(--u) * 5.2);
+  left: calc(var(--u) * 4.6);
+  max-width: calc(var(--u) * 70);
+  padding: calc(var(--u) * 2.6) calc(var(--u) * 3.8) calc(var(--u) * 2.6);
+  border-radius: 1px;
+  background-color: var(--paper-50);
+  background-image: var(--tex-paper);
+  box-shadow: 0 1px 2px rgb(var(--ink-rgb) / 0.28), 0 calc(var(--u) * 1.4) calc(var(--u) * 3) calc(var(--u) * -1.6) rgb(var(--ink-rgb) / 0.55);
+  rotate: 1.6deg;
+}
+
+.pcard--a .pcard__tape {
+  --tape-w: calc(var(--u) * 13);
+  --tape-h: calc(var(--u) * 4);
+  --tape-tilt: -30deg;
+  top: calc(var(--u) * -1.6);
+  left: calc(var(--u) * -3.6);
+  opacity: 0.86;
+}
+
+/* 3-B. B형(바다): 흰 테두리 사진을 종이에 붙인 폴라로이드식 — 위에 사진, 아래 종이에 제목 */
+.pcard--b .pcard__photo {
+  inset: calc(var(--u) * 3.4) calc(var(--u) * 3.4) auto;
+  width: calc(100% - var(--u) * 6.8);
+  height: calc(var(--u) * 42);
+  border-radius: 1px;
+  box-shadow: 0 0 0 1px rgb(var(--ink-rgb) / 0.16);
+}
+
+.pcard--b.pcard--nophoto .pcard__front::before {
+  inset: calc(var(--u) * 3.4) calc(var(--u) * 3.4) auto;
+  height: calc(var(--u) * 42);
+  border-radius: 1px;
+  box-shadow: 0 0 0 1px rgb(var(--ink-rgb) / 0.16);
+}
+
+.pcard--b .pcard__tape {
+  --tape-w: calc(var(--u) * 17);
+  --tape-h: calc(var(--u) * 4.6);
+  --tape-tilt: -3deg;
+  top: calc(var(--u) * 0.8);
+  left: calc(50% - var(--u) * 8.5);
+  z-index: 2;
+  opacity: 0.88;
+}
+
+.pcard--b .pcard__label {
+  top: calc(var(--u) * 45.4);
+  right: calc(var(--u) * 30);
+  bottom: 0;
+  left: calc(var(--u) * 5.2);
+  display: flex;
+  align-items: center;
+}
+
+.pcard--b .pcard__title {
+  font-size: max(calc(var(--u) * 5.4), 0.75rem);
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.pcard--b .pcard__title[data-len="m"] {
+  font-size: max(calc(var(--u) * 4.6), 0.75rem);
+}
+
+.pcard--b .pcard__title[data-len="l"] {
+  font-size: max(calc(var(--u) * 3.9), 0.75rem);
+}
+
+/* 꼬리표: 작은 영문 + 큰 번호 */
+.pcard--b .pcard__tag {
+  top: calc(var(--u) * 45.4);
+  right: calc(var(--u) * 5.2);
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  color: var(--pcard-accent-strong);
+}
+
+.pcard--b .pcard__tag > span {
+  display: grid;
+  justify-items: end;
+  gap: 0.5em;
+}
+
+.pcard--b .pcard__tag b {
+  color: var(--pcard-accent);
+  font-family: var(--font-display);
+  font-size: 3.5em;
+  font-weight: 400;
+  line-height: 0.82;
+  letter-spacing: 0;
+}
+
+.pcard--b .pcard__turn {
+  top: calc(var(--u) * 5.6);
+  right: calc(var(--u) * 5.6);
+  bottom: auto;
+}
+
+/* 4. 뒷면 — 실제 엽서 뒷면처럼 --------------------------------------------------------
+   왼쪽 칸: 한 줄 요약(손글씨) + 서명 / 가운데: 세로 구분선 / 오른쪽 칸: 우표 · 소인 · 주소 줄 · '읽으러 가기' */
+.pcard__back {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  padding: calc(var(--u) * 4.6);
+}
+
+/* 뒷면 전체를 덮는 링크 → 어디를 눌러도 기사로 간다. '읽으러 가기' 단추 모양은 이 링크 안에 있다 */
+.pcard__link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  color: inherit;
+  text-decoration: none;
+}
+
+.pcard__cta {
+  position: absolute;
+  right: calc(var(--u) * 4.6);
+  bottom: calc(var(--u) * 4.4);
+  min-height: max(calc(var(--u) * 7.2), 1.875rem);
+  padding: 0.42em 1.05em 0.5em;
+  font-size: max(calc(var(--u) * 3), 0.75rem);
+}
+
+.pcard__cta-arrow {
+  transition: translate var(--dur-fast) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .pcard__link:hover .pcard__cta-arrow {
+    translate: 0.28em 0;
+  }
+}
+
+/* 4-1. 왼쪽 칸 */
+.pcard__note {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0 calc(var(--u) * 4.4) calc(var(--u) * 7.6) calc(var(--u) * 0.4);
+}
+
+/* 인쇄된 작은 글자: POST CARD · INTERVIEW 01 (장식 — 화면 낭독기에는 숨겨져 있다) */
+.pcard__kicker {
+  overflow: hidden;
+  color: var(--color-text-soft);
+  font-size: max(calc(var(--u) * 1.85), 0.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pcard__kicker-dot {
+  margin-inline: 0.35em;
+  color: var(--pcard-accent-strong);
+}
+
+/* 작은 엽서(폭 약 350px 미만 — 화면 폭 390px 미만의 휴대폰)에서는 'POST CARD ·' 를 빼고 번호만 남긴다.
+   글자는 8px 에서 더 줄지 않는데 칸은 엽서를 따라 줄어, 엽서 폭 333px 아래에서는 한 줄에 다 들어가지 않는다 */
+@container (max-width: 348px) {
+  .pcard__kicker-main,
+  .pcard__kicker-dot {
+    display: none;
+  }
+}
+
+/* 한 줄 요약: 길면 js 가 data-len 을 m · l 로 붙여 글자를 줄이고, 그래도 넘치면 줄 수를 자른다.
+   줄인 글자도 작은 엽서에서 16~17px 아래로는 내려가지 않는다(손글씨체는 같은 크기의 고딕보다 작게 보인다) */
+.pcard__summary {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: auto;
+  padding-block: 0.06em;
+  color: var(--color-ink);
+  font-family: var(--font-hand);
+  font-size: calc(var(--u) * 7);
+  line-height: 1.12;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.pcard__summary[data-len="m"] {
+  font-size: max(calc(var(--u) * 5.6), 1.0625rem);
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+}
+
+.pcard__summary[data-len="l"] {
+  font-size: max(calc(var(--u) * 4.6), 1rem);
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+}
+
+/* 아주 작은 엽서(폭 300px 미만)의 B형은 요약 칸이 낮아 16px 글자 다섯 줄이 들어가지 않는다 → 네 줄까지 */
+@container (max-width: 299px) {
+  .pcard--b .pcard__summary[data-len="l"] {
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+  }
+}
+
+/* 서명: — 인터뷰이 */
+.pcard__sign {
+  overflow: hidden;
+  margin-top: calc(var(--u) * 1.8);
+  margin-bottom: auto;
+  font-family: var(--font-hand);
+  font-size: calc(var(--u) * 4.7);
+  line-height: 1.25;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 4-2. 가운데 세로 구분선 */
+.pcard__divider {
+  position: absolute;
+  top: calc(var(--u) * 9);
+  bottom: calc(var(--u) * 9);
+  left: 50%;
+  width: 0;
+  border-left: 1px solid var(--color-line);
+}
+
+.pcard__divider span {
+  display: none;
+}
+
+/* 4-3. 오른쪽 칸 */
+.pcard__addr {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  /* 아래 여백 = '읽으러 가기' 단추가 놓이는 자리(작은 엽서에서는 단추가 더 줄지 않으므로 그만큼 넉넉히) */
+  padding: 0 calc(var(--u) * 0.4) max(calc(var(--u) * 8.8), calc(1.875rem + var(--u) * 1.6)) calc(var(--u) * 4.8);
+}
+
+/* 우표 자리 + 우표에 겹쳐 찍힌 소인 */
+.pcard__post {
+  position: relative;
+  flex: none;
+  height: calc(var(--u) * 18.4);
+}
+
+.pcard__stamp {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.pcard__stamp .stamp {
+  --stamp-w: calc(var(--u) * 14);
+  --stamp-tilt: 3deg;
+  display: grid;
+}
+
+.pcard__postmark {
+  --postmark-w: calc(var(--u) * 29);
+  --postmark-tilt: -8deg;
+  position: absolute;
+  top: calc(var(--u) * 5);
+  right: calc(var(--u) * 3.4);
+  z-index: 1;
+  color: var(--pcard-ink);
+}
+
+/* 주소 줄 3줄: 인터뷰이 이름 / 소속(길면 셋째 줄까지) / 빈 줄 */
+.pcard__lines {
+  --ruled-lh: 1.6;
+  --lines-fs: calc(var(--u) * 4.9);
+  overflow: hidden;
+  height: calc(var(--lines-fs) * var(--ruled-lh) * 3);
+  margin-top: auto;
+  color: var(--color-ink);
+  font-size: var(--lines-fs);
+}
+
+.pcard__to,
+.pcard__aff {
+  display: block;
+  overflow: hidden;
+}
+
+.pcard__to {
+  color: var(--color-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pcard__aff {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+/* 소속이 아주 길면 글자만 줄인다 — 14px 아래로는 줄이지 않는다(괘선 간격은 그대로) */
+.pcard__aff[data-len="l"] {
+  font-size: max(0.84em, min(1em, 0.875rem));
+  line-height: calc(var(--lines-fs) * var(--ruled-lh));
+}
+
+/* 4-4. '앞면 보기' — 링크 위에 얹힌 작은 글자 단추(누르는 자리는 글자보다 넓다) */
+.pcard__unflip {
+  position: absolute;
+  bottom: calc(var(--u) * 4.6);
+  left: calc(var(--u) * 4.8);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.3em 0.1em;
+  border: 0;
+  background: none;
+  color: var(--color-text-soft-strong);
+  font-size: max(calc(var(--u) * 2.7), 0.75rem);
+  font-weight: 700;
+  line-height: 1.2;
+  /* 선 모양은 낱개 속성으로 적는다 — 짧은 표기(text-decoration: underline dashed)는 Safari 18.3 이하에서 통째로 무시된다 */
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.32em;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pcard__unflip::after {
+  content: "";
+  position: absolute;
+  inset: -0.85em -0.9em;
+}
+
+@media (hover: hover) {
+  .pcard__unflip:hover {
+    color: var(--color-text);
+    text-decoration-style: solid;
+  }
+}
+
+.pcard__unflip-icon {
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
+  transform: scaleX(-1); /* 되돌아가는 화살표 */
+}
+
+/* 4-B. B형(바다)의 뒷면: 위아래 항공우편 띠 · 가운데 세로 글자 POST CARD · 요약을 위쪽에 */
+.pcard--b .pcard__back {
+  padding-block: calc(var(--u) * 6.6);
+}
+
+.pcard__strip {
+  --airmail-stripe: calc(var(--u) * 1.9);
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: calc(var(--u) * 2.1);
+}
+
+.pcard__strip--top {
+  top: 0;
+  border-radius: calc(var(--u) * 0.45) calc(var(--u) * 0.45) 0 0;
+}
+
+.pcard__strip--bottom {
+  bottom: 0;
+  border-radius: 0 0 calc(var(--u) * 0.45) calc(var(--u) * 0.45);
+}
+
+.pcard--b .pcard__kicker-main,
+.pcard--b .pcard__kicker-dot {
+  display: none;
+}
+
+.pcard--b .pcard__kicker {
+  color: var(--pcard-accent-strong);
+}
+
+.pcard--b .pcard__summary {
+  margin-top: calc(var(--u) * 2.6);
+}
+
+/* 서명 아래 물결 밑줄 */
+.pcard--b .pcard__sign {
+  padding-bottom: 0.2em;
+  text-decoration-line: underline; /* 낱개 속성으로('앞면 보기' 와 같은 이유) */
+  text-decoration-style: wavy;
+  text-decoration-color: var(--sea-400);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.24em;
+}
+
+.pcard--b .pcard__divider {
+  top: calc(var(--u) * 7);
+  bottom: calc(var(--u) * 7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 1.6);
+  width: calc(var(--u) * 4);
+  margin-left: calc(var(--u) * -2);
+  border: 0;
+}
+
+.pcard--b .pcard__divider::before,
+.pcard--b .pcard__divider::after {
+  content: "";
+  flex: 1;
+  width: 0;
+  border-left: 1px solid var(--color-line);
+}
+
+.pcard--b .pcard__divider span {
+  display: block;
+  color: var(--pcard-accent-strong);
+  font-size: max(calc(var(--u) * 1.9), 0.5625rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.42em;
+  white-space: nowrap;
+  writing-mode: vertical-rl;
+}
+
+.pcard--b .pcard__stamp .stamp {
+  --stamp-tilt: -4deg;
+}
+
+.pcard--b .pcard__postmark {
+  --postmark-tilt: 5deg;
+  top: calc(var(--u) * 6.4);
+  right: calc(var(--u) * 4.4);
+}
+
+.pcard--b .pcard__lines {
+  background-image: linear-gradient(to top, var(--sea-400) 0 1px, transparent 1px);
+}
+
+.pcard--b .pcard__cta {
+  bottom: calc(var(--u) * 5.4);
+}
+
+.pcard--b .pcard__unflip {
+  bottom: calc(var(--u) * 5.6);
+}
+
+/* 5. index 의 인터뷰 섹션 — 종이 책상 위에 엽서 두 장 ----------------------------------
+   머리말 + 엽서 두 장이 한 화면에 들어오게 위아래 여백과 엽서 크기를 화면 높이에 맞춘다
+   (화면이 낮으면 여백이 줄고, 그래도 모자라면 엽서가 작아진다 — 가로 엽서는 폭 260px 까지만 줄인다).
+   ✏️ 교체: 여백 · 엽서 크기는 아래 값으로 조절한다 */
+.interviews {
+  --surface-soft: var(--color-text-soft-strong); /* 진한 종이 위의 보조 글자 */
+  --iv-vh: 1vh;
+  --iv-pad-top: clamp(2.5rem, calc(9 * var(--iv-vh)), 6rem); /* 섹션 윗변 ~ 라벨 */
+  /* 엽서 ~ 섹션 아랫변. --fab-clear: 화면 오른쪽 아래의 플로팅 버튼(css/maker.css)이 차지하는 높이 → 엽서가 버튼에 가리지 않게 */
+  --iv-pad-bottom: max(clamp(3rem, calc(11 * var(--iv-vh)), 8rem), calc(var(--fab-clear, 0px) + var(--space-2)));
+  --iv-head-gap: clamp(1.5rem, calc(5.5 * var(--iv-vh)), 4rem); /* 머리말 ~ 엽서 */
+  --iv-head-h: 14rem; /* 머리말(라벨 + 제목 한 줄 + 안내 한 줄)의 어림 높이 — 엽서 크기를 셈할 때만 쓴다 */
+  --pcard-drop: clamp(0.75rem, 3vw, 4rem); /* 둘째 장을 내려 놓는 만큼 */
+  /* 엽서 한 장이 쓸 수 있는 높이 = 화면 높이 − 위아래 여백 − 머리말 − 둘째 장을 내려 놓은 만큼 */
+  --iv-card-h: calc(100 * var(--iv-vh) - var(--iv-pad-top) - var(--iv-pad-bottom) - var(--iv-head-gap) - var(--iv-head-h) - var(--pcard-drop));
+  /* 가로 엽서 한 장의 가장 큰 폭(= 쓸 수 있는 높이 × 1.5). ✏️ 교체: 540px = 넓은 화면에서의 엽서 폭 */
+  --pcard-max: clamp(16.25rem, calc(var(--iv-card-h) * 1.5), 540px);
+  position: relative;
+  padding-block: var(--iv-pad-top) var(--iv-pad-bottom);
+  background-color: var(--paper-200);
+  /* 위아래 섹션의 종이가 살짝 덮은 듯한 그늘(위 = 인용, 아래 = 지도) */
+  box-shadow: inset 0 14px 16px -16px rgb(var(--ink-rgb) / 0.3), inset 0 -14px 16px -16px rgb(var(--ink-rgb) / 0.22);
+}
+
+@supports (height: 100svh) {
+  .interviews {
+    --iv-vh: 1svh;
+  }
+}
+
+.interviews__inner {
+  position: relative;
+}
+
+.interviews__head {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  min-width: 0;
+  margin-bottom: var(--iv-head-gap);
+}
+
+/* 제목 앞의 '인터뷰 —' 는 작게, 그 아래 소개 문단 */
+/* 크기 = 화면 폭마다 css/theme.css '0.' 의 --interviews-title-size(26차) */
+.interviews__title {
+  font-size: var(--interviews-title-size, var(--title-size));
+}
+
+.interviews__title small {
+  display: block;
+  margin-bottom: 0.25em;
+  font-size: 0.55em;
+  letter-spacing: 0.02em;
+}
+
+.interviews__lede {
+  max-width: var(--text-width); /* 글자 크기 · 줄 간격 · 한 줄 길이는 css/theme.css '0.' */
+  font-size: var(--text-size);
+  line-height: var(--text-lh);
+}
+
+.interviews__title span {
+  display: inline-block; /* 덩어리마다 한 번에 줄이 바뀐다 */
+}
+
+.interviews > .placeholder-note,
+.interviews__inner > .placeholder-note {
+  margin-top: var(--space-6);
+}
+
+/* 섹션 바로 아래에 붙은 쪽지(main.js 가 붙인다): 좁은 화면에서 화면 가장자리에 닿지 않게 */
+.interviews > .placeholder-note {
+  max-width: min(100% - var(--gutter) * 2, 34rem);
+}
+
+/* 6. 세로 엽서 — 엽서를 놓는 자리가 좁을 때(자리 폭 541px 이하 = 엽서 한 장이 260px 미만, 화면 폭 약 590px 아래) -----
+   두 장을 나란히 두되 가로 엽서(3:2)를 세로 엽서(3:4)로 바꾸고, 안쪽 구도를 세로용으로 다시 짠다.
+     앞면: 위에 사진 + 아래에 제목(A형은 사진이 가득 + 아래에 종이 라벨). 꼬리표는 번호만.
+     뒷면: 위에 우표와 겹쳐 찍힌 소인 → 한 줄 요약 → 이름 · 소속 두 줄 → 아래에 '읽으러 가기' 와 '앞면 보기'.
+   --u(엽서 폭의 1%)가 1.3~2.6px 로 작아지므로 글자는 max() 로 받쳐 12px 아래로 내려가지 않게 한다.
+   (.pcard 를 앞에 붙인 것은 위쪽의 A형 · B형 규칙보다 우선하게 하려는 것) */
+@container pcards (max-width: 541px) {
+  .pcards__item,
+  .pcards:not(.is-ready)::before,
+  .pcards:not(.is-ready)::after,
+  .pcard {
+    aspect-ratio: 3 / 4;
+  }
+
+  /* 나란히 놓인 두 장이 서로 닿지 않게 기울기를 줄인다 */
+  .pcards .pcard {
+    --pcard-tilt: -1.5deg;
+    --pcard-settle: 0.9deg;
+  }
+
+  .pcards .pcard--b {
+    --pcard-tilt: 1.5deg;
+    --pcard-settle: -0.9deg;
+  }
+
+  .pcard .pcard__face {
+    border-radius: calc(var(--u) * 0.9);
+    font-size: 0.75rem;
+  }
+
+  /* 6-1. 앞면 */
+  .pcard .pcard__tag {
+    font-size: max(calc(var(--u) * 5), 0.75rem);
+  }
+
+  /* 낱말 INTERVIEW 는 화면에서만 숨긴다(화면 낭독기에는 그대로 읽힌다) */
+  .pcard .pcard__tag-word {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .pcard .pcard__title {
+    font-size: max(calc(var(--u) * 8.4), 0.8125rem);
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+
+  .pcard .pcard__title[data-len="m"] {
+    font-size: max(calc(var(--u) * 7.8), 0.8125rem);
+  }
+
+  .pcard .pcard__title[data-len="l"] {
+    font-size: max(calc(var(--u) * 7), 0.75rem);
+  }
+
+  /* '뒤집기' 표시는 오른쪽 위로(아래에는 제목이 온다) */
+  .pcard .pcard__turn {
+    top: calc(var(--u) * 4);
+    right: calc(var(--u) * 4);
+    bottom: auto;
+  }
+
+  /* A형: 사진이 가득 + 아래에 종이 라벨 */
+  .pcard--a .pcard__front::after {
+    inset: calc(var(--u) * 3);
+  }
+
+  .pcard--a .pcard__tag {
+    top: calc(var(--u) * 6.5);
+    left: calc(var(--u) * 5);
+  }
+
+  .pcard--a .pcard__label {
+    right: calc(var(--u) * 6);
+    bottom: calc(var(--u) * 7);
+    left: calc(var(--u) * 6);
+    max-width: none;
+    padding: calc(var(--u) * 4.4) calc(var(--u) * 5) calc(var(--u) * 4);
+  }
+
+  .pcard--a .pcard__tape {
+    --tape-w: calc(var(--u) * 22);
+    --tape-h: calc(var(--u) * 6.4);
+    top: calc(var(--u) * -3);
+    left: calc(var(--u) * -5);
+  }
+
+  /* B형: 위에 흰 테두리 사진, 아래 종이에 제목. 꼬리표는 사진 왼쪽 위의 작은 딱지 */
+  .pcard--b .pcard__photo,
+  .pcard--b.pcard--nophoto .pcard__front::before {
+    inset: calc(var(--u) * 5.5) calc(var(--u) * 5.5) auto;
+    height: calc(var(--u) * 80);
+  }
+
+  .pcard--b .pcard__photo {
+    width: calc(100% - var(--u) * 11);
+  }
+
+  .pcard--b .pcard__tape {
+    --tape-w: calc(var(--u) * 28);
+    --tape-h: calc(var(--u) * 7.6);
+    top: calc(var(--u) * 1.2);
+    left: calc(50% - var(--u) * 14);
+  }
+
+  .pcard--b .pcard__label {
+    top: calc(var(--u) * 87.5);
+    right: calc(var(--u) * 6.5);
+    bottom: calc(var(--u) * 3);
+    left: calc(var(--u) * 6.5);
+  }
+
+  .pcard--b .pcard__tag {
+    top: calc(var(--u) * 9);
+    right: auto;
+    bottom: auto;
+    left: calc(var(--u) * 9);
+    display: block;
+    color: var(--paper-50);
+  }
+
+  .pcard--b .pcard__tag > span {
+    display: block;
+    padding: 0.42em 0.62em 0.44em 0.72em;
+    border-radius: 2px;
+    background-color: var(--pcard-accent-strong);
+  }
+
+  .pcard--b .pcard__tag b {
+    color: inherit;
+    font-family: inherit;
+    font-size: 1em;
+    font-weight: inherit;
+    line-height: 1;
+    letter-spacing: 0.16em;
+  }
+
+  .pcard--b .pcard__turn {
+    top: calc(var(--u) * 8.5);
+    right: calc(var(--u) * 8.5);
+  }
+
+  /* 6-2. 뒷면: 한 단으로 — 우표 · 소인 / 요약 / 이름 · 소속. 아래 두 줄('읽으러 가기' · '앞면 보기')의 자리는 --pcard-foot 만큼 비워 둔다 */
+  .pcard .pcard__back {
+    --pcard-foot: calc(1.625rem + 1.25rem + var(--u) * 7);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    row-gap: calc(var(--u) * 1.6);
+    padding: calc(var(--u) * 5) calc(var(--u) * 5.5) var(--pcard-foot);
+  }
+
+  /* B형은 위아래에 항공우편 띠가 있다 */
+  .pcard--b .pcard__back {
+    --pcard-foot: calc(1.625rem + 1.25rem + var(--u) * 9);
+    padding-top: calc(var(--u) * 6.4);
+  }
+
+  /* 왼쪽 칸 · 오른쪽 칸의 틀을 풀어 안의 조각들을 한 줄로 세운다 */
+  .pcard .pcard__note,
+  .pcard .pcard__addr {
+    display: contents;
+  }
+
+  .pcard .pcard__kicker,
+  .pcard .pcard__sign,
+  .pcard .pcard__divider {
+    display: none;
+  }
+
+  .pcard .pcard__post {
+    grid-row: 1;
+    height: calc(var(--u) * 22.5);
+  }
+
+  .pcard .pcard__stamp .stamp {
+    --stamp-w: calc(var(--u) * 18.5);
+  }
+
+  .pcard .pcard__postmark {
+    --postmark-w: calc(var(--u) * 44);
+    top: calc(var(--u) * 3.4);
+    right: calc(var(--u) * 12);
+  }
+
+  /* 요약: 세 줄까지(넘치면 …). 손글씨체는 작아 보이므로 16px 아래로는 줄이지 않는다(긴 글은 15 · 14px 까지) */
+  .pcard .pcard__summary {
+    grid-row: 2;
+    align-self: center;
+    max-height: 100%;
+    margin: 0;
+    font-size: max(calc(var(--u) * 10.5), 1rem);
+  }
+
+  .pcard .pcard__summary[data-len="m"] {
+    font-size: max(calc(var(--u) * 9.6), 0.9375rem);
+  }
+
+  .pcard .pcard__summary[data-len="l"] {
+    font-size: max(calc(var(--u) * 8.8), 0.875rem);
+  }
+
+  .pcard .pcard__summary,
+  .pcard .pcard__summary[data-len="m"],
+  .pcard .pcard__summary[data-len="l"] {
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+
+  /* 주소 줄 2줄: 이름 / 소속(한 줄, 넘치면 …) */
+  .pcard .pcard__lines {
+    --ruled-lh: 1.45;
+    --lines-fs: max(calc(var(--u) * 8.6), 0.8125rem);
+    grid-row: 3;
+    height: calc(var(--lines-fs) * var(--ruled-lh) * 2);
+    margin: 0;
+  }
+
+  .pcard .pcard__aff,
+  .pcard .pcard__aff[data-len="l"] {
+    font-size: 1em;
+    line-height: inherit;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+  }
+
+  /* '읽으러 가기': 엽서 폭에 맞춘 한 줄 단추. 그 아래 가운데에 '앞면 보기'.
+     아래 끝이 고정된 단추라 줄이 바뀌면 위로 자라 소속 줄을 덮는다 → 늘 한 줄로 두고, 크기의 하한은 px 로
+     (브라우저 글자 크기를 크게 해도 엽서 폭을 따라 줄어 한 줄을 지킨다. 기본 글자 크기에서는 rem 과 같은 값) */
+  .pcard .pcard__cta {
+    right: calc(var(--u) * 5.5);
+    bottom: calc(20px + var(--u) * 4.4);
+    left: calc(var(--u) * 5.5);
+    min-height: 26px;
+    padding: 0.22em 0.5em 0.28em;
+    font-size: max(calc(var(--u) * 4.8), 12px);
+    white-space: nowrap;
+  }
+
+  .pcard--b .pcard__cta {
+    bottom: calc(20px + var(--u) * 6.4);
+  }
+
+  /* '앞면 보기'는 '읽으러 가기'와 같은 폭의 한 줄(글자는 가운데) — 옆으로 조금 빗나가 눌러도 기사로 가지 않게 */
+  .pcard .pcard__unflip {
+    right: calc(var(--u) * 5.5);
+    bottom: calc(var(--u) * 2.6);
+    left: calc(var(--u) * 5.5);
+    justify-content: center;
+    padding: 0.2em 0.1em;
+    font-size: max(calc(var(--u) * 4.6), 12px); /* 위 단추 아래에 비워 둔 20px 안에 들어가게 px 하한 */
+    white-space: nowrap;
+  }
+
+  .pcard--b .pcard__unflip {
+    bottom: calc(var(--u) * 4.6);
+  }
+
+  /* 누르는 자리는 글자보다 아래로 조금 넓게, 다만 바로 위 단추는 덮지 않게 */
+  .pcard .pcard__unflip::after {
+    inset: -0.1em 0 -0.5em;
+  }
+}
+
+/* 아주 작은 세로 엽서(폭 150px 미만 — 화면 폭 약 350px 아래): 요약 칸이 낮아 두 줄까지만 들어간다 */
+@container pcards (max-width: 312px) {
+  .pcard .pcard__summary,
+  .pcard .pcard__summary[data-len="m"],
+  .pcard .pcard__summary[data-len="l"] {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+}
+
+/* 7. 휴대폰 · 태블릿 · 데스크톱 -------------------------------------------------------- */
+/* 휴대폰: 기울기는 조금만(기사 하단의 한 장도 같다) */
+@media (max-width: 767px) {
+  .pcard {
+    --pcard-tilt: -2deg;
+    --pcard-settle: 1.2deg;
+  }
+
+  .pcard--b {
+    --pcard-tilt: 1.8deg;
+    --pcard-settle: -1deg;
+  }
+}
+
+/* 아주 좁은 휴대폰(350px 미만): 제목 '두 장의 엽서'를 처음부터 둘째 줄로 내린다. 이 폭에서는 제목 글꼴이 도착하면 어차피 두 줄이 되는데,
+   도착 전(대신 쓰는 글꼴)에는 한 줄이라 섹션 높이가 늦게 바뀌고 새로고침했을 때 스크롤 위치가 어긋난다 */
+@media (max-width: 349px) {
+  .interviews__title span {
+    display: block;
+  }
+
+  /* 안내 한 줄도 같은 까닭으로 두 줄 높이를 미리 잡아 둔다(손글씨 글꼴이 오기 전에는 글자가 넓어 두 줄로 넘어간다) */
+  .pcards-hint {
+    align-items: flex-start;
+    min-height: 2.4em;
+  }
+}
+
+/* 태블릿: 나란히 놓인 두 장의 기울기를 조금 줄인다 */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .pcards:not(.pcards--single) .pcard {
+    --pcard-tilt: -2.4deg;
+  }
+
+  .pcards:not(.pcards--single) .pcard--b {
+    --pcard-tilt: 2deg;
+  }
+}
+
+/* 데스크톱: 두 장 사이를 조금 더 벌린다 */
+@media (min-width: 1024px) {
+  .pcards:not(.pcards--single) {
+    --pcard-col: 46%;
+    --pcard-share: 0.0046;
+    column-gap: 6%;
+  }
+}
+
+/* 8. 동작 줄이기 — 돌리지 않고 앞뒷면을 겹쳐 서서히 바꾼다(0.2s) ------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .pcard__inner {
+    transform: none;
+    transform-style: flat;
+    rotate: none;
+    scale: none;
+    transition: none;
+  }
+
+  .pcard__face {
+    -webkit-backface-visibility: visible;
+    backface-visibility: visible;
+    transition: opacity 0.2s linear;
+  }
+
+  .pcard__front {
+    opacity: calc(1 - var(--flip));
+  }
+
+  .pcard__back {
+    opacity: var(--flip);
+    transform: none;
+  }
+
+  .pcard__cta-arrow {
+    transition: none;
+  }
+}
+
+/* 9. 고대비 모드(Windows) — 그림자가 그려지지 않으므로 엽서와 라벨의 경계를 테두리로 보여 준다 */
+@media (forced-colors: active) {
+  .pcard__face,
+  .pcard--a .pcard__label,
+  .pcard__turn {
+    border: 1px solid CanvasText;
+  }
+
+  .pcard--a .pcard__tag > span {
+    clip-path: none;
+  }
+}

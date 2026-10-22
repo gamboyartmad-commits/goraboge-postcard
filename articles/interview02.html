@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<!-- 이 파일은 '제주어_인터뷰기사/두사람기사.html' 에서 만든 것입니다(.work/sync/articles.py). 기사 글 · 디자인은 원본에서 고친 뒤 다시 넣으세요 -->
+
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>제주어를 쓰는 두 사람</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="icon" href="../favicon.ico" sizes="32x32">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<!-- 하영 고라보게 웹진의 성과 측정(config.js 의 analytics — js/track.js). 기사 디자인과는 상관없다 -->
+<script defer src="../config.js"></script>
+<script type="module">import('../js/track.js').then((m) => m.init()).catch((e) => console.error('[track]', e));</script>
+<meta name="description" content="말은 쓰지 않으면 말하던 사람과 함께 사라진다. 모슬포 책방에서 어르신들의 이야기를 받아 적는 손녀와, 어머니에게 들은 말로 동시를 쓰는 해녀의 딸을 만났다.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+
+<style>
+/* =========================================================
+   Tokens
+   레이아웃: #01은 한 화면(제목 | 질문·사진 2단), #02는 사진 위에 찢어진 종이, #next는 감귤색 띠
+   ========================================================= */
+:root {
+  --paper: #F4E9D6;          /* 크림색 종이 (#01, 다음 기사 카드) */
+  --sheet: #FFFDF8;          /* 본문 종이 */
+  --fiber: #FFFFFF;          /* 찢어진 단면의 흰 섬유층 */
+  --night: #0E0D0C;          /* 배경 사진 자리 (사진을 넣기 전까지 검은색) */
+  --on-night: #EFE6D6;
+  --on-night-2: rgba(239, 230, 214, .62);
+  --ink: #2A2420;
+  --ink-2: #5E554D;
+  --ink-3: #8C8278;
+  --line: rgba(42, 36, 32, .14);
+  --tangerine: #E2672E;      /* 감귤색 포인트 */
+  --tangerine-2: #C4521C;
+  --tangerine-3: #F0915F;    /* 어두운 바탕 위 포인트 */
+  --tangerine-tint: rgba(226, 103, 46, .22);
+  --cream-on-orange: #FFF3E4;
+  --duo: #BAC4D5;            /* 인물 사진 바탕 (사진 배경색과 동일) */
+
+  --serif: "Noto Serif KR", "Nanum Myeongjo", serif;
+  --sans: "Noto Sans KR", "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+
+  --header-h: 64px;
+  --header-total: calc(var(--header-h) + env(safe-area-inset-top, 0px));
+  --col: 680px;
+  --wide: 1080px;
+  --gutter: 24px;
+
+  color-scheme: light;       /* 종이 질감을 살린 단일(라이트) 테마 */
+}
+
+/* =========================================================
+   Base
+   ========================================================= */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.85;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+}
+img { display: block; max-width: 100%; }
+a { color: inherit; }
+a:focus-visible { outline: 2px solid var(--tangerine); outline-offset: 3px; border-radius: 4px; }
+[tabindex="-1"]:focus { outline: none; }
+.wrap {
+  width: 100%; max-width: var(--wide); margin: 0 auto;
+  padding-left: max(var(--gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+}
+
+/* =========================================================
+   Header
+   ========================================================= */
+.site-header {
+  position: fixed; inset: 0 0 auto 0; z-index: 50;
+  height: var(--header-total);
+  padding-top: env(safe-area-inset-top, 0px);
+  background: rgba(244, 233, 214, .92);
+  -webkit-backdrop-filter: saturate(1.2) blur(10px);
+  backdrop-filter: saturate(1.2) blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.site-header .wrap { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.brand { display: flex; align-items: baseline; gap: 14px; min-width: 0; text-decoration: none; }
+.brand__logo { font-family: var(--serif); font-weight: 700; font-size: 18px; letter-spacing: .2em; }
+.brand__sub { font-size: 13px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.header-nav { display: flex; gap: 2px; flex-shrink: 0; }
+.header-nav a {
+  font-size: 13px; line-height: 1; text-decoration: none; color: var(--ink-3);
+  padding: 8px 11px; border-radius: 999px; transition: color .2s, background-color .2s;
+}
+.header-nav a:hover { color: var(--ink); }
+.header-nav a.is-active { color: var(--ink); background: rgba(42, 36, 32, .07); }
+.progress {
+  position: absolute; left: 0; bottom: -1px; width: 100%; height: 2px;
+  background: var(--tangerine); transform: scaleX(0); transform-origin: 0 50%;
+}
+
+/* =========================================================
+   Shared
+   ========================================================= */
+.section { position: relative; scroll-margin-top: var(--header-total); }
+.sec-label {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 12px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; line-height: 1.6;
+  color: var(--tangerine-2);
+}
+.sec-label::before { content: ""; width: 28px; height: 1px; background: currentColor; }
+
+/* 마스킹 테이프 라벨 — 양 끝이 찢어진 종이 테이프 */
+.tape {
+  display: inline-block;
+  padding: 7px 20px 6px;
+  font-size: 12px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; line-height: 1.4;
+  color: var(--tangerine-2);
+  background: rgba(226, 103, 46, .13);
+  transform: rotate(-1.5deg);
+  clip-path: polygon(2% 6%, 30% 0, 62% 5%, 98% 0, 100% 24%, 97% 48%, 100% 74%, 98% 100%, 66% 95%, 34% 100%, 3% 96%, 0 76%, 2.5% 52%, 0 26%);
+}
+
+/* 제주어 낱말 하이라이트 */
+.jw {
+  font-style: normal; font-weight: 600; color: var(--ink);
+  background: linear-gradient(transparent 58%, var(--tangerine-tint) 58%);
+  padding: 0 1px;
+}
+
+/* 인물 사진 — 사진 배경과 같은 푸른 회색 액자 */
+.portrait {
+  position: relative; margin: 0; overflow: hidden;
+  aspect-ratio: 3 / 4; max-width: 100%;
+  background: var(--duo);
+}
+.portrait img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+
+/* =========================================================
+   Torn paper
+   .tear  — 섹션 경계 (위 종이가 찢겨 아래 바탕이 드러남)
+   .edge  — 종이 조각(.sheet)의 위·아래 찢어진 가장자리
+   SVG 모양은 하단 스크립트가 요소 크기에 맞춰 그림 (면 · 흰 섬유층 · 보풀)
+   ========================================================= */
+.tear {
+  position: relative; z-index: 2;
+  display: block;
+  height: clamp(56px, 6vw, 90px);
+  margin-block: -1px;
+  overflow: hidden;
+  background: var(--bg, transparent);
+}
+.tear svg {
+  filter: drop-shadow(0 3px 2px rgba(40, 25, 10, .22)) drop-shadow(0 10px 14px rgba(40, 25, 10, .14));
+}
+.tear[data-dir="up"] svg {
+  filter: drop-shadow(0 -3px 2px rgba(40, 25, 10, .22)) drop-shadow(0 -10px 14px rgba(40, 25, 10, .14));
+}
+.edge {
+  position: relative; z-index: 1;
+  display: block;
+  height: var(--edge-h, clamp(26px, 3vw, 38px));
+  margin-block: -1px;
+}
+.tear svg, .edge svg { display: block; width: 100%; height: 100%; overflow: hidden; }
+.t-face  { fill: var(--face); }
+.t-fiber { fill: var(--fiber); }
+.t-fuzz  { fill: var(--fiber); opacity: .45; }
+
+.sheet { --face: var(--sheet); position: relative; }
+.sheet__body { background: var(--face); }
+
+/* =========================================================
+   #01 — 한 화면 커버
+   ========================================================= */
+/* 위에서 아래로: 제목 → 질문·인물 → 마무리 메모
+   사진 높이는 화면 높이에 맞춰 줄어들어, 제목부터 인물 카드까지 첫 화면에 들어옴 */
+.cover { padding-block: calc(var(--header-total) + clamp(24px, 4vh, 56px)) clamp(48px, 9vh, 96px); }
+.cover > .wrap { display: flex; flex-direction: column; align-items: center; gap: clamp(28px, 5vh, 56px); text-align: center; }
+.cover__head { display: flex; flex-direction: column; align-items: center; }
+.cover__answers { display: flex; flex-direction: column; align-items: center; gap: clamp(16px, 3vh, 28px); width: 100%; }
+.cover__title {
+  font-family: var(--serif); font-weight: 700;
+  font-size: clamp(2rem, min(4.2vw, 7vh), 3.4rem); line-height: 1.28; letter-spacing: -.01em;
+  margin: clamp(10px, 1.6vh, 16px) 0 clamp(10px, 1.8vh, 18px);
+  text-wrap: balance;
+}
+.cover__lead { margin: 0; max-width: 40em; font-size: clamp(1rem, 2.3vh, 1.0625rem); line-height: 1.8; color: var(--ink-2); }
+
+.big-q {
+  margin: 0;
+  font-family: var(--serif); font-weight: 600;
+  font-size: clamp(1.25rem, min(2.2vw, 4vh), 1.875rem); line-height: 1.45; letter-spacing: -.01em;
+  text-wrap: balance;
+}
+
+.people {
+  --photo-h: clamp(170px, calc(100vh - 600px), 330px);
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(3, minmax(0, calc(var(--photo-h) * .75)));
+  justify-content: center; width: 100%;
+  gap: clamp(20px, 3vw, 48px);
+}
+.people--two { --photo-h: clamp(190px, calc(100vh - 560px), 380px); grid-template-columns: repeat(2, minmax(0, calc(var(--photo-h) * .75))); }
+.person__link { display: block; height: 100%; text-decoration: none; text-align: left; }
+.person__photo { position: relative; }
+.person__photo::before { /* 사진을 붙인 종이 테이프 */
+  content: ""; position: absolute; z-index: 3; top: -10px; left: 50%;
+  width: 76px; height: 22px;
+  transform: translateX(-50%) rotate(-3deg);
+  background: rgba(255, 253, 248, .78);
+  clip-path: polygon(3% 8%, 50% 0, 97% 6%, 100% 30%, 96% 55%, 100% 80%, 97% 100%, 50% 94%, 2% 100%, 0 72%, 4% 46%, 0 22%);
+}
+.person:nth-child(2) .person__photo::before { transform: translateX(-50%) rotate(2.5deg); }
+.person:nth-child(3) .person__photo::before { transform: translateX(-50%) rotate(-1deg); }
+.person .portrait {
+  box-shadow: 0 1px 2px rgba(70, 45, 20, .12), 0 10px 24px -12px rgba(70, 45, 20, .35);
+  transition: transform .35s ease, box-shadow .35s ease;
+}
+.person__link:hover .portrait { transform: translateY(-4px); box-shadow: 0 2px 4px rgba(70, 45, 20, .12), 0 18px 32px -14px rgba(70, 45, 20, .4); }
+.person__body { padding-top: clamp(12px, 2vh, 20px); }
+.person__name { margin: 0; font-size: 13px; line-height: 1.55; color: var(--ink-2); }
+.person__name strong { display: block; margin-bottom: 1px; font-size: 16px; color: var(--ink); }
+.person__word {
+  margin: clamp(8px, 1.4vh, 14px) 0 0; padding-top: clamp(8px, 1.4vh, 14px); border-top: 1px solid var(--line);
+  font-family: var(--serif); font-weight: 700;
+  font-size: clamp(1.05rem, min(1.5vw, 2.8vh), 1.375rem); line-height: 1.45;
+}
+.person__word q { quotes: "“" "”"; }
+.person__meaning { display: block; margin-top: 3px; font-family: var(--sans); font-size: 13px; font-weight: 400; color: var(--ink-3); }
+.person__more {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: clamp(6px, 1.2vh, 12px);
+  font-size: 12.5px; font-weight: 600; color: var(--tangerine-2);
+}
+.person__more svg { transition: transform .25s; }
+.person__link:hover .person__more svg { transform: translateX(3px); }
+
+.cover__outro { /* 찢어진 메모지 */
+  --face: var(--sheet); --edge-h: 18px;
+  width: 100%; max-width: 720px;
+  filter: drop-shadow(0 1px 1px rgba(70, 45, 20, .12)) drop-shadow(0 10px 18px rgba(70, 45, 20, .1));
+}
+.cover__outro .sheet__body {
+  margin: 0; padding: 12px clamp(20px, 3vw, 36px) 14px;
+  text-align: center;
+  font-family: var(--serif); font-size: 1rem; line-height: 1.9; color: var(--ink);
+}
+
+/* =========================================================
+   #02 — 사진 위에 놓인 인터뷰
+   사진을 넣으려면 각 .interview 에 style="--photo: url('../assets/interviews/article/파일명.jpg')" 추가
+   ========================================================= */
+.interviews { background: var(--night); color: var(--on-night); }
+.interviews__head { text-align: center; padding-block: clamp(64px, 11vh, 120px) clamp(8px, 2vh, 24px); }
+.interviews .sec-label { color: var(--tangerine-3); }
+.interviews__title { margin: 14px 0 0; font-family: var(--serif); font-size: clamp(1.75rem, 3.6vw, 2.5rem); font-weight: 700; line-height: 1.3; color: var(--on-night); }
+.iv-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 26px; }
+.iv-nav a {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 16px; border: 1px solid rgba(239, 230, 214, .24); border-radius: 999px;
+  font-size: 14px; line-height: 1.4; text-decoration: none; color: var(--on-night-2);
+  transition: border-color .2s, color .2s;
+}
+.iv-nav a span { font-size: 12px; font-weight: 700; color: var(--tangerine-3); }
+.iv-nav a:hover { border-color: var(--tangerine-3); color: var(--on-night); }
+
+.interview { position: relative; padding-block: clamp(48px, 13vh, 150px); }
+.interview__photo {
+  position: absolute; inset: 0;
+  background-color: var(--night);
+  background-image: var(--photo, none);
+  background-size: cover; background-position: center; background-attachment: fixed;
+}
+.interview[style*="--photo"] .interview__photo::after { content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, .35); } /* 사진이 있을 때만 어둡게 */
+.interview > .wrap { position: relative; z-index: 1; }
+/* 배경 사진이 뚝 끊기지 않게: 사진 양 끝을 서서히 지우고,
+   두 인터뷰가 맞닿는 곳에서는 사진을 서로 겹쳐 번지듯 넘어가게 함 */
+.interview__photo {
+  z-index: 0; --fade: 45vh;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
+          mask-image: linear-gradient(to bottom, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
+}
+.interview + .interview .interview__photo { top: calc(var(--fade) / -2); }
+.interview:has(+ .interview) .interview__photo { bottom: calc(var(--fade) / -2); }
+.interview .sheet {
+  max-width: calc(var(--col) + 144px); margin: 0 auto;
+  scroll-margin-top: calc(var(--header-total) + 16px);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .35)) drop-shadow(0 22px 40px rgba(0, 0, 0, .45));
+}
+.interview .sheet__body { padding: clamp(16px, 3vh, 32px) clamp(22px, 6vw, 72px) clamp(24px, 4vh, 44px); color: var(--ink); }
+.interview__head { text-align: center; margin-bottom: 52px; }
+.interview__title {
+  margin: 24px 0 28px;
+  font-family: var(--serif); font-weight: 700;
+  font-size: clamp(1.5rem, 3.4vw, 2.125rem); line-height: 1.45; letter-spacing: -.01em;
+  text-wrap: balance;
+}
+.interview__kicker { display: block; margin-bottom: 6px; font-size: .58em; font-weight: 600; color: var(--ink-2); }
+.byline { margin: 0; line-height: 1.5; }
+.byline strong { display: block; font-size: 16px; }
+.byline span { font-size: 14px; color: var(--ink-3); }
+
+.qa { margin: 0 0 44px; }
+.qa:last-child { margin-bottom: 0; }
+.q { margin: 0 0 12px; font-size: 1.0625rem; font-weight: 700; line-height: 1.6; }
+.a { margin: 0; color: #3A332E; }
+.a--quote {
+  padding-left: 22px; border-left: 2px solid var(--tangerine);
+  font-family: var(--serif); font-size: 1.125rem; line-height: 1.95; color: var(--ink);
+}
+
+/* =========================================================
+   #next — 다음 기사
+   ========================================================= */
+.next { background: var(--tangerine); color: var(--cream-on-orange); padding-block: clamp(48px, 9vh, 88px) 40px; }
+.next .sec-label { color: var(--cream-on-orange); }
+.next__inner { max-width: var(--col); margin: 0 auto; }
+.next-card-wrap {
+  margin-top: 22px;
+  filter: drop-shadow(0 2px 2px rgba(90, 30, 0, .2)) drop-shadow(0 16px 24px rgba(90, 30, 0, .18));
+  transition: transform .35s ease;
+}
+.next-card-wrap:hover { transform: translateY(-3px) rotate(-.3deg); }
+.next-card { --face: var(--paper); display: block; color: var(--ink); text-decoration: none; }
+.next-card .sheet__body { display: grid; gap: 8px; padding: 24px 48px 28px; }
+.next-card:focus-visible { outline: none; }
+.next-card:focus-visible .btn { box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--ink); }
+.next-card__eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--tangerine-2); }
+.next-card__title { font-family: var(--serif); font-weight: 700; font-size: clamp(1.375rem, 3vw, 1.875rem); line-height: 1.4; }
+.next-card__desc { font-size: 15px; line-height: 1.7; color: var(--ink-2); }
+.btn {
+  justify-self: start; margin-top: 14px;
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 13px 22px; border-radius: 999px;
+  background: var(--ink); color: var(--paper);
+  font-size: 15px; font-weight: 600; line-height: 1;
+  transition: background-color .25s;
+}
+.btn svg { transition: transform .25s; }
+.next-card:hover .btn { background: var(--tangerine-2); }
+.next-card:hover .btn svg { transform: translateX(4px); }
+
+.next__foot {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 16px;
+  max-width: var(--col); margin: 56px auto 0; padding-top: 20px;
+  border-top: 1px solid rgba(255, 243, 228, .35);
+  font-size: 13px; color: var(--cream-on-orange);
+}
+.next__foot a { text-decoration: none; }
+.next__foot a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+
+/* =========================================================
+   웹진에 넣으며 더한 것(.work/sync/articles.py) — 공통 상단바 로고 · '← 웹진' · 서브 메인과 같은 푸터 · 플로팅 버튼
+   ========================================================= */
+.brand { align-items: center; }
+.brand__hy { display: block; width: auto; height: 30px; }
+.header-nav a.to-webzine { margin-right: 6px; color: var(--tangerine-2); font-weight: 600; border: 1px solid var(--tangerine-tint); }
+.header-nav a.to-webzine:hover { color: var(--tangerine-2); background: var(--tangerine-tint); }
+
+.hy-footer { background: #b84a26; color: #fbf3e6; font-family: var(--sans); font-size: 14px; line-height: 1.75; padding: 56px 0 24px; }
+.hy-footer__in { width: min(1120px, 100% - 48px); margin-inline: auto; }
+.hy-footer a { color: inherit; }
+.hy-footer a:hover { color: #f6d9a8; }
+.hy-footer__grid { display: grid; grid-template-columns: 1.1fr 1fr 1.6fr; gap: 40px 56px; padding-bottom: 40px; }
+.hy-footer__name { margin: 0; }
+.hy-footer__name img { display: block; width: auto; height: 56px; rotate: -3deg;
+  filter: drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(0 3px 4px rgba(0,0,0,.25)); }
+.hy-footer__tagline { max-width: 34em; margin: 12px 0 0; color: rgba(251, 243, 230, .85); font-family: "Pretendard Variable", Pretendard, var(--sans); font-size: 15px; font-weight: 500; line-height: 1.6; } /* 29차: 서브 메인처럼 깔끔한 고딕 */
+.hy-footer__heading { display: flex; align-items: center; gap: .7em; margin: 0 0 12px; color: #f6d9a8; font-size: 12px; font-weight: 700; letter-spacing: .16em; }
+.hy-footer__heading::after { content: ""; flex: 1; border-top: 1px dashed rgba(251, 243, 230, .4); }
+.hy-footer__list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.hy-footer__list--small { color: rgba(251, 243, 230, .8); }
+.hy-footer__bottom { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; padding-top: 16px;
+  border-top: 1px dashed rgba(251, 243, 230, .4); color: rgba(251, 243, 230, .8); font-size: 12px; letter-spacing: .04em; }
+.hy-footer__bottom p { margin: 0; }
+.hy-footer__links { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.hy-footer__links a { text-decoration: underline; text-underline-offset: .2em; color: #fffaf0; }
+.hy-footer__privacy { font-weight: 800; }
+@media (max-width: 767px) { .hy-footer__grid { grid-template-columns: 1fr; gap: 28px; } }
+
+/* 플로팅 버튼 '제주어 엽서 써보기'(서브 메인과 같은 모양) → 엽서 쓰러가기 쪽 */
+.hy-fab { position: fixed; right: calc(clamp(1rem, .62rem + 1.6vw, 1.75rem) + env(safe-area-inset-right, 0px)); bottom: calc(clamp(1rem, .62rem + 1.6vw, 1.75rem) + env(safe-area-inset-bottom, 0px));
+  z-index: 60; display: inline-flex; align-items: center; height: 3.75rem; padding: 0 4.6rem 0 1.6rem; border-radius: 999px; background: #2e2d36; color: #fffaf0;
+  box-shadow: 0 0 0 2px rgba(255, 250, 240, .9), 0 14px 26px -10px rgba(0, 0, 0, .55); font-family: var(--sans); line-height: 1.2; text-decoration: none; white-space: nowrap; }
+.hy-fab:hover { background: #3d3c48; }
+.hy-fab__text { display: grid; gap: .1em; }
+.hy-fab__text b { font-size: 1.08rem; font-weight: 800; }
+.hy-fab__text span { color: rgba(255, 250, 240, .78); font-size: .8rem; }
+.hy-fab img { position: absolute; right: .7rem; bottom: .45rem; width: 3.4rem; height: auto; rotate: 9deg; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .4)); pointer-events: none; }
+@media (max-width: 767px) { .hy-fab { height: 3.25rem; padding: 0 4rem 0 1.3rem; } .hy-fab__text b { font-size: .95rem; } .hy-fab__text span { font-size: .72rem; } .hy-fab img { width: 2.9rem; } }
+
+
+/* =========================================================
+   서브 메인과 디자인 통일(23차 — .work/sync/articles.py). 배치 · 글은 원본 그대로, 아래 값만 서브 메인과 같게
+   ========================================================= */
+:root {
+  --paper: #f4efe5;            /* 서브 메인 오트밀 종이(--oat) */
+  --sheet: #fffaf0;            /* 흰 종이(--paper-50) */
+  --ink: #3a2116;              /* 밤색 글자(--basalt-900) */
+  --ink-2: #5c3726;            /* --basalt-700 */
+  --ink-3: #7a5442;            /* --basalt-500 */
+  --line: rgba(74, 42, 28, .16);
+  --tangerine: #e1653a;        /* 포인트 주황(--tangerine-500) */
+  --tangerine-2: #a8401c;      /* 작은 주황 글자(--tangerine-700) */
+  --tangerine-3: #f29a72;      /* 어두운 바탕 위 주황(--tangerine-300) */
+  --tangerine-tint: rgba(225, 101, 58, .22);
+  --cream-on-orange: #fff4e4;  /* 띠 위 글자(--band-ink) */
+  --sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --serif: "Gowun Batang", "Noto Serif KR", serif;   /* 제주어 낱말 · 인용(서브 메인 --font-jeju) */
+}
+/* 제목은 서브 메인처럼 Pretendard 굵게 */
+.cover__title, .big-q, .interviews__title, .interview__title, .next-card__title {
+  font-family: var(--sans); letter-spacing: -.025em;
+}
+.cover__title, .interviews__title, .interview__title, .next-card__title { font-weight: 800; }
+.big-q { font-weight: 700; }
+.cover__title { color: #cc5428; }  /* 큰 제목 주황(--tangerine-600) — 서브 메인 섹션 제목과 같게 */
+.cover__outro .sheet__body { font-family: var(--sans); font-weight: 500; }
+.a { color: #4a2a1c; }  /* 답변 글자 = 서브 메인 본문 글자(--basalt-800) */
+/* 라벨(#01 · Interview): 서브 메인 라벨(No.01 · Write)과 같게 — 굵게 · 앞에 두꺼운 주황 줄 */
+.sec-label { font-weight: 700; letter-spacing: .16em; color: #a8401c; }
+.sec-label::before { width: 1.8em; height: 2px; border-radius: 2px; background: #e1653a; }
+.interviews .sec-label { color: #f29a72; }
+.next .sec-label { color: #fff4e4; }
+.next .sec-label::before { background: #fff4e4; }
+/* 머리글: 서브 메인 고정 목차처럼 — 흰 종이 · 점선 밑줄 · 지금 칸은 진한 밤색 알약 */
+.site-header { background: rgba(255, 250, 240, .94); border-bottom: 1.5px dashed #d7a873; }
+.header-nav a { font-weight: 700; color: #5c3726; }
+.header-nav a.is-active { background: #4a2a1c; color: #fffaf0; }
+.progress { background: #e1653a; }
+/* 인물 사진 테이프: 서브 메인처럼 주황 테이프 */
+.person__photo::before { background: rgba(242, 154, 114, .8); }
+/* 다음 기사 띠: 서브 메인 주황 띠(--band)와 같게 */
+.next { background: #b84a26; }
+/* 단추: 서브 메인 '제주어 엽서 써보기'와 같은 짙은 알약 */
+.btn { background: #2e2d36; color: #fffaf0; font-weight: 700; }
+.next-card:hover .btn { background: #e1653a; color: #2a160d; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .person .portrait, .next-card-wrap { transition: none; }
+}
+
+/* =========================================================
+   Responsive
+   ========================================================= */
+@media (max-width: 959px) {
+  .brand__sub { display: none; }
+  .cover { padding-block: calc(var(--header-total) + 48px) 64px; }
+  .cover__title { font-size: clamp(2rem, 5.2vw, 3.2rem); }
+  .big-q { font-size: clamp(1.375rem, 3.2vw, 2rem); }
+  .people { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .people--two { grid-template-columns: repeat(2, minmax(0, 260px)); }
+  .person__body { padding-top: 20px; }
+  .person__word { font-size: 1.375rem; }
+}
+@media (max-width: 720px) {
+  :root { --gutter: 16px; --header-h: 56px; }
+  body { font-size: 16px; }
+  .people, .people--two { grid-template-columns: 1fr; gap: 28px; }
+  .person__link { display: grid; grid-template-columns: 112px 1fr; gap: 18px; align-items: start; }
+  .person__photo::before { width: 56px; height: 18px; top: -8px; }
+  .person__body { padding-top: 0; }
+  .person__name strong { font-size: 17px; }
+  .person__word { margin-top: 12px; padding-top: 12px; font-size: 1.25rem; }
+  .cover__outro .sheet__body { padding: 12px 20px 14px; font-size: 1rem; }
+  .interview { padding-block: 40px; }
+  .interview__head { margin-bottom: 40px; }
+  .a--quote { padding-left: 16px; font-size: 1.0625rem; }
+  .next-card .sheet__body { padding: 20px 24px 26px; }
+  .next__foot { margin-top: 44px; }
+}
+
+/* 웹진에 넣으며 더한 것(24차): 인터뷰 02 의 인물 사진 크기를 01 과 같게 · 휴대폰 인물 카드를 작게 */
+.people--two { --photo-h: clamp(170px, calc(100vh - 600px), 330px); }
+@media (max-width: 720px) {
+  .people, .people--two { gap: 14px; }
+  .person__link { grid-template-columns: 66px 1fr; gap: 14px; align-items: center; }
+  .person__photo::before { width: 34px; height: 11px; top: -5px; }
+  .person__body { padding-top: 0; }
+  .person__name { font-size: 11.5px; line-height: 1.35; }
+  .person__name strong { font-size: 15px; line-height: 1.3; margin-bottom: 1px; }
+  .person__word { margin-top: 5px; padding-top: 5px; font-size: 1rem; line-height: 1.35; }
+  .person__meaning { margin-top: 0; font-size: 11.5px; line-height: 1.4; }
+  .person__more { margin-top: 3px; font-size: 11.5px; line-height: 1.4; }
+}</style>
+</head>
+
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="../" title="하영 고라보게 웹진으로">
+      <img class="brand__hy" src="../assets/logo-hayeong.png" alt="하영 고라보게" width="860" height="556">
+      <span class="brand__sub">Interview : 제주어를 쓰는 두 사람</span>
+    </a>
+    <nav class="header-nav" aria-label="섹션 이동">
+      <a class="to-webzine" href="../#interviews" title="하영 고라보게 웹진으로">← 웹진</a>
+      <a href="#01" data-nav="01" class="is-active">01</a>
+      <a href="#02" data-nav="02">02</a>
+      <a href="#next" data-nav="next">next</a>
+    </nav>
+  </div>
+  <div class="progress" aria-hidden="true"></div>
+</header>
+
+<main>
+
+  <!-- ===================================================
+       #01 — 제주어를 쓰는 두 사람
+       =================================================== -->
+  <section id="01" class="section cover" aria-labelledby="cover-title">
+    <div class="wrap">
+      <div class="cover__head">
+        <span class="sec-label">#01 · Interview</span>
+        <h1 id="cover-title" class="cover__title">제주어를 쓰는 두 사람</h1>
+        <p class="cover__lead">말은 쓰지 않으면 말하던 사람과 함께 사라진다. 모슬포 책방에서 어르신들의 이야기를 받아 적는 손녀와, 어머니에게 들은 말로 동시를 쓰는 해녀의 딸을 만났다.</p>
+      </div>
+
+      <div class="cover__outro sheet">
+        <span class="edge" data-dir="up" data-seed="17" aria-hidden="true"></span>
+        <p class="sheet__body">기록의 방식은 다르지만 두 사람이 책에 담고자 한 것은 같다. 제주어 속에 깃든 말과, 그 말을 나누며 살아온 사람들의 삶이다.</p>
+        <span class="edge" data-dir="down" data-seed="18" aria-hidden="true"></span>
+      </div>
+
+      <div class="cover__answers">
+        <h2 class="big-q">제주어가 사라진다면 꼭 남기고 싶은 말이 있나요?</h2>
+        <ul class="people people--two">
+          <li class="person">
+            <a class="person__link" href="#02-1">
+              <div class="person__photo">
+                <figure class="portrait">
+                  <img src="../assets/interviews/article/shin-uiju.png" alt="신의주 어나더페이지 대표" width="765" height="1024">
+                </figure>
+              </div>
+              <div class="person__body">
+                <p class="person__name"><strong>신의주</strong>어나더페이지 대표</p>
+                <p class="person__word"><q>너만 잘 살지 말라이</q><span class="person__meaning">너 혼자만 잘 살지 말라</span></p>
+                <span class="person__more">인터뷰 읽기 <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              </div>
+            </a>
+          </li>
+          <li class="person">
+            <a class="person__link" href="#02-2">
+              <div class="person__photo">
+                <figure class="portrait">
+                  <img src="../assets/interviews/article/kim-sinja.png" alt="김신자 시인" width="765" height="1024">
+                </figure>
+              </div>
+              <div class="person__body">
+                <p class="person__name"><strong>김신자</strong>시인</p>
+                <p class="person__word"><q>잘도 아꼽다이</q><span class="person__meaning">너무 귀엽고 사랑스럽다</span></p>
+                <span class="person__more">인터뷰 읽기 <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              </div>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 찢어짐 디바이더: #01 → #02 -->
+  <div class="tear" data-dir="down" data-seed="29" style="--face: var(--paper); --bg: var(--night);" aria-hidden="true"></div>
+
+  <!-- ===================================================
+       #02 — 인터뷰 (배경 사진 자리는 검은색)
+       =================================================== -->
+  <section id="02" class="section interviews" aria-labelledby="iv-title">
+    <div class="wrap">
+      <header class="interviews__head">
+        <span class="sec-label">#02 · Interview</span>
+        <h2 id="iv-title" class="interviews__title">두 사람의 이야기</h2>
+        <nav class="iv-nav" aria-label="인터뷰 바로가기">
+          <a href="#02-1"><span>01</span>신의주</a>
+          <a href="#02-2"><span>02</span>김신자</a>
+        </nav>
+      </header>
+    </div>
+
+    <!-- Interview 01 -->
+    <article id="02-1" class="interview" aria-labelledby="iv1-title" style="--photo: url('../assets/interviews/article/another-page-blur.jpg')">
+      <div class="interview__photo" aria-hidden="true"></div>
+      <div class="wrap">
+        <div class="sheet">
+          <span class="edge" data-dir="up" data-seed="61" aria-hidden="true"></span>
+          <div class="sheet__body">
+            <header class="interview__head">
+              <span class="tape">Interview 01</span>
+              <h3 id="iv1-title" class="interview__title">
+                <span class="interview__kicker">고치지 않은 할머니의 말이 책이 되다,</span>
+                “너만 잘 살지 말라이”
+              </h3>
+              <p class="byline"><strong>신의주</strong><span>독립서점 ‘어나더 페이지’ 대표</span></p>
+            </header>
+
+            <div class="qa">
+              <h4 class="q">서점은 어디에 있나요.</h4>
+              <p class="a">제주 서남쪽 끝 대정읍 모슬포 골목 안쪽에 독립서점 ‘어나더 페이지’가 있다.</p>
+            </div>
+            <div class="qa">
+              <h4 class="q">『서지여사와 복만 씨』는 어떤 책인가요.</h4>
+              <p class="a">서점 한편에 놓인 『서지여사와 복만 씨』는 신 대표의 할머니 현서지(86) 씨의 삶을 담은 그림책이다. 할머니는 ‘제주 어르신 그림책 학교’에서 1년간 그림책을 만드는 법을 배우고, 평생 써온 제주어 그대로 자신의 이야기를 책에 담았다. 졸업식 날 선생님들께 허리 숙여 인사하던 할머니는 끝내 울음을 터뜨렸다. 신 대표는 그 눈물을 4·3과 한국전쟁이 겹친 세월 속에 배우지 못해 서러웠던 지난 세월을 위로받고, 할머니의 삶과 언어가 세상에 당당히 인정받은 순간으로 기억한다.</p>
+            </div>
+            <div class="qa">
+              <h4 class="q">기록 작업은 어떻게 이어지고 있나요.</h4>
+              <p class="a">할머니의 이야기를 받아 적은 이는 신 대표의 어머니다. 학창 시절 교실에서 제주어를 쓰면 벌을 받던 세대인 어머니는 현재 일제강점기 알뜨르 비행장 강제동원 피해 어르신들의 증언을 녹음하고, 토박이도 알아듣기 어려운 옛 제주어를 한 문장씩 풀어쓰고 있다. 그렇게 이어진 기록 작업은 자연스레 손녀에게로 전해졌다. 신 대표는 매일 출근 전 할머니와 두 시간씩 대화를 나누며 어르신들의 삶을 기록한다. 동네 어르신 세 분의 이야기를 엮어 책을 펴낸 데 이어, 지금은 북촌리에 사는 85세 어르신의 생애사를 집필하고 있다.</p>
+            </div>
+            <div class="qa">
+              <h4 class="q">책에 담고 싶은 것은 무엇인가요.</h4>
+              <p class="a">신 대표가 책에 담고자 하는 것은 단순한 낱말이 아닌 그 안에 깃든 삶의 태도다. 그가 할머니에게 가장 많이 들었던 말은 “<em class="jw">너만 잘 살지 말라이</em>”였다. 너 혼자만 잘 살지 말라는 이 당부에는 일손이 모자랄 때 대가 없이 이웃을 거들던 제주식 품앗이 ‘<em class="jw">수눌음</em>’의 정신이 담겨 있다. 신 대표는 말과 함께 서로 돕고 살아온 공동체의 마음까지 사라져 가는 현실을 아쉬워했다.</p>
+            </div>
+            <div class="qa">
+              <h4 class="q">언어와 삶은 어떤 관계일까요.</h4>
+              <p class="a a--quote">“언어가 사라지면 문화가 사라지고, 문화가 사라지면 언어도 결국 사라집니다. 말과 삶은 언제나 함께 가는 법이니까요.”</p>
+            </div>
+          </div>
+          <span class="edge" data-dir="down" data-seed="62" aria-hidden="true"></span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Interview 02 -->
+    <article id="02-2" class="interview" aria-labelledby="iv2-title" style="--photo: url('../assets/interviews/article/books-blur.jpg')">
+      <div class="interview__photo" aria-hidden="true"></div>
+      <div class="wrap">
+        <div class="sheet">
+          <span class="edge" data-dir="up" data-seed="71" aria-hidden="true"></span>
+          <div class="sheet__body">
+            <header class="interview__head">
+              <span class="tape">Interview 02</span>
+              <h3 id="iv2-title" class="interview__title">
+                <span class="interview__kicker">어머니의 입말을 아이들의 동시로 옮기다,</span>
+                “잘도 아꼽다이”
+              </h3>
+              <p class="byline"><strong>김신자</strong><span>시인</span></p>
+            </header>
+
+            <div class="qa">
+              <h4 class="q">『잘도 아꼽다이』는 어떻게 탄생했나요.</h4>
+              <p class="a">제주 방언 연구자인 김신자 시인은 석·박사 과정에서 제주어의 감정 표현과 상징어(의성어·의태어)를 깊이 연구했다. 제주어 동시집 『잘도 아꼽다이』는 그 학술적 토대 위에서 탄생했다. 초등학교 현장에서 제주어 교육이 활발해진 흐름에 발맞춰, 아이들이 기본적인 감정 어휘부터 친숙하게 접할 수 있도록 다섯 부의 제목을 제주어 감정 단어로 짓고 부록까지 수록했다.</p>
+            </div>
+            <div class="qa">
+              <h4 class="q">책의 그림은 누가 그렸나요.</h4>
+              <p class="a">책의 삽화는 어릴 때부터 그림을 좋아하던 공학도 아들이 맡았다. 원고를 읽은 아들이 낯선 제주어의 뜻을 물어보며 열 편의 그림을 완성해 간 과정은 세대 간의 전승이기도 했다. 김 시인은 “아들과 소통하며 작업하는 동안 소멸 위기의 제주어가 ‘<em class="jw">와랑와랑</em>(활활, 힘차게)’ 살아나는 듯한 벅참을 느꼈다”고 돌아봤다.</p>
+            </div>
+            <div class="qa">
+              <h4 class="q">시의 소재는 어디에서 찾으시나요.</h4>
+              <p class="a">그의 시는 부모에게 들은 생생한 입말과 연구 과정에서 발견한 낱말에서 출발한다. 한겨울 물질을 마친 해녀들이 불을 피워 몸을 녹이고 쉬던 공간인 ‘<em class="jw">불턱</em>’에서, 언 몸이 녹으며 피부에 돋는 붉은 반점을 일컫는 ‘<em class="jw">산꽃이 피었다</em>’ 같은 표현은 표준어로 대체하기 어려운 제주어만의 정서를 담고 있다.</p>
+            </div>
+            <div class="qa">
+              <h4 class="q">제주어를 글로 옮길 때 무엇을 중요하게 여기나요.</h4>
+              <p class="a">김 시인은 기록물인 책에는 정확한 표현을 남겨야 한다는 생각으로 사전을 확인하고 전문가들의 고증을 거친다. 그러면서도 사전에 실린 표현만을 기준으로 삼기보다 실제 생활에서 쓰이는 말도 지키려 한다. 어머니가 평생 사용해 온 변소를 뜻하는 제주어 ‘<em class="jw">통제</em>’가 기존 제주어사전에는 ‘<em class="jw">통시</em>’로만 등재돼 있자, 김 시인은 어머니의 말을 글에 남겼다. 이후 ‘통제’도 새로운 사전에 등재되면서, 생활 속에서 이어져 온 제주어를 기록으로 남길 수 있었다.</p>
+            </div>
+            <div class="qa">
+              <h4 class="q">작가로서 가장 보람을 느낀 순간은 언제였나요.</h4>
+              <p class="a">얼마 전 수업을 위해 찾은 한라초등학교 복도에서 아이들이 자신의 시를 필사하고 그림까지 그려 넣은 작품들을 마주했을 때, 그는 연구자를 넘어 작가로서 가장 큰 보람을 느꼈다.</p>
+            </div>
+            <div class="qa">
+              <h4 class="q">‘잘도 아꼽다이’에는 어떤 마음이 담겨 있나요.</h4>
+              <p class="a a--quote">“길을 걷다 마주치는 작은 꽃 한 송이, 풀잎 한 포기를 봐도 ‘아이고, <em class="jw">잘도 아꼽다이</em>’라고 말하잖아요. 그 어떤 권력의 힘보다 작고 여린 생명을 존중하는 그 마음이 사람의 고개를 숙이게 만듭니다.”</p>
+            </div>
+            <div class="qa">
+              <h4 class="q">후세에 남기고 싶은 말은 무엇인가요.</h4>
+              <p class="a">김 시인이 타임캡슐에 넣어서라도 후세에 남기고 싶은 말은 책 제목이기도 한 ‘<em class="jw">잘도 아꼽다이</em>(너무 귀엽고 사랑스럽다)’와 ‘<em class="jw">잘도 요망지다이</em>(아주 야무지고 똑똑하다)’다. 그는 이 말들에 담긴 다정함과 생명을 존중하는 마음이 다음 세대에도 전해지기를 바란다.</p>
+            </div>
+          </div>
+          <span class="edge" data-dir="down" data-seed="72" aria-hidden="true"></span>
+        </div>
+      </div>
+    </article>
+
+  </section>
+
+  <!-- 찢어짐 디바이더: #02 → #next (감귤색 종이가 위로 찢겨 사진 위에 놓임) -->
+  <div class="tear" data-dir="up" data-seed="13" style="--face: var(--tangerine); --bg: var(--night);" aria-hidden="true"></div>
+
+  <!-- ===================================================
+       #next — 다음 기사
+       =================================================== -->
+  <section id="next" class="section next" aria-labelledby="next-title">
+    <div class="wrap">
+      <div class="next__inner">
+        <span class="sec-label">#next</span>
+        <div class="next-card-wrap">
+          <a class="next-card sheet" href="interview01.html">
+            <span class="edge" data-dir="up" data-seed="81" aria-hidden="true"></span>
+            <span class="sheet__body">
+              <span class="next-card__eyebrow">다음 기사 · Interview</span>
+              <strong id="next-title" class="next-card__title">제주어를 잇고 지키는 세 사람</strong>
+              <span class="next-card__desc">바람 많고 땅이 거친 섬에서 살아온 사람들의 말은 짧고 억세다. 사라져 가는 제주어를 다음 세대에 물려주려 애쓰는 세 사람을 만났다.</span>
+              <span class="btn">다음 기사로 넘어가기
+                <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+            </span>
+            <span class="edge" data-dir="down" data-seed="82" aria-hidden="true"></span>
+          </a>
+        </div>
+      </div>
+
+      <footer class="next__foot">
+        <span>하영 고라보게 · Interview</span>
+        <a href="#01">↑ 처음으로</a>
+      </footer>
+    </div>
+  </section>
+
+</main>
+
+<!-- 서브 메인과 같은 푸터(.work/sync/articles.py 가 index.html 에서 옮겨 온다) -->
+<footer class="hy-footer">
+    <div class="hy-footer__in">
+      <div class="hy-footer__grid">
+        <div>
+          <p class="hy-footer__name"><img class="brand-logo" src="../assets/logo-hayeong.png" alt="하영 고라보게" width="860" height="556" loading="lazy" decoding="async"></p>
+          <p class="hy-footer__tagline">여러분은 그냥 쓰고, 남겨 주세요. 제주어를 많이 말 하면 사라져가는 제주어를 지킬 수 있어요.</p>
+        </div>
+        <div>
+          <h2 class="hy-footer__heading">만든 사람들</h2>
+          <ul class="hy-footer__list" role="list">
+            <li>하영 고라보게(=많이 말해보자)</li>
+            <li>홍람빈, 유지연, 강다현, 석현진, 박태준</li>
+            <li><span>문의</span> <a href="mailto:rjyproject26@gmail.com">rjyproject26@gmail.com</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2 class="hy-footer__heading">출처</h2>
+          <ul class="hy-footer__list hy-footer__list--small" role="list">
+            <li><span>지도</span>: <a href="https://maps.eox.at">Terrain Light</a> © <a href="https://eox.at">EOX</a>, <span>지도 데이터</span> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors</li>
+            <li>글꼴: Pretendard(OFL), 나눔손글씨 가람연꽃 © NAVER, 고운바탕(OFL), 나눔손글씨 펜(OFL), Noto Sans KR · Noto Serif KR 옛한글 조각(OFL)</li>
+            <li>그 밖의 사진 · 그림: 팀이 직접 찍은 사진을 바탕으로 AI 도구로 만들었어요.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="hy-footer__bottom">
+        <p class="hy-footer__links"><a class="hy-footer__privacy" href="../privacy.html">개인정보처리방침</a><a class="hy-footer__en" href="../en/" lang="en" hreflang="en">Welcome to Jeju (English)</a><a class="hy-footer__en" href="https://www.hankyung.com/travel">한경 트래블 메인</a></p>
+        <p>발행 [발행 연월 입력]</p>
+        <p aria-hidden="true">JEJU · POSTCARD · VOL.01</p>
+      </div>
+    </div>
+  </footer>
+<a class="hy-fab" href="../play/postcard/" data-track-cta data-track-location="fab" aria-label="제주어 엽서 써보기"><span class="hy-fab__text" aria-hidden="true"><b>제주어 엽서 써보기</b><span>가족 · 친구 · 나에게 한 장</span></span><img src="../assets/intro/stamp-citrus.webp" alt="" width="478" height="640" decoding="async"></a>
+
+<script>
+(function () {
+  /* ---------- 기사를 열면 항상 맨 위에서 시작 ---------- */
+  try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch (err) {}
+  var userMoved = false;
+  ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(function (type) {
+    window.addEventListener(type, function () { userMoved = true; }, { passive: true, once: true });
+  });
+  function toTop() {
+    if (userMoved) return;
+    if (location.hash) { try { history.replaceState(null, '', location.pathname + location.search); } catch (err) {} }
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }
+  toTop();
+  window.addEventListener('load', toTop);
+  window.addEventListener('pageshow', function (e) { if (e.persisted) { userMoved = false; toTop(); } });
+  setTimeout(toTop, 120);
+  setTimeout(toTop, 600);
+
+  /* 시드 기반 난수 — 새로고침해도 찢어진 모양이 같게 유지 */
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function n(v) { return Math.round(v * 10) / 10; }
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  /* ---------- 찢어진 종이 가장자리 ----------
+     면(종이 색) 아래로 두께가 들쭉날쭉한 흰 섬유층이 비치고,
+     섬유층 끝은 노이즈로 흐트러뜨려 보풀처럼 보이게 함 */
+  function noiseFilter(id, seed, freq, scale, blur) {
+    return '<filter id="' + id + '" x="-2%" y="-60%" width="104%" height="220%" color-interpolation-filters="sRGB">' +
+      '<feTurbulence type="fractalNoise" baseFrequency="' + freq + '" numOctaves="2" seed="' + seed + '" result="noise"/>' +
+      '<feDisplacementMap in="SourceGraphic" in2="noise" scale="' + n(scale) + '" xChannelSelector="R" yChannelSelector="G"' +
+      (blur ? ' result="moved"/><feGaussianBlur in="moved" stdDeviation="' + blur + '"/>' : '/>') +
+      '</filter>';
+  }
+  function drawEdge(el, idx) {
+    var W = Math.round(el.clientWidth), H = Math.round(el.clientHeight);
+    if (!W || !H) return;
+    var up = el.getAttribute('data-dir') === 'up';
+    var seed = +el.getAttribute('data-seed') || idx + 1;
+    var r = rng(seed), TAU = Math.PI * 2, L = 1600, k = H / 60;
+    var ph = [r() * TAU, r() * TAU, r() * TAU, r() * TAU, r() * TAU];
+    var f = [(0.8 + r() * 0.8) * TAU / L, (2.5 + r() * 2) * TAU / L, (7 + r() * 5) * TAU / L, (20 + r() * 10) * TAU / L];
+    var mid = H * 0.36, amp = H * 0.17;
+    function base(x) {
+      return mid + amp * (0.6 * Math.sin(x * f[0] + ph[0]) + 0.28 * Math.sin(x * f[1] + ph[1]) + 0.12 * Math.sin(x * f[2] + ph[2]));
+    }
+    function thick(x) {
+      var t = 0.5 + 0.5 * Math.sin(x * f[1] * 1.9 + ph[3]);
+      var u = 0.5 + 0.5 * Math.sin(x * f[3] + ph[4]);
+      return H * (0.05 + 0.14 * t * (0.45 + 0.55 * u));
+    }
+    var face = [], fiber = [], fuzz = [], x, walk = 0, walk2 = 0;
+    for (x = -30; x <= W + 30; x += 3 + r() * 9) {
+      walk = clamp(walk + (r() - .5) * 1.6, -2.4, 2.4);
+      var notch = r() < .05 ? (r() < .5 ? -1 : 1) * (1.5 + r() * 2.5) : 0;
+      face.push(n(x) + ',' + n(base(x) + (walk + (r() - .5) * 1.2 + notch) * k));
+    }
+    for (x = -30; x <= W + 30; x += 1.2 + r() * 2.6) {
+      walk2 = clamp(walk2 + (r() - .5) * 1.4, -2, 2);
+      var y = base(x) + thick(x) + (walk2 + (r() - .5) * 1.4) * k;
+      fiber.push(n(x) + ',' + n(y));
+      fuzz.push(n(x) + ',' + n(y + (0.4 + r() * 0.9) * k));
+    }
+    var top = -12, end = n(W + 30) + ',' + top;
+    function poly(cls, filterId, pts) {
+      return '<polygon class="' + cls + '" filter="url(#' + filterId + ')" points="-30,' + top + ' ' + pts.join(' ') + ' ' + end + '"/>';
+    }
+    var id = 'e' + idx + 's' + seed;
+    el.innerHTML =
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" focusable="false">' +
+        '<defs>' +
+          noiseFilter(id + 'a', seed, '0.22 0.08', 3.8 * k, 0.45) +
+          noiseFilter(id + 'b', seed + 1, '0.16 0.1', 2.4 * k, 0.2) +
+          noiseFilter(id + 'c', seed + 2, '0.12 0.15', 1.4 * k, 0) +
+        '</defs>' +
+        '<g' + (up ? ' transform="translate(0 ' + H + ') scale(1 -1)"' : '') + '>' +
+          poly('t-fuzz', id + 'a', fuzz) +
+          poly('t-fiber', id + 'b', fiber) +
+          poly('t-face', id + 'c', face) +
+        '</g>' +
+      '</svg>';
+  }
+
+  var edges = [].slice.call(document.querySelectorAll('.tear, .edge'));
+  function drawAll() { edges.forEach(drawEdge); }
+  drawAll();
+
+  var lastW = window.innerWidth, resizeTimer;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      if (window.innerWidth !== lastW) { lastW = window.innerWidth; drawAll(); }
+      onScroll();
+    }, 120);
+  });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawAll);
+
+  /* ---------- 읽기 진행 막대 + 현재 섹션 표시 ---------- */
+  var bar = document.querySelector('.progress'), ticking = false;
+  var navLinks = [].slice.call(document.querySelectorAll('[data-nav]'));
+  var sections = [].slice.call(document.querySelectorAll('main > .section'));
+  function onScroll() {
+    var doc = document.documentElement, max = doc.scrollHeight - window.innerHeight;
+    bar.style.transform = 'scaleX(' + (max > 0 ? Math.min(1, window.scrollY / max) : 0) + ')';
+    var current = sections[0], line = window.innerHeight * 0.4;
+    sections.forEach(function (s) { if (s.getBoundingClientRect().top <= line) current = s; });
+    if (max > 0 && window.scrollY >= max - 2) current = sections[sections.length - 1];
+    navLinks.forEach(function (a) { a.classList.toggle('is-active', a.dataset.nav === current.id); });
+    ticking = false;
+  }
+  window.addEventListener('scroll', function () {
+    if (!ticking) { ticking = true; requestAnimationFrame(onScroll); }
+  }, { passive: true });
+  onScroll();
+
+  /* ---------- 페이지 안 링크(인터뷰 읽기 등): 해당 기사 위치로 이동 ---------- */
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function goTo(target, id) {
+    var anchor = target.querySelector('.sheet') || target;
+    var offset = parseFloat(getComputedStyle(anchor).scrollMarginTop) || 0;
+    window.scrollTo({ top: anchor.getBoundingClientRect().top + window.scrollY - offset, behavior: reduceMotion ? 'auto' : 'smooth' });
+    try { history.pushState(null, '', '#' + id); } catch (err) {}
+    target.setAttribute('tabindex', '-1');
+    target.focus({ preventScroll: true });
+  }
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var a = e.target.closest && e.target.closest('a[href^="#"]');
+    if (!a) return;
+    var id = decodeURIComponent(a.getAttribute('href').slice(1));
+    var target = id && document.getElementById(id);
+    if (!target) return;
+    e.preventDefault();
+    goTo(target, id);
+  });
+})();
+</script>
+</body>
+</html>

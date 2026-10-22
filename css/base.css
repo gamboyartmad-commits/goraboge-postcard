@@ -1,0 +1,1195 @@
+/* ==========================================================================
+   base.css — 모든 페이지가 함께 쓰는 바탕
+   1. 글꼴  2. 토큰(:root)  3. 리셋·기본 타이포  4. 유틸  5. 공용 컴포넌트
+   ✏️ 교체: 색·글꼴·간격을 바꾸려면 2번(:root)의 값만 고치면 사이트 전체에 반영됩니다.
+   불러오는 CSS — index: base + intro·quotes·interviews·maker·map + scrapbook + theme / 기사: base + interviews·maker·article + scrapbook + theme
+   → 두 페이지가 함께 쓰는 조각은 이 파일 끝에 추가한다. theme.css(맨 끝)는 사용자가 직접 고치는 값만 덮어쓰는 파일이다.
+   ========================================================================== */
+
+/* 1. 글꼴 ------------------------------------------------------------------
+   Pretendard(본문 · 제목) · 고운바탕(제주어 문장 · 인용, J4) · 나눔손글씨 펜(엽서 쓰기 창의 엽서 글씨)은 각 HTML <head> 의 <link> 로 불러온다. */
+/* 손글씨: 나눔손글씨 가람연꽃(네이버 글꼴 라이선스 — 글꼴 자체 판매만 금지, 수정 허용).
+   ① 사이트에 쓰인 글자만 남긴 조각(187KB, .work/fonts/subset_hand.py 로 다시 만들 수 있음 — 이 파일의 unicode-range 도 함께 고쳐 준다)
+   ② 조각에 없는 한글이 화면에 나올 때만 내려받는 원본(네이버 서버, 3MB). 가람연꽃에 없는 기호(— · 등)는 원본을 받지 않고 고운바탕으로 그린다 */
+@font-face{font-family:"Garam Hand";font-display:swap;src:url("../assets/fonts/NanumGaRamYeonGgoc-site.woff2") format("woff2");unicode-range:U+20-7E,U+2018-2019,U+201C-201D,U+2190,U+2192,U+2605-2606,U+2661,U+3134,U+3139,U+314E,U+AC00-AC01,U+AC04,U+AC08,U+AC10-AC16,U+AC19,U+AC1B-AC1D,U+AC2F,U+AC70-AC71,U+AC74,U+AC77-AC78,U+AC80,U+AC83,U+AC89,U+AC8C,U+ACA0,U+ACA8-ACA9,U+ACAC,U+ACB0,U+ACB8-ACB9,U+ACBC-ACBD,U+ACC1,U+ACC4,U+ACE0,U+ACE4,U+ACE7-ACE8,U+ACF0-ACF1,U+ACF3,U+ACF5-ACF6,U+ACFC,U+AD00,U+AD04,U+AD11,U+AD1C,U+AD34,U+AD38,U+AD50,U+AD6C-AD6D,U+AD70,U+AD73-AD75,U+AD7C,U+AD8C,U+ADA4,U+ADA8,U+ADC0,U+ADC4,U+ADDC,U+ADE4,U+ADF8-ADF9,U+ADFC,U+AE00,U+AE08-AE09,U+AE0B,U+AE0D,U+AE30,U+AE34,U+AE38,U+AE40-AE41,U+AE43,U+AE45,U+AE4A,U+AE4C,U+AE4E,U+AE50,U+AE54,U+AE5C-AE5D,U+AE65,U+AE68,U+AEBC,U+AEBE,U+AED0-AED1,U+AED8,U+AEF4,U+AF08,U+AF2C-AF2D,U+AF34,U+AF3C-AF3D,U+AF3F,U+AF43,U+AF48,U+AFB8,U+AFBC,U+AFC0,U+AFC8-AFC9,U+AFD4,U+AFE8,U+B00C,U+B010,U+B014,U+B01C-B01D,U+B044,U+B048,U+B04A,U+B04C,U+B054,U+B057,U+B05D,U+B07C,U+B080,U+B08C,U+B098-B099,U+B09C,U+B0A0,U+B0A8-B0A9,U+B0AB-B0AF,U+B0B1,U+B0B4,U+B0B8,U+B0BC,U+B0C4-B0C5,U+B0C8-B0C9,U+B0D0,U+B0E5,U+B108-B109,U+B110,U+B113,U+B118,U+B123-B124,U+B128,U+B137,U+B140-B141,U+B144,U+B150,U+B154-B155,U+B178-B179,U+B180,U+B18D,U+B192-B193,U+B204,U+B208,U+B20C,U+B214-B215,U+B220,U+B234,U+B23C,U+B258,U+B274,U+B290,U+B294,U+B298,U+B2A5-B2A6,U+B2AC,U+B2C8,U+B2CC,U+B2D0,U+B2D8-B2D9,U+B2E4-B2E5,U+B2E8,U+B2EB-B2EC,U+B2F4-B2F5,U+B2F7,U+B2F9,U+B2FF-B300,U+B313-B314,U+B354-B355,U+B358,U+B35C,U+B367,U+B369,U+B36E,U+B370,U+B374,U+B383,U+B385,U+B3C4-B3C5,U+B3C8,U+B3CB-B3CC,U+B3CE,U+B3D4-B3D5,U+B3D9,U+B3FC,U+B410,U+B418,U+B41C,U+B420,U+B428-B429,U+B450,U+B454,U+B458,U+B460-B461,U+B465,U+B46C,U+B480,U+B4A4,U+B4B7,U+B4C8,U+B4DC-B4DD,U+B4E0,U+B4E3-B4E4,U+B4E6,U+B4EC-B4ED,U+B4EF,U+B4F1,U+B4F8,U+B514-B515,U+B527,U+B529,U+B530-B531,U+B538,U+B545,U+B54C,U+B550,U+B5A0-B5A1,U+B5A4,U+B5A8,U+B5B4,U+B5BB-B5BC,U+B5C0,U+B610-B611,U+B618,U+B623,U+B664,U+B69C-B69D,U+B6AB,U+B6B1,U+B6F0,U+B6F4,U+B701,U+B728,U+B72C,U+B730,U+B738-B739,U+B73B,U+B744,U+B760,U+B77C-B77D,U+B780,U+B784,U+B78C-B78D,U+B790-B791,U+B797-B799,U+B79C,U+B7A8-B7A9,U+B7AB-B7AD,U+B7B5,U+B7C9,U+B7EC-B7ED,U+B7F0,U+B7F4,U+B7FC-B7FD,U+B800-B801,U+B807-B808,U+B80C,U+B824-B825,U+B828,U+B837-B839,U+B840,U+B85C-B85D,U+B864,U+B86C,U+B86F,U+B871,U+B8CC,U+B8E1,U+B8E8,U+B8EC,U+B904,U+B958-B959,U+B960,U+B974,U+B978,U+B97C,U+B984-B985,U+B987,U+B9AC-B9AD,U+B9B0,U+B9B4,U+B9BC-B9BD,U+B9BF,U+B9C1,U+B9C8-B9C9,U+B9CC,U+B9CE,U+B9D0-B9D1,U+B9D9,U+B9DB,U+B9DD-B9DE,U+B9E1,U+B9E4-B9E5,U+B9E8,U+B9EC,U+B9F5,U+B9F9-B9FA,U+BA38-BA39,U+BA3C,U+BA40,U+BA48,U+BA4D,U+BA54,U+BA58,U+BA5C,U+BA69,U+BA70,U+BA74,U+BA78,U+BA85,U+BA87,U+BAA8-BAA9,U+BAAB-BAAC,U+BAB0,U+BAB8,U+BABB,U+BB34,U+BB36,U+BB38,U+BB3B-BB3C,U+BB49,U+BBA4,U+BBC0,U+BBF8,U+BBFC,U+BC00,U+BC08,U+BC0C-BC0D,U+BC0F,U+BC11,U+BC14-BC16,U+BC18,U+BC1B-BC1D,U+BC24-BC25,U+BC27,U+BC29,U+BC2D,U+BC30-BC31,U+BC43,U+BC45,U+BC84-BC85,U+BC88,U+BC8C,U+BC94-BC95,U+BC97,U+BCA0,U+BCA4,U+BCA8,U+BCB5,U+BCBD,U+BCC0,U+BCC4,U+BCD1,U+BCD5,U+BCF4-BCF6,U+BCF8,U+BCFC,U+BD04-BD05,U+BD09,U+BD10,U+BD24,U+BD80-BD81,U+BD84,U+BD88-BD89,U+BD93,U+BD95,U+BD99,U+BDF0,U+BE0C,U+BE14,U+BE44,U+BE48,U+BE4C,U+BE54,U+BE57,U+BE59,U+BE5B,U+BE60-BE61,U+BE68,U+BE75,U+BE7C-BE7D,U+BE80,U+BE84,U+BE8C,U+BE90,U+BEE4,U+BF08,U+BF48,U+BF51,U+BFB0,U+BFD0,U+C058,U+C090,U+C0AC-C0AD,U+C0B0,U+C0B4,U+C0B6,U+C0BC-C0BD,U+C0BF,U+C0C1,U+C0C8-C0C9,U+C0D8,U+C0DD,U+C11C-C11E,U+C120,U+C124,U+C12C-C12D,U+C12F,U+C131,U+C138-C139,U+C13C,U+C140,U+C148-C149,U+C14B,U+C14D,U+C158,U+C168,U+C18C-C18D,U+C190,U+C194,U+C19C,U+C19F,U+C1A1,U+C1C4,U+C1E0,U+C218-C219,U+C21C,U+C220,U+C228,U+C22B,U+C232,U+C250,U+C26C,U+C27C-C27D,U+C288,U+C290,U+C2A4,U+C2A8,U+C2AC,U+C2B5,U+C2B7,U+C2B9,U+C2DC-C2DD,U+C2E0,U+C2E3-C2E4,U+C2EC-C2ED,U+C2F6,U+C2F8-C2F9,U+C2FC,U+C300,U+C308-C309,U+C30D,U+C313,U+C368-C369,U+C36C,U+C37C,U+C384,U+C3D8,U+C4F0,U+C4F4,U+C4F8,U+C500-C501,U+C528-C529,U+C52C,U+C544-C545,U+C548-C54A,U+C54C,U+C554-C555,U+C557-C559,U+C55E,U+C560-C561,U+C564,U+C570-C571,U+C574,U+C57C-C57D,U+C587,U+C58C,U+C591,U+C5B4-C5B5,U+C5B8,U+C5BC,U+C5C4-C5C9,U+C5D0-C5D1,U+C5D4,U+C5E3,U+C5EC-C5EE,U+C5F0,U+C5F4,U+C5F6,U+C5FD,U+C5FF-C601,U+C605-C606,U+C608,U+C61B,U+C624-C625,U+C628,U+C62C,U+C62E,U+C634-C635,U+C637,U+C640-C641,U+C644,U+C648,U+C653-C655,U+C65C,U+C678,U+C67C,U+C694-C695,U+C6A9,U+C6B0,U+C6B4,U+C6B8,U+C6C0-C6C1,U+C6C3,U+C6CC,U+C6D0,U+C6D4,U+C6DC,U+C6E0,U+C6E8,U+C6F0,U+C6F9,U+C704,U+C708,U+C717,U+C720-C721,U+C728,U+C73C,U+C740,U+C744,U+C74C-C74D,U+C751,U+C758,U+C774-C775,U+C778,U+C77C-C77D,U+C783-C785,U+C787-C78A,U+C78E,U+C790-C791,U+C794,U+C796,U+C798,U+C7A0-C7A1,U+C7A5,U+C7AC,U+C7B0,U+C7B4,U+C7BC,U+C7C1,U+C800-C801,U+C804,U+C808,U+C80A,U+C810-C811,U+C815-C816,U+C81C-C81D,U+C820,U+C82F,U+C838,U+C84B-C84C,U+C870-C871,U+C874,U+C878,U+C881,U+C885,U+C88B-C88C,U+C8E0,U+C8FC,U+C900,U+C904,U+C90C-C90D,U+C90F,U+C911,U+C918,U+C950,U+C988-C989,U+C998,U+C99D,U+C9C0-C9C1,U+C9C4,U+C9C8,U+C9D0-C9D1,U+C9D3,U+C9D5,U+C9D9-C9DA,U+C9DC-C9DD,U+C9E0,U+C9E7,U+C9F8,U+CA84,U+CABC-CABD,U+CB49,U+CB59,U+CBE4,U+CC0D,U+CC22,U+CC28-CC29,U+CC2C,U+CC2E,U+CC30,U+CC38,U+CC3D-CC3E,U+CC44-CC45,U+CC59,U+CC98-CC99,U+CC9C,U+CCA0,U+CCA8,U+CCAB,U+CCAD,U+CCB4,U+CCD0,U+CCD4,U+CCE4,U+CD08-CD09,U+CD0C,U+CD18,U+CD1D,U+CD2C,U+CD5C,U+CD94-CD95,U+CD98,U+CD9C,U+CDA4-CDA5,U+CDA9,U+CDB0,U+CDC4,U+CDE8,U+CE21,U+CE35,U+CE58-CE59,U+CE5C,U+CE60,U+CE62,U+CE68-CE69,U+CE6D,U+CE74,U+CE78,U+CE7C,U+CE90,U+CE94,U+CEA0-CEA1,U+CEE4,U+CEE8,U+CEEB-CEEC,U+CEF4-CEF5,U+CEF7,U+CF00,U+CF13,U+CF1C,U+CF20,U+CF24,U+CF2D,U+CF30,U+CF54,U+CF58,U+CF5C,U+CF69,U+CFE0,U+CFFC,U+D034,U+D06C,U+D070,U+D074,U+D07C,U+D0A4,U+D0A8,U+D0AC,U+D0B4-D0B5,U+D0B9,U+D0C0-D0C1,U+D0C4,U+D0D0-D0D1,U+D0D3,U+D0D5,U+D0DC-D0DD,U+D0EC-D0ED,U+D0F1,U+D130-D131,U+D138,U+D14C-D14D,U+D15C,U+D168,U+D1A0-D1A1,U+D1A4,U+D1B1,U+D1B3,U+D1B5,U+D22C-D22D,U+D234,U+D241,U+D280,U+D295,U+D2B8-D2B9,U+D2BC,U+D2C0,U+D2C8,U+D2CB,U+D2F0-D2F1,U+D300-D301,U+D305,U+D30C,U+D30E,U+D310,U+D314,U+D321,U+D328,U+D338,U+D33D,U+D37C,U+D398,U+D39C,U+D3AD,U+D3B4,U+D3B8,U+D3BC,U+D3C9,U+D3EC-D3ED,U+D3F0,U+D3F4,U+D3FC,U+D45C,U+D478,U+D47C,U+D480,U+D488,U+D48D,U+D4E8,U+D504,U+D508,U+D50C,U+D53C-D53D,U+D540,U+D544,U+D54F,U+D558-D559,U+D55C,U+D560,U+D568-D569,U+D56D,U+D574,U+D584,U+D588-D589,U+D5A5,U+D5C8,U+D5CC,U+D5D8-D5D9,U+D5E4,U+D5EC,U+D5F4,U+D5F7,U+D600-D601,U+D604,U+D611,U+D614-D615,U+D61C,U+D638,U+D63C,U+D640,U+D64D,U+D654-D655,U+D658,U+D65C,U+D669,U+D68C-D68D,U+D69F,U+D6A8,U+D6C4,U+D6C8,U+D6D1,U+D6E8,U+D718,U+D720,U+D734,U+D749,U+D750-D751,U+D754,U+D758-D759,U+D769,U+D770,U+D788,U+D78C,U+D790,U+D798-D799,U+D7A3}
+@font-face{font-family:"Garam Hand Full";font-display:swap;src:url("https://hangeul.pstatic.net/hangeul_static/webfont/clova/NanumGaRamYeonGgoc.woff2") format("woff2"),url("https://hangeul.pstatic.net/hangeul_static/webfont/clova/NanumGaRamYeonGgoc.woff") format("woff");unicode-range:U+AC00-D7A3,U+3131-318E}
+/* 아래아(옛한글 조합형 자모) 전용 글꼴 — 아래 글꼴 토큰의 맨 앞(Araea …)에 쓰인다. 해당 글자가 화면에 있을 때만 내려받는다.
+   Noto Sans KR · Noto Serif KR 에서 옛한글에 필요한 자모만 떼어 낸 조각이다(SIL OFL 1.1 — 전문은 assets/fonts/OFL-NotoSansKR.txt · OFL-NotoSerifKR.txt).
+   담긴 글자: 초성 ᄀ–ᄒ 19자 · 중성 ᆞ ᆟ ᆠ ᆡ ᆢ · 종성 ᆨ–ᇂ 27자.
+   ⚠ unicode-range 를 넓히지 말 것 — 현대 중성(U+1161–1175)이 들어가면 크롬 계열이 주변의 보통 한글까지
+     자모로 풀어 이 글꼴로 그린다(2026-10-14 헤드리스 크롬으로 확인).
+   ✏️ 교체: 손글씨 글꼴을 바꾸면 Araea Hand 의 size-adjust 를 새 글꼴의 글자 크기에 맞춰 고친다 */
+@font-face{font-family:"Araea Sans";font-style:normal;font-weight:100 900;font-display:swap;src:url("../assets/fonts/NotoSansKR-araea.woff2") format("woff2");unicode-range:U+1100-1112,U+119E-11A2,U+11A8-11C2}
+/* 명조: 보통 굵기에서는 고운바탕보다 진해 보여 한 단계 가늘게(≤320), 굵은 글씨에서는 그대로 */
+@font-face{font-family:"Araea Serif";font-style:normal;font-weight:200 320;font-display:swap;src:url("../assets/fonts/NotoSerifKR-araea.woff2") format("woff2");unicode-range:U+1100-1112,U+119E-11A2,U+11A8-11C2}
+@font-face{font-family:"Araea Serif";font-style:normal;font-weight:600 900;font-display:swap;src:url("../assets/fonts/NotoSerifKR-araea.woff2") format("woff2");unicode-range:U+1100-1112,U+119E-11A2,U+11A8-11C2}
+/* 제목(프리텐다드 굵게 옆) */
+@font-face{font-family:"Araea Display";font-style:normal;font-weight:100 900;font-display:swap;src:url("../assets/fonts/NotoSansKR-araea.woff2") format("woff2");unicode-range:U+1100-1112,U+119E-11A2,U+11A8-11C2}
+/* 손글씨(가람연꽃 옆): 획 굵기에 맞춰 500, 글자 크기를 80% 로 맞춘다. 저장하는 엽서 그림에도 실린다(js/postcard-image.js) */
+@font-face{font-family:"Araea Hand";font-style:normal;font-weight:500;font-display:swap;size-adjust:80%;src:url("../assets/fonts/NotoSansKR-araea.woff2") format("woff2");unicode-range:U+1100-1112,U+119E-11A2,U+11A8-11C2}
+
+/* 본문 · 제목 글꼴 Pretendard: 사이트에 쓰인 글자만 남긴 조각(.work/fonts/subset_pretendard.py). 그 밖의 글자는 HTML 의 CDN 글꼴(로컬에서) 또는 시스템 글꼴로 */
+@font-face{font-family:"Pretendard Variable";font-style:normal;font-weight:45 930;font-display:swap;src:url("../assets/fonts/PretendardVariable-site.woff2") format("woff2-variations"),url("../assets/fonts/PretendardVariable-site.woff2") format("woff2");unicode-range:U+20-7E,U+A0,U+A9,U+B0-B1,U+B7,U+D7,U+E9,U+F7,U+2BB,U+200B,U+2013-2014,U+2018-2019,U+201C-201D,U+2026,U+203B,U+20A9,U+2190-2194,U+2197,U+2212,U+2248,U+2264,U+2318,U+2460-2464,U+25B2,U+25BC,U+25CB,U+25CF,U+2605-2606,U+2661,U+26A0,U+2713,U+300C-300F,U+3139,U+318D,U+AC00-AC01,U+AC04,U+AC08,U+AC10-AC16,U+AC19,U+AC1B-AC1D,U+AC2F,U+AC70-AC71,U+AC74,U+AC77-AC78,U+AC80,U+AC83,U+AC89,U+AC8C,U+ACA0,U+ACA8-ACA9,U+ACAC,U+ACB0,U+ACB8-ACB9,U+ACBC-ACBD,U+ACC1,U+ACC4,U+ACE0,U+ACE4,U+ACE7-ACE8,U+ACF0-ACF1,U+ACF3,U+ACF5-ACF6,U+ACFC,U+AD00,U+AD04,U+AD11,U+AD18,U+AD34,U+AD38,U+AD50,U+AD6C-AD6D,U+AD73-AD75,U+AD7C,U+AD8C,U+ADA4,U+ADA8,U+ADC0,U+ADDC,U+ADE4,U+ADF8-ADF9,U+ADFC,U+AE00,U+AE08-AE09,U+AE0B,U+AE0D,U+AE30,U+AE34,U+AE38,U+AE40-AE41,U+AE43,U+AE45,U+AE4A,U+AE4C,U+AE4E,U+AE50,U+AE54,U+AE5C,U+AE65,U+AE68,U+AEBC,U+AEBE,U+AED0-AED1,U+AED8,U+AEF4,U+AF08,U+AF2C-AF2D,U+AF34,U+AF3C-AF3D,U+AF3F,U+AF43,U+AF48-AF49,U+AFB8,U+AFBC,U+AFC0,U+AFC8-AFC9,U+AFD4,U+AFE8,U+B00C,U+B010,U+B014,U+B01D,U+B044,U+B048,U+B04A,U+B04C,U+B054,U+B05D,U+B07C,U+B080,U+B08C,U+B098-B099,U+B09C,U+B09F-B0A0,U+B0A8-B0A9,U+B0AB-B0AF,U+B0B1,U+B0B4,U+B0B8,U+B0BC,U+B0C4-B0C5,U+B0C8-B0C9,U+B0D0,U+B0E5,U+B108-B109,U+B10C,U+B110,U+B113,U+B118,U+B123-B124,U+B137,U+B140-B141,U+B144,U+B150,U+B154-B155,U+B178-B179,U+B180,U+B18D,U+B192-B193,U+B204,U+B208,U+B20C,U+B214-B215,U+B220,U+B23C,U+B258,U+B25C,U+B260,U+B274,U+B290,U+B294,U+B298,U+B2A5-B2A6,U+B2AC,U+B2C8,U+B2CC,U+B2D0,U+B2D8-B2D9,U+B2E4-B2E5,U+B2E8,U+B2EB-B2EE,U+B2F4-B2F5,U+B2F7,U+B2F9,U+B2FF-B300,U+B313-B314,U+B354-B355,U+B358,U+B35C,U+B367,U+B369,U+B36E,U+B370,U+B374,U+B383,U+B385,U+B3C4-B3C5,U+B3C8,U+B3CB-B3CC,U+B3D4-B3D5,U+B3D9,U+B3FC,U+B410,U+B418,U+B41C,U+B420,U+B428-B429,U+B450,U+B454,U+B458,U+B461,U+B465,U+B4A4,U+B4B7,U+B4C8,U+B4DC-B4DD,U+B4E0,U+B4E3-B4E4,U+B4EC-B4ED,U+B4EF,U+B4F1,U+B4F8,U+B514-B515,U+B529-B52A,U+B530-B531,U+B538,U+B545,U+B54C,U+B550,U+B5A0-B5A1,U+B5A4,U+B5A8,U+B5BB-B5BC,U+B5C0,U+B610-B611,U+B618,U+B623,U+B664,U+B69C-B69D,U+B6AB,U+B6B1,U+B6F0,U+B6F4,U+B701,U+B728,U+B72C,U+B72F-B730,U+B739,U+B73B,U+B744,U+B760,U+B77C-B77D,U+B780,U+B784,U+B78C-B78D,U+B790-B791,U+B797-B799,U+B79C,U+B7A8-B7A9,U+B7AB-B7AD,U+B7B5,U+B7C9,U+B7EC-B7ED,U+B7F0,U+B7F4,U+B7FC-B7FD,U+B800-B801,U+B807-B808,U+B824-B825,U+B828,U+B82C,U+B837-B839,U+B840,U+B85C-B85D,U+B864,U+B86C,U+B86F,U+B871,U+B8CC,U+B8E1,U+B8E8,U+B8EC,U+B904,U+B958-B959,U+B960,U+B974,U+B978,U+B97C,U+B984-B985,U+B987,U+B9AC-B9AD,U+B9B0,U+B9B4,U+B9BC-B9BD,U+B9BF,U+B9C1,U+B9C8-B9C9,U+B9CC,U+B9CE,U+B9D0-B9D1,U+B9D9,U+B9DB,U+B9DD-B9DE,U+B9E1,U+B9E4-B9E5,U+B9E8,U+B9EC,U+B9F9-B9FA,U+BA38-BA39,U+BA3C,U+BA40,U+BA48,U+BA4D,U+BA54,U+BA58,U+BA5C,U+BA69,U+BA70,U+BA74,U+BA78,U+BA85,U+BA87,U+BAA8-BAA9,U+BAAB-BAAC,U+BAB0,U+BAB8,U+BABB,U+BB34,U+BB36,U+BB38,U+BB3B-BB3C,U+BBA4,U+BBC0,U+BBF8,U+BBFC,U+BC00,U+BC08,U+BC0C,U+BC0F,U+BC11,U+BC14-BC16,U+BC18,U+BC1B-BC1D,U+BC24-BC25,U+BC27,U+BC29,U+BC2D,U+BC30-BC31,U+BC43,U+BC45,U+BC84-BC85,U+BC88,U+BC8C,U+BC94-BC95,U+BC97,U+BCA0,U+BCA4,U+BCA8,U+BCB5,U+BCBC-BCBD,U+BCC0,U+BCC4,U+BCCD,U+BCD1,U+BCF4-BCF6,U+BCF8,U+BCFC,U+BD05,U+BD09,U+BD10,U+BD24,U+BD80-BD81,U+BD84,U+BD88-BD89,U+BD93,U+BD95,U+BD99,U+BDF0,U+BE0C,U+BE14,U+BE44,U+BE48,U+BE4C,U+BE57,U+BE59,U+BE5B,U+BE60-BE61,U+BE68,U+BE75,U+BE7C,U+BE80,U+BE84,U+BE90,U+BEE4,U+BF48,U+BFB0,U+BFD0,U+C058,U+C090,U+C0AC-C0AD,U+C0B0,U+C0B4,U+C0B6,U+C0BC-C0BD,U+C0BF,U+C0C1,U+C0C8-C0C9,U+C0D8,U+C0DD,U+C11C-C11E,U+C120,U+C124,U+C12C-C12D,U+C12F,U+C131,U+C138-C139,U+C13C,U+C140,U+C148,U+C14B,U+C14D,U+C158,U+C168,U+C18C-C18D,U+C190,U+C194,U+C19C,U+C19F,U+C1A1,U+C1C4,U+C1E0,U+C218-C219,U+C21C,U+C220,U+C228,U+C22B,U+C232,U+C250,U+C26C,U+C27C-C27D,U+C288,U+C290,U+C2A4,U+C2A8,U+C2AC,U+C2B5,U+C2B7,U+C2B9,U+C2DC-C2DD,U+C2E0,U+C2E3-C2E4,U+C2EC-C2ED,U+C2F6,U+C2F8-C2F9,U+C2FC,U+C300,U+C308,U+C30D,U+C313,U+C368-C369,U+C37C,U+C384,U+C3D8,U+C3E0,U+C4F0,U+C4F4,U+C4F8,U+C501,U+C528-C529,U+C52C,U+C544-C545,U+C548-C54A,U+C54C,U+C554-C555,U+C557-C559,U+C55E,U+C560-C561,U+C564,U+C571,U+C574-C575,U+C57C-C57D,U+C587,U+C58C,U+C591,U+C597,U+C5B4-C5B5,U+C5B8-C5B9,U+C5BC,U+C5C4-C5C9,U+C5D0-C5D1,U+C5D4,U+C5E3,U+C5EC-C5EE,U+C5F0,U+C5F4,U+C5FD,U+C5FF-C601,U+C605-C606,U+C608,U+C61B,U+C624-C625,U+C628,U+C62C,U+C62E,U+C634-C635,U+C637,U+C640-C641,U+C644,U+C648,U+C653-C655,U+C65C,U+C678,U+C67C,U+C694-C695,U+C6A9,U+C6B0,U+C6B4,U+C6B8,U+C6C0-C6C1,U+C6C3,U+C6CC,U+C6D0,U+C6D4,U+C6E0,U+C6E8,U+C6F0,U+C6F9,U+C704,U+C708,U+C717,U+C720-C721,U+C728,U+C73C,U+C740,U+C744,U+C74C-C74D,U+C751,U+C758,U+C774-C775,U+C778,U+C77C-C77D,U+C783-C785,U+C787-C78A,U+C78E,U+C790-C791,U+C794,U+C796,U+C798,U+C7A0-C7A1,U+C7A5,U+C7AC,U+C7B0,U+C7B4,U+C7C1,U+C800-C801,U+C804,U+C808,U+C80A,U+C810-C811,U+C815-C816,U+C81C,U+C820,U+C82F,U+C838,U+C84B-C84C,U+C870-C871,U+C874,U+C878,U+C881,U+C885,U+C88B-C88C,U+C8E0,U+C8FC,U+C900,U+C904,U+C90C-C90D,U+C90F,U+C911,U+C918,U+C950,U+C988-C989,U+C998,U+C99D,U+C9C0-C9C1,U+C9C4,U+C9C8,U+C9D0-C9D1,U+C9D3,U+C9D5,U+C9D9-C9DA,U+C9DC-C9DD,U+C9E0,U+C9E7,U+C9F8,U+CA84,U+CABC-CABD,U+CB49,U+CB59,U+CBE4,U+CC0D,U+CC22,U+CC28-CC29,U+CC2C,U+CC30,U+CC38,U+CC3D-CC3E,U+CC44-CC45,U+CC59,U+CC98-CC99,U+CC9C,U+CCA0,U+CCA8,U+CCAB,U+CCAD,U+CCB4,U+CCD0,U+CCD4,U+CCE4,U+CD08-CD09,U+CD0C,U+CD18,U+CD1D,U+CD5C,U+CD94-CD95,U+CD98,U+CD9C,U+CDA4-CDA5,U+CDA9,U+CDB0,U+CDC4,U+CDE8,U+CE21,U+CE35,U+CE58-CE59,U+CE5C,U+CE60,U+CE68-CE69,U+CE6D,U+CE74,U+CE78,U+CE7C,U+CE90,U+CE94,U+CEA0-CEA1,U+CEE4,U+CEE8,U+CEEB-CEEC,U+CEF4-CEF5,U+CEF7,U+CF00,U+CF13,U+CF1C,U+CF20,U+CF30,U+CF54,U+CF58,U+CF5C,U+CF69,U+CFE0,U+CFFC,U+D034,U+D06C,U+D070,U+D074,U+D07C,U+D0A4,U+D0A8,U+D0AC,U+D0B4-D0B5,U+D0B9,U+D0C0-D0C1,U+D0C4,U+D0D0-D0D1,U+D0D3,U+D0D5,U+D0DC-D0DD,U+D0EC-D0ED,U+D0F1,U+D130-D131,U+D14C-D14D,U+D150,U+D15C,U+D168,U+D1A0-D1A1,U+D1A4,U+D1B1,U+D1B3,U+D1B5,U+D22C-D22D,U+D234,U+D241,U+D280,U+D295,U+D2B8-D2B9,U+D2BC,U+D2C0,U+D2C8,U+D2CB,U+D2F0-D2F1,U+D2F8,U+D300-D301,U+D305,U+D30C,U+D30E,U+D310,U+D314,U+D321,U+D328,U+D33D,U+D37C,U+D398,U+D39C,U+D3B4,U+D3B8,U+D3BC,U+D3C9,U+D3EC-D3ED,U+D3F0,U+D3F4,U+D3FC,U+D45C,U+D478,U+D47C,U+D480,U+D488,U+D48D,U+D504,U+D50C,U+D53C-D53D,U+D540,U+D544,U+D54F,U+D558-D559,U+D55C,U+D560,U+D568-D569,U+D56D,U+D574,U+D584,U+D588-D589,U+D5A5,U+D5C8,U+D5CC,U+D5D8-D5D9,U+D5E4,U+D5EC,U+D5F4,U+D5F7,U+D600-D601,U+D604,U+D611,U+D614-D615,U+D61C,U+D638,U+D63C,U+D640,U+D64D,U+D654-D655,U+D658,U+D65C,U+D669,U+D68C-D68D,U+D69F,U+D6A8,U+D6C4,U+D6C8,U+D6E8,U+D718,U+D720,U+D734,U+D750-D751,U+D754,U+D758-D759,U+D769,U+D770,U+D788,U+D78C,U+D798-D799,U+D7A3,U+FEFF,U+FF08-FF09}
+
+/* 2. 토큰 ------------------------------------------------------------------ */
+:root {
+  /* 종이 */
+  --paper-50: #fffaf0; /* 흰 종이(폴라로이드 여백·카드) */
+  --paper-100: #fbe6c0; /* 기본 배경 = 크림 종이(엽서 쓰기 섹션) */
+  --oat: #f4efe5; /* 오트밀 종이 — 메인 화면(엽서 앞면) · Voices · 지도 섹션의 바탕 */
+  --paper-200: #f6d9a8;
+  --paper-300: #ecc68e;
+  --paper-400: #d7a873; /* 괘선·테두리 */
+  /* 현무암 */
+  --basalt-900: #3a2116;
+  --basalt-800: #4a2a1c; /* 본문 글자(진한 밤색) */
+  --basalt-700: #5c3726;
+  --basalt-500: #7a5442; /* 보조 글자 */
+  --basalt-300: #b8977f;
+  --basalt-100: #ead6bd;
+  /* 바다 */
+  --sea-800: #8c3518; /* 소인·펜 잉크, 링크 (예전 바다색 자리 — 지금은 벽돌색) */
+  --sea-600: #a8401c;
+  --sea-400: #d9805c;
+  --sea-200: #f3c3a4;
+  --sea-100: #f9e0cd;
+  /* 감귤 */
+  --tangerine-700: #a8401c; /* 작은 주황 글자(크림 위 5:1) */
+  --tangerine-500: #e1653a; /* 포인트 = 레퍼런스 주황 */
+  --tangerine-600: #cc5428; /* 큰 제목 주황(크림 위 3.5:1) */
+  --tangerine-300: #f29a72;
+  --tangerine-100: #fbd8c2;
+  /* 감귤 잎 — 아주 작은 장식에만 */
+  --leaf-600: #6f7a3a;
+  /* 스크랩북 — 바깥 주황 테두리, 찢어진 띠(T1) */
+  --frame: #e1653a;
+  --band: #b84a26; /* T1 띠 바탕(크림 글자 4.8:1) */
+  --band-ink: #fff4e4;
+  --page-max: 1320px; /* 넓은 화면에서 크림 종이 폭 — 바깥은 주황 */
+
+  /* 의미 토큰: 컴포넌트에서는 가능하면 이쪽을 쓴다 */
+  --color-bg: var(--paper-100);
+  --color-text: var(--basalt-800);
+  /* 보조 글자는 paper-50/100 위에서만(대비 4.9:1). paper-200 보다 진한 바탕에서는 -strong 을 쓴다 */
+  --color-text-soft: var(--basalt-500);
+  --color-text-soft-strong: var(--basalt-700);
+  --color-point: var(--tangerine-500);
+  --color-title: var(--tangerine-600);
+  --color-point-strong: var(--tangerine-700);
+  --color-sub: var(--sea-600);
+  --color-ink: var(--sea-800);
+  --color-line: var(--paper-400);
+  --color-dark-bg: var(--basalt-900);
+  --color-on-dark: var(--paper-100);
+  --color-on-dark-soft: var(--basalt-300);
+
+  /* 반투명 그림자·겹침용 (rgb(var(--ink-rgb) / .2) 처럼 쓴다) */
+  --ink-rgb: 58 33 22;
+  --paper-rgb: 255 250 240;
+
+  /* 글꼴 — 맨 앞의 "Araea …" 는 아래아(옛한글 조합형) 글자에만 쓰이는 보조 글꼴(위 1번). 새 글꼴은 그 바로 뒤에 더한다 */
+  --font-body: "Araea Sans", "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-serif: "Araea Serif", "Gowun Batang", "Noto Serif KR", "Apple SD Gothic Neo", serif;
+  --font-display: "Araea Display", "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", sans-serif; /* 제목 = 프리텐다드 굵게 */
+  --font-display-weight: 800;
+  --font-hand: "Araea Hand", "Garam Hand", "Garam Hand Full", "Gowun Batang", cursive; /* 손글씨 = 나눔손글씨 가람연꽃 */
+  /* 제주어 문장(아래아) = 명조 + 아래아 조각(J4) — lang="jje" 가 붙은 글과 제주어 화면 */
+  --font-jeju: "Araea Serif", "Gowun Batang", "Noto Serif KR", serif;
+  --font-hand-2: var(--font-hand);
+  /* 손글씨체는 글자가 작아 보인다 → 같은 자리의 고딕보다 이만큼 키워 쓴다 */
+  --hand-scale: 1.12;
+
+  /* 글자 크기 (375px → 1440px 사이에서 부드럽게 커진다) */
+  --fs-xs: clamp(0.75rem, 0.73rem + 0.09vw, 0.8125rem);
+  --fs-s: clamp(0.8125rem, 0.77rem + 0.19vw, 0.9375rem);
+  --fs-base: clamp(1rem, 0.98rem + 0.09vw, 1.0625rem);
+  --fs-m: clamp(1.125rem, 1.06rem + 0.28vw, 1.3125rem);
+  --fs-l: clamp(1.375rem, 1.24rem + 0.56vw, 1.75rem);
+  --fs-xl: clamp(1.75rem, 1.49rem + 1.13vw, 2.5rem);
+  --fs-2xl: clamp(2.125rem, 1.64rem + 2.07vw, 3.5rem);
+  --fs-display: clamp(3rem, 1.77rem + 5.26vw, 6.5rem);
+
+  /* 문단 · 메인 화면 글자 — 모든 섹션의 글이 같은 값을 쓴다. ✏️ 고치는 곳은 css/theme.css '0.'(화면 폭별 값이 거기 켜져 있다).
+     여기 값은 theme.css 가 없을 때의 기본값(휴대폰) */
+  --front-copy-y: 50%; /* 메인 화면 사진 위 제목 글의 높이(사진 높이의 몇 % — css/theme.css '0.' 에서 화면 폭마다 정한다) */
+  --front-title-top-size: 16px; /* 메인 화면 제목 위 줄(작고 가늘게) */
+  --front-title-top-tracking: 0em; /* 그 자간 */
+  --front-title-size: 24px; /* 메인 화면 제목 아래 줄(크고 굵게) */
+  --front-title-tracking: -0.02em; /* 그 자간 */
+  --front-title-lh: 1.3; /* 그 줄 간격(두 줄이 될 때) */
+  --front-text-tracking: -0.01em; /* 메인 화면 글 자간 */
+  --front-text-lh: 1.8; /* 메인 화면 글 줄 간격 */
+  --front-closing-tracking: -0.01em; /* 메인 화면 굵은 한 줄 자간 */
+  --front-toc-size: 17px; /* 메인 화면 아래 차례 제목 */
+  --front-text-gap: 0.2em; /* 메인 화면 글 줄(문단) 사이 */
+  --voice-size: 16px; /* Voices 큰 말 */
+  --voice-lines-size: 14px; /* Voices 큰 말 아래의 말 */
+  --front-toc-no-size: 13.5px; /* 그 번호(01 · Write) · 왼쪽 이름 */
+  --title-size: var(--fs-2xl); /* 섹션 큰 제목(왜 제주어로 써야 할까요? · 상호 지도 · 인터뷰) */
+  --title-tracking: -0.025em; /* 그 자간 */
+  --title-lh: 1.16; /* 그 줄 간격 */
+  --front-text-size: 14px; /* 메인 화면 글 */
+  --front-closing-size: 15px; /* 메인 화면 마지막 굵은 한 줄 */
+  --text-size: 16px; /* 본문 문단 */
+  --text-lead: 18px; /* 소제목 아래 굵은 한 줄 */
+  --text-small: 14px; /* 작은 설명(예시 엽서 설명) */
+  --text-lh: 1.8; /* 줄 간격(글자 크기의 몇 배) */
+  --text-gap: 0.9em; /* 문단 사이 */
+  --text-width: 34em; /* 한 줄 최대 길이(em ≒ 한글 글자 수) */
+  --text-tracking: -0.01em; /* 자간(글자 사이). 0 = 글꼴 그대로, − = 좁게 */
+
+  /* 간격 */
+  --space-1: 0.25rem; /* 4px */
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+  --space-10: 8rem;
+
+  /* 레이아웃 */
+  --container: 1200px;
+  --gutter: clamp(1.25rem, 0.63rem + 2.66vw, 3.5rem);
+
+  /* 반경 — 종이류는 둥글리지 않거나 2~4px 만 */
+  --radius-s: 4px;
+  --radius-m: 10px;
+  --radius-hand: 255px 15px 225px 15px / 15px 225px 15px 255px; /* 손으로 그린 듯한 테두리 */
+
+  /* 그림자 */
+  --shadow-paper: 0 1px 1px rgb(var(--ink-rgb) / 0.1), 0 3px 8px -2px rgb(var(--ink-rgb) / 0.12), 0 14px 26px -16px rgb(var(--ink-rgb) / 0.3);
+  --shadow-lift: 0 2px 3px rgb(var(--ink-rgb) / 0.1), 0 16px 28px -10px rgb(var(--ink-rgb) / 0.3), 0 34px 56px -24px rgb(var(--ink-rgb) / 0.34);
+
+  /* 질감 (SVG 노이즈) — 배경색 위에 background-image 로 겹쳐 쓴다 */
+  --tex-paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='a' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .43 0 0 0 0 .32 0 0 0 0 .17 0 0 0 .55 -.235'/%3E%3C/filter%3E%3Cfilter id='b' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .03' numOctaves='2' seed='8' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .6 0 0 0 0 .45 0 0 0 0 .24 0 0 0 .24 -.105'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)'/%3E%3Crect width='100%25' height='100%25' filter='url(%23b)'/%3E%3C/svg%3E");
+  --tex-basalt: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='a' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .5 -.2'/%3E%3C/filter%3E%3Cfilter id='b' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.17' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 9 -6.1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)'/%3E%3Crect width='100%25' height='100%25' filter='url(%23b)' opacity='.42'/%3E%3C/svg%3E");
+
+  /* 움직임 — 기본 0.5s, 작은 UI 0.25s */
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur: 0.5s;
+  --dur-fast: 0.25s;
+
+  /* 겹침 순서 */
+  --z-header: 100;
+  --z-fab: 900;
+  --z-modal: 1000;
+  --z-tooltip: 1100;
+}
+
+/* 3. 리셋 · 기본 타이포 ---------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* scroll-behavior: smooth 는 걸지 않는다(ScrollTrigger 스크럽과 충돌) */
+html {
+  background-color: var(--color-bg);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100svh;
+  margin: 0;
+  background-color: var(--color-bg);
+  background-image: var(--tex-paper);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  line-height: 1.7;
+  letter-spacing: var(--text-tracking); /* 자간 — css/theme.css '0.' */
+  /* 한글은 낱말 단위로 줄바꿈하고, 너무 긴 낱말만 중간에서 끊는다 */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  /* hidden 이 아니라 clip — hidden 은 position: sticky 를 깨뜨린다 */
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: inherit;
+  font-weight: 700;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+/* 문단: 마지막 줄에 낱말 하나만 남지 않게 줄 길이를 고른다(지원하지 않는 브라우저는 평소처럼).
+   자간은 css/theme.css '0.' 의 --text-tracking(글자 크기에 비례 — em). 따로 자간을 정한 글(라벨 · 제목 등)은 그 값이 우선 */
+p,
+li,
+dd,
+figcaption,
+blockquote {
+  letter-spacing: var(--text-tracking);
+  text-wrap: pretty;
+}
+
+/* 문단 상자(data-edit-block — 편집 모드에서 문단을 더하고 뺄 수 있는 자리): 문단 사이 = --text-gap */
+[data-edit-block] > * + * {
+  margin-top: var(--text-gap);
+}
+
+/* 섹션의 짧은 소개 문단(두세 줄): 줄 길이를 고르게 나눠 오른쪽 끝이 들쭉날쭉하지 않게(balance).
+   긴 글(기사 본문)은 위의 pretty 그대로 */
+.write__why-copy p:not(.eyebrow),
+.write__lede,
+.write__desc,
+.interviews__lede,
+.map__desc {
+  text-wrap: balance;
+}
+
+/* <span class="keep">…</span> = 이 덩어리는 중간에서 줄이 바뀌지 않는다 → 좁은 화면에서는 구절 단위로 줄이 바뀐다
+   (덩어리 하나가 화면보다 길면 그 안에서도 줄이 바뀐다) */
+.keep {
+  display: inline-block;
+}
+
+/* <br class="br-wide"> = 넓은 화면(768px 이상)에서만 줄을 바꾸는 자리 — 문장 · 구절 단위로 줄을 맞춘다.
+   휴대폰에서는 이 줄바꿈을 빼고 글이 저절로 줄을 바꾼다(좁은 폭에서 억지로 끊으면 짧은 줄이 생긴다) */
+@media (max-width: 767px) {
+  br.br-wide {
+    display: none;
+  }
+}
+
+ul[class],
+ol[class] {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+img,
+picture,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+  font-style: italic; /* 대체 텍스트가 보일 때 구분되도록 */
+}
+
+svg {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: var(--surface-link);
+  text-decoration-line: underline;
+  text-decoration-color: var(--surface-link-line);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+  transition: color var(--dur-fast), text-decoration-color var(--dur-fast);
+}
+
+a:hover {
+  text-decoration-color: var(--color-point);
+  text-decoration-thickness: 2px;
+}
+
+::selection {
+  background-color: var(--tangerine-300);
+  color: var(--basalt-900);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* 4. 유틸 ------------------------------------------------------------------ */
+/* 바탕에 따라 달라지는 값 — 링크·버튼·소인·라벨·포커스 링은 조상 클래스가 아니라 이 변수를 읽는다.
+   그래서 .basalt 안에 .paper 카드를 넣어도 '가장 가까운 바탕'에 맞는 색이 된다.
+   직접 만든 어두운 바탕에는 .basalt 를 붙이거나 이 변수들을 같은 값으로 정해 준다. */
+:root,
+.paper {
+  --focus-ring: var(--sea-600);
+  --surface-ink: var(--color-ink); /* 소인 · 작은 라벨 */
+  --surface-soft: var(--color-text-soft); /* 보조 글자 */
+  --surface-link: var(--color-ink);
+  --surface-link-line: currentColor;
+  --surface-edge: var(--basalt-900); /* 버튼 테두리 · 판화식 그림자 */
+  --surface-hover: rgb(var(--ink-rgb) / 0.07); /* 테두리 버튼 hover 바탕 */
+  --postmark-blend: multiply; /* 종이에 잉크가 스민 느낌 */
+}
+
+.basalt,
+.site-footer {
+  --focus-ring: var(--tangerine-300);
+  --surface-ink: var(--color-on-dark);
+  --surface-soft: var(--color-on-dark-soft);
+  --surface-link: currentColor; /* 주변 글자색 그대로 + 감귤색 밑줄 */
+  --surface-link-line: var(--tangerine-300);
+  --surface-edge: var(--paper-50);
+  --surface-hover: rgb(var(--paper-rgb) / 0.14);
+  --postmark-blend: normal;
+}
+
+/* 종이 바탕 / 현무암 바탕 */
+.paper {
+  background-color: var(--color-bg);
+  background-image: var(--tex-paper);
+  color: var(--color-text);
+}
+
+.basalt {
+  background-color: var(--color-dark-bg);
+  background-image: var(--tex-basalt);
+  color: var(--color-on-dark);
+}
+
+/* 가운데 정렬 틀: 내용 최대 1200px + 좌우 여백 */
+.container {
+  width: 100%;
+  max-width: calc(var(--container) + var(--gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* 손글씨 한 줄 메모 — 주변 글자보다 크게 */
+.hand {
+  font-family: var(--font-hand);
+  font-size: calc(1em * var(--hand-scale));
+  line-height: 1.25;
+}
+
+/* 화면에는 숨기고 스크린리더에는 읽힌다 */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 키보드 사용자를 위한 '본문 바로가기' — Tab 을 누르면 나타난다 */
+.skip-link {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  z-index: var(--z-tooltip);
+  padding: var(--space-2) var(--space-4);
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-hand);
+  background-color: var(--paper-50);
+  color: var(--color-ink);
+  font-weight: 700;
+  text-decoration: none;
+  transform: translateY(-250%);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+/* 섹션 안에 두는 건너뛰기 링크(예: 지도 건너뛰기) — Tab 으로 닿았을 때만 제자리에 겹쳐 뜬다(자리를 차지하지 않는다) */
+.skip-link--inline {
+  top: auto;
+  left: auto;
+  margin-top: calc(var(--space-1) * -1);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--fs-s);
+  transform: none;
+}
+
+.skip-link--inline:not(:focus) {
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* 등장 효과: <div data-reveal> → 화면에 들어오면 shared.js 가 .is-in 을 붙인다
+   방향: data-reveal="left" | "right" | "fade", 지연: style="--reveal-delay: .2s"
+   transform 이 아니라 translate 로 움직이므로 기울어진 우표·엽서(rotate)에 붙여도 기울기가 남는다.
+   자체 transition 이 있는 요소(버튼 등)에는 직접 붙이지 말고 감싸는 요소에 붙인다. */
+[data-reveal] {
+  opacity: 0;
+  translate: 0 28px;
+  transition: opacity 0.7s var(--ease-out) var(--reveal-delay, 0s), translate 0.7s var(--ease-out) var(--reveal-delay, 0s);
+  /* 스크립트가 끝내 실행되지 않아도 3.5초 뒤에는 내용이 보이게 하는 안전장치 */
+  animation: reveal-failsafe 0.01s 3.5s forwards;
+}
+
+[data-reveal="left"] {
+  translate: -36px 0;
+}
+
+[data-reveal="right"] {
+  translate: 36px 0;
+}
+
+[data-reveal="fade"] {
+  translate: none;
+}
+
+html.reveal-on [data-reveal] {
+  animation: none;
+}
+
+/* 키보드 포커스가 들어오면 아직 떠오르지 않은 요소도 바로 보인다 */
+[data-reveal].is-in,
+[data-reveal]:focus-within {
+  opacity: 1;
+  translate: none;
+}
+
+@keyframes reveal-failsafe {
+  to {
+    opacity: 1;
+    translate: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1 !important;
+    translate: none !important;
+    transition: none;
+    animation: none;
+  }
+}
+
+/* 안내 쪽지 — 데이터·스크립트를 불러오지 못했을 때 shared.js 의 showNote 가 섹션에 붙인다(지도 안의 안내도 같은 모양) */
+.placeholder-note {
+  max-width: min(100%, 34rem);
+  margin-inline: auto;
+  padding: var(--space-3) var(--space-5);
+  border: 1.5px dashed currentColor;
+  border-radius: var(--radius-hand);
+  color: var(--surface-soft);
+  font-family: var(--font-hand);
+  font-size: calc(var(--fs-m) * var(--hand-scale));
+  line-height: 1.3;
+  text-align: center;
+}
+
+/* 파일을 더블클릭(file://)해서 열면 모듈·데이터를 읽지 못한다 → 안내 띠 */
+html.is-file body::before {
+  content: "이 페이지는 로컬 서버로 열어야 제대로 보여요. README의 '실행 방법'을 확인해 주세요.";
+  position: sticky;
+  top: 0;
+  z-index: var(--z-tooltip);
+  display: block;
+  padding: var(--space-3) var(--gutter);
+  background-color: var(--tangerine-100);
+  border-bottom: 2px solid var(--color-point);
+  color: var(--basalt-900);
+  font-weight: 700;
+  text-align: center;
+}
+
+/* 5. 공용 컴포넌트 ---------------------------------------------------------- */
+
+/* 5-1. 버튼 -----------------------------------------------------------------
+   <a class="btn">기본</a>  <button class="btn btn--ghost btn--s">작은 테두리 버튼</button>
+   기본 = 감귤 채움 / --ghost = 테두리만(주변 글자색을 따라감) / --ink = 바다색 / --s = 작게
+   테두리·그림자 색은 바탕을 따른다(종이 위 = 현무암색, 어두운 바탕 위 = 종이색) */
+.btn {
+  --btn-bg: var(--color-point);
+  --btn-bg-hover: var(--tangerine-300);
+  --btn-fg: var(--basalt-900);
+  --btn-line: var(--surface-edge);
+  --btn-drop: 3px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 3rem;
+  padding: 0.6em 1.5em 0.66em;
+  border: 2px solid var(--btn-line);
+  border-radius: var(--radius-hand);
+  background-color: var(--btn-bg);
+  box-shadow: 2px var(--btn-drop) 0 0 var(--btn-line);
+  color: var(--btn-fg);
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-user-select: none; /* Safari */
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.18s var(--ease-out), box-shadow 0.18s var(--ease-out), background-color 0.18s;
+}
+
+@media (hover: hover) {
+  .btn:hover {
+    background-color: var(--btn-bg-hover);
+    box-shadow: 4px calc(var(--btn-drop) + 4px) 0 0 var(--btn-line);
+    transform: translate(-1px, -3px) rotate(-0.6deg);
+  }
+}
+
+.btn:active {
+  box-shadow: 0 0 0 0 var(--btn-line);
+  transform: translate(2px, var(--btn-drop));
+  transition-duration: 0.06s;
+}
+
+/* 누를 수 없는 버튼은 hover 에도 반응하지 않는다 */
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  background-color: var(--btn-bg);
+  box-shadow: none;
+  opacity: 0.5;
+  transform: none;
+  cursor: not-allowed;
+}
+
+.btn--ghost {
+  --btn-bg: transparent;
+  --btn-bg-hover: var(--surface-hover);
+  --btn-fg: currentColor;
+  --btn-line: currentColor;
+  box-shadow: none;
+}
+
+.btn--ink {
+  --btn-bg: var(--sea-800);
+  --btn-bg-hover: var(--sea-600);
+  --btn-fg: var(--paper-50);
+}
+
+.btn--s {
+  --btn-drop: 2px;
+  min-height: 2.5rem;
+  padding: 0.38em 1.05em 0.44em;
+  border-width: 1.5px;
+  font-size: var(--fs-s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .btn:hover,
+  .btn:active {
+    transform: none;
+    transition: background-color 0.18s;
+  }
+}
+
+/* 5-2. 우표 -----------------------------------------------------------------
+   <span class="stamp stamp--sea" style="--stamp-w: 72px">(SVG 또는 글자)</span>
+   --stamp-w 로 크기, --stamp-tilt 로 기울기. 톱니가 딱 맞도록 실제 폭은 1~4px 달라질 수 있다.
+   그림은 shared.js 의 stampSVG('shop' | 'oreum' | 'tangerine' | 'wave' | 'letter') */
+.stamp {
+  --stamp-w: 88px;
+  --stamp-cols: 10; /* 가로 톱니 수 */
+  --stamp-rows: 12; /* 세로 톱니 수 (10:12 = 5:6 비율) */
+  --stamp-paper: var(--paper-50);
+  --stamp-bg: var(--tangerine-500);
+  --stamp-fg: var(--basalt-900);
+  --stamp-tilt: 0deg;
+  --perf: calc(var(--stamp-w) / var(--stamp-cols)); /* 톱니 하나의 간격 */
+  position: relative;
+  display: inline-grid;
+  flex: none;
+  place-content: center;
+  justify-items: center;
+  gap: calc(var(--perf) * 0.2);
+  width: calc(var(--perf) * var(--stamp-cols));
+  height: calc(var(--perf) * var(--stamp-rows));
+  padding: calc(var(--perf) * 1.5);
+  color: var(--stamp-fg);
+  line-height: 1;
+  vertical-align: middle;
+  transform: rotate(var(--stamp-tilt));
+  /* 톱니 모양을 따라가는 그림자(box-shadow 는 마스크에 잘린다) */
+  filter: drop-shadow(0 1px 1px rgb(var(--ink-rgb) / 0.3)) drop-shadow(0 3px 5px rgb(var(--ink-rgb) / 0.14));
+}
+
+/* 톱니 간격을 정수 px 로 맞춰 네 변의 구멍이 어긋나지 않게 한다 */
+@supports (width: round(nearest, 10px, 1px)) {
+  .stamp {
+    --perf: round(nearest, calc(var(--stamp-w) / var(--stamp-cols)), 1px);
+  }
+}
+
+/* 톱니 종이: 안쪽 사각형 + 가장자리에 구멍이 뚫린 격자를 합친 마스크 */
+.stamp::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background-color: var(--stamp-paper);
+  background-image: var(--tex-paper);
+  -webkit-mask:
+    linear-gradient(#000 0 0) center / calc(100% - var(--perf)) calc(100% - var(--perf)) no-repeat,
+    radial-gradient(circle, transparent calc(var(--perf) * 0.3), #000 calc(var(--perf) * 0.3 + 0.6px)) calc(var(--perf) / -2) calc(var(--perf) / -2) / var(--perf) var(--perf);
+  mask:
+    linear-gradient(#000 0 0) center / calc(100% - var(--perf)) calc(100% - var(--perf)) no-repeat,
+    radial-gradient(circle, transparent calc(var(--perf) * 0.3), #000 calc(var(--perf) * 0.3 + 0.6px)) calc(var(--perf) / -2) calc(var(--perf) / -2) / var(--perf) var(--perf);
+}
+
+/* 색 판 + 안쪽 가는 테두리 */
+.stamp::after {
+  content: "";
+  position: absolute;
+  inset: calc(var(--perf) * 0.9);
+  z-index: -1;
+  background-color: var(--stamp-bg);
+  box-shadow: inset 0 0 0 calc(var(--perf) * 0.22) var(--stamp-bg), inset 0 0 0 calc(var(--perf) * 0.22 + 1px) currentColor;
+}
+
+.stamp > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+}
+
+.stamp__text {
+  font-size: calc(var(--perf) * 1.15);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.stamp--tangerine {
+  --stamp-bg: var(--tangerine-500);
+  --stamp-fg: var(--basalt-900);
+}
+
+.stamp--sea {
+  --stamp-bg: var(--sea-600);
+  --stamp-fg: var(--paper-50);
+}
+
+.stamp--basalt {
+  --stamp-bg: var(--basalt-700);
+  --stamp-fg: var(--paper-100);
+}
+
+/* 5-3. 소인 -----------------------------------------------------------------
+   <span class="postmark" aria-hidden="true">(shared.js 의 postmarkSVG() 결과)</span>
+   --postmark-w 로 크기, --postmark-tilt 로 기울기 */
+.postmark {
+  --postmark-w: 200px;
+  --postmark-tilt: -8deg;
+  display: inline-block;
+  width: var(--postmark-w);
+  max-width: 100%;
+  color: var(--surface-ink);
+  opacity: 0.78;
+  transform: rotate(var(--postmark-tilt));
+  mix-blend-mode: var(--postmark-blend);
+  pointer-events: none;
+  -webkit-user-select: none; /* Safari */
+  user-select: none;
+}
+
+.postmark svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* 5-4. 항공우편 띠 -----------------------------------------------------------
+   <div class="airmail paper">…</div>  (테두리)   <div class="airmail-strip"></div>  (가로 띠)
+   --airmail-w 는 단위 없이 숫자만(px) */
+.airmail,
+.airmail-strip {
+  --airmail-w: 12;
+  --airmail-stripe: 14px;
+  --airmail-pattern: repeating-linear-gradient(
+    -45deg,
+    var(--tangerine-500) 0 var(--airmail-stripe),
+    var(--paper-50) 0 calc(var(--airmail-stripe) * 2),
+    var(--sea-600) 0 calc(var(--airmail-stripe) * 3),
+    var(--paper-50) 0 calc(var(--airmail-stripe) * 4)
+  );
+}
+
+.airmail {
+  border: calc(var(--airmail-w) * 1px) solid transparent;
+  border-image: var(--airmail-pattern) var(--airmail-w);
+}
+
+.airmail-strip {
+  height: calc(var(--airmail-w) * 1px);
+  background-image: var(--airmail-pattern);
+}
+
+/* 5-5. 주소 줄(괘선) ---------------------------------------------------------
+   <p class="ruled">받는 사람<br>주소 한 줄</p> — 줄마다 밑줄이 그어진다 */
+.ruled {
+  --ruled-lh: 1.9;
+  background-image: linear-gradient(to top, var(--color-line) 0 1px, transparent 1px);
+  background-position: 0 -0.3em;
+  background-size: 100% calc(1em * var(--ruled-lh));
+  font-family: var(--font-hand-2);
+  font-size: calc(var(--fs-base) * var(--hand-scale));
+  line-height: var(--ruled-lh);
+}
+
+/* 5-6. 마스킹테이프 -----------------------------------------------------------
+   <span class="tape" aria-hidden="true"></span> — 부모에 position: relative 를 주고 top/left 로 놓는다
+   --tape-w, --tape-h, --tape-tilt, --tape-color 로 조절 */
+.tape {
+  --tape-w: 104px;
+  --tape-h: 30px;
+  --tape-tilt: -4deg;
+  --tape-color: var(--tangerine-300);
+  position: absolute;
+  width: var(--tape-w);
+  height: var(--tape-h);
+  background-color: var(--tape-color);
+  background-image:
+    linear-gradient(to bottom, rgb(var(--paper-rgb) / 0.4), transparent 30%, transparent 70%, rgb(var(--ink-rgb) / 0.08)),
+    repeating-linear-gradient(90deg, transparent 0 5px, rgb(var(--paper-rgb) / 0.22) 5px 6px);
+  opacity: 0.78;
+  transform: rotate(var(--tape-tilt));
+  /* 손으로 뜯은 듯한 양 끝 */
+  clip-path: polygon(0 0, 3% 14%, 0 28%, 3% 42%, 0 56%, 3% 70%, 0 84%, 2% 100%, 98% 100%, 100% 86%, 97% 72%, 100% 58%, 97% 44%, 100% 30%, 97% 16%, 100% 0);
+  pointer-events: none;
+}
+
+.tape--sea {
+  --tape-color: var(--sea-200);
+}
+
+.tape--paper {
+  --tape-color: var(--paper-300);
+}
+
+/* 5-7. 제목 · 라벨 ----------------------------------------------------------- */
+.section-title {
+  font-family: var(--font-display);
+  font-size: var(--title-size); /* 크기 · 자간 · 줄 간격 = css/theme.css '0.' 의 --title-… */
+  font-weight: var(--font-display-weight); /* 프리텐다드 굵게(800) — css/base.css */
+  line-height: var(--title-lh);
+  letter-spacing: -0.01em;
+}
+
+/* 작은 라벨 — 예: No.04 · Map */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7em;
+  color: var(--surface-ink);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.eyebrow::before {
+  content: "";
+  flex: none;
+  width: 1.8em;
+  height: 2px;
+  border-radius: 2px;
+  background-color: var(--color-point);
+}
+
+/* 5-8. 웹진 로고(기사 헤더 · 푸터의 이름 자리에 쓰는 그림) + 기사 페이지 헤더 -----
+   ✏️ 교체: 로고 높이는 --brand-logo-h. 로고 대신 글자로 쓰려면 HTML 에서 <img class="brand-logo"> 를 지우고
+            그 자리에 웹진 이름을 적으면 된다(.site-header__brand · .site-footer__name 의 글꼴 · 크기가 그대로 적용된다) */
+.brand-logo {
+  display: block;
+  width: auto;
+  max-width: none;
+  height: var(--brand-logo-h, 2.4rem);
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  border-bottom: 1px solid var(--color-line);
+  background-color: var(--color-bg);
+  background-image: var(--tex-paper);
+}
+
+/* 위에 붙어 있는 헤더에 앵커·포커스 대상이 가려지지 않게. 헤더가 있는 페이지의 <html class="has-header"> 에만 적용한다
+   (:has() 로 알아서 찾을 수도 있지만 그 선택자를 모르는 브라우저가 아직 있다) */
+html.has-header {
+  scroll-padding-top: 4.5rem;
+}
+
+.site-header::before {
+  content: "";
+  display: block;
+  height: 5px;
+  background-image: repeating-linear-gradient(-45deg, var(--tangerine-500) 0 10px, var(--paper-50) 0 20px, var(--sea-600) 0 30px, var(--paper-50) 0 40px);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 3.5rem;
+}
+
+.site-header__brand {
+  --brand-logo-h: 2.4rem; /* ✏️ 교체: 헤더의 로고 높이 */
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: var(--fs-l);
+  line-height: 1;
+  text-decoration: none;
+}
+
+.site-header__brand:hover {
+  color: var(--color-point-strong);
+}
+
+.site-header__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  min-height: 2.75rem;
+  color: var(--color-ink);
+  font-size: var(--fs-s);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.site-header__back::before {
+  content: "←";
+  content: "←" / ""; /* 스크린리더는 화살표를 읽지 않는다(윗줄은 이 문법을 모르는 브라우저용) */
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.site-header__back:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--color-point);
+  text-decoration-thickness: 2px;
+}
+
+.site-header__back:hover::before {
+  transform: translateX(-4px);
+}
+
+/* 5-9. 푸터 ------------------------------------------------------------------ */
+.site-footer {
+  background-color: var(--color-dark-bg);
+  background-image: var(--tex-basalt);
+  color: var(--color-on-dark);
+  font-size: var(--fs-s);
+  line-height: 1.75;
+}
+
+.site-footer a:not(.btn):hover {
+  color: var(--tangerine-300);
+}
+
+.site-footer__grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1.6fr;
+  gap: var(--space-7) var(--space-8);
+  padding-block: var(--space-8) var(--space-7);
+}
+
+.site-footer__name {
+  --brand-logo-h: 3.5rem; /* ✏️ 교체: 푸터의 로고 높이(헤더보다 조금 크게) */
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  line-height: 1.1;
+}
+
+/* (29차) 손글씨 → 본문 글꼴(Pretendard)로 깔끔하게 */
+.site-footer__tagline {
+  max-width: 34em;
+  margin-top: var(--space-3);
+  color: var(--color-on-dark-soft);
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  font-weight: 500;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+}
+
+.site-footer__heading {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  margin-bottom: var(--space-3);
+  color: var(--tangerine-300);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.site-footer__heading::after {
+  content: "";
+  flex: 1;
+  border-top: 1px dashed rgb(var(--paper-rgb) / 0.28);
+}
+
+.site-footer__list {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.site-footer__list--small {
+  color: var(--color-on-dark-soft);
+}
+
+.site-footer__bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-5);
+  padding-block: var(--space-4) var(--space-6);
+  border-top: 1px dashed rgb(var(--paper-rgb) / 0.28);
+  color: var(--color-on-dark-soft);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.04em;
+}
+
+/* 맨 아래 줄의 링크 묶음: 개인정보처리방침 · 외국인 웹진(Welcome to Jeju — en/index.html) */
+.site-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+}
+
+.site-footer__en {
+  color: var(--paper-50);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* 개인정보처리방침 링크(privacy.html): 다른 고지보다 눈에 띄게 굵게 · 밑줄 */
+.site-footer__privacy {
+  display: inline-block;
+  margin-block: -0.75em;
+  padding-block: 0.75em;
+  color: var(--paper-50);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+@media (max-width: 767px) {
+  .site-footer__grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+    padding-block: var(--space-7) var(--space-6);
+  }
+}
+
+/* 5-x. 언어 전환(한국어 / English / 제주어) — js/i18n.js ----------------------------
+   단추 세 개는 [data-lang-switch] 자리에 js 가 그린다. index 는 화면 오른쪽 위에 떠 있고(.lang-float),
+   기사 페이지는 머리글의 '목록으로' 옆(.site-header__lang).
+   ✏️ 교체: 단추 높이는 --lang-btn(44px — 손가락으로 누르기 쉽게 이보다 작게 하지 않기를 권합니다), 화면 끝과의 간격은 --lang-gap.
+            --lang-clear = 떠 있는 단추가 차지하는 위쪽 높이(인트로의 우표 · 라벨 · 종이 조각이 이 아래로 비켜난다 — css/intro.css) */
+:root {
+  --lang-gap: calc(var(--page-frame-w, 0px) + clamp(0.375rem, 0.9vw, 0.75rem)); /* 주황 테두리(css/scrapbook.css) 안쪽에서 */
+  --lang-btn: 2.75rem;
+  --lang-clear: calc(var(--lang-gap) + var(--lang-btn) + var(--space-2));
+  --z-lang: 950; /* 플로팅 버튼(900)보다 위, 엽서 쓰기 창(1000)보다 아래 */
+}
+
+/* 한국어가 아닐 때: 글을 바꾸기 전의 한국어가 잠깐 비치지 않게 가린다(<head> 의 한 줄 스크립트가 붙이고 js/i18n.js 가 걷는다. 안전장치 1.5초) */
+html.i18n-pending body {
+  visibility: hidden;
+}
+
+.lang-switch {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background-color: var(--paper-50);
+  background-image: var(--tex-paper);
+  box-shadow: var(--shadow-paper);
+}
+
+.lang-switch__btn {
+  display: inline-grid;
+  place-items: center;
+  min-width: var(--lang-btn);
+  min-height: var(--lang-btn);
+  padding: 0 0.7em;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+
+.lang-switch__btn:hover {
+  background-color: rgb(var(--ink-rgb) / 0.07);
+}
+
+/* 영어판 랜딩페이지로 가는 링크(config.js 의 links.english)도 단추와 같은 모양 */
+a.lang-switch__btn {
+  text-decoration: none;
+}
+
+/* 지금 언어 */
+.lang-switch__btn[aria-pressed="true"] {
+  background-color: var(--color-point);
+  color: var(--basalt-900);
+  cursor: default;
+}
+
+.lang-switch__short {
+  display: none;
+}
+
+/* 좁은 화면: KO / EN / 제주 (화면 낭독기는 그대로 '한국어 · English · 제주어' 를 읽는다) */
+@media (max-width: 767px) {
+  .lang-switch__long {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .lang-switch__short {
+    display: inline;
+  }
+}
+
+/* index: 화면 오른쪽 위에 떠 있는 단추 */
+.lang-float {
+  position: fixed;
+  top: var(--lang-gap);
+  right: var(--lang-gap);
+  z-index: var(--z-lang);
+  transition: opacity var(--dur-fast) var(--ease-out), visibility var(--dur-fast);
+}
+
+/* 휴대폰: 위쪽 목차가 내려온 뒤에는 지금 언어 단추 하나만 남겨 목차 자리를 비운다. 그 단추를 누르면 세 단추가 펼쳐진다(js/i18n.js 의 .is-open) */
+@media (max-width: 767px) {
+  html.past-intro .lang-float:not(.is-open) .lang-switch__btn:not([aria-pressed="true"]) {
+    display: none;
+  }
+
+  html.past-intro .lang-float:not(.is-open) .lang-switch__btn[aria-pressed="true"] {
+    cursor: pointer;
+  }
+
+  html.past-intro .lang-float:not(.is-open) .lang-switch__btn[aria-pressed="true"] .lang-switch__short::after {
+    content: "▾";
+    margin-left: 0.2em;
+    font-size: 0.8em;
+  }
+}
+
+/* 지도 단추 줄(data-lang-avoid)이 단추 자리에 들어와 있는 동안은 비켜 숨는다(js/i18n.js) */
+html.lang-avoid .lang-float {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* 기사 머리글: 로고 | 목록으로 · 언어 단추 */
+.site-header__inner > .site-header__back {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.site-header__lang {
+  flex: none;
+}
+
+/* 아주 좁은 화면(폭 359px 이하): 로고 · '목록으로' · 언어 단추 셋이 한 줄에 들어가게 간격을 줄이고 '←' 를 뺀다 */
+@media (max-width: 359px) {
+  .site-header__inner {
+    gap: var(--space-2);
+  }
+
+  .site-header__inner > .site-header__back::before {
+    display: none;
+  }
+}
+
+.site-header__lang .lang-switch {
+  box-shadow: none;
+}
+
+/* 아직 그 언어로 옮기지 않은 기사: 한국어 본문 위에 붙는 안내(js/i18n.js) */
+.i18n-note {
+  width: min(100% - var(--gutter) * 2, 34rem);
+  margin: var(--space-6) auto 0;
+}
+
+/* ?i18n-debug=1 — 사전에 빠진 키: 빨간 점선 = 글자, 파란 점선 = 화면 낭독기 이름 · 대체 글 · 안내 속성 */
+html.i18n-debug [data-i18n-missing] {
+  outline: 2px dashed #d32f2f !important;
+  outline-offset: 2px;
+}
+
+html.i18n-debug [data-i18n-missing-attr] {
+  outline: 2px dotted #1565c0 !important;
+  outline-offset: 3px;
+}

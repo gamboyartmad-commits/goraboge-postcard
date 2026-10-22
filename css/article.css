@@ -1,0 +1,841 @@
+/* article.css — 인터뷰 기사 페이지 (interview-01.html, interview-02.html)
+   기사 페이지에서만 불러온다(index.html 에는 연결하지 않는다). 두 페이지가 함께 쓰는 조각은 base.css 끝에 둔다.
+   순서: 0. 포인트색  1. 대표 이미지  2. 제목 묶음  2-1. 인물 띠  3. 본문  4. 묻고 답하기  4-1. 사람별 인터뷰 · 인용 · 제주어 낱말
+        5. 중간 인용구  6. 사진과 캡션  7. 맺음  8. 다른 인터뷰  9. 넓은 화면  10. 고대비 모드 */
+
+/* 0. 포인트색 -------------------------------------------------------------------
+   두 기사는 마크업이 같고, <body data-interview="01|02"> 에 따라 아래 변수만 달라진다.
+   ✏️ 교체: 기사의 포인트색을 바꾸려면 이 값들만 고친다(기본 = 감귤, 02 = 바다).
+   기사를 더 만들 때: 바다색으로 하려면 <body data-interview="03" data-accent="sea"> 처럼 data-accent 를 더한다(엽서의 variant "b" 와 짝) */
+body[data-interview] {
+  --accent: var(--tangerine-500);
+  --accent-strong: var(--tangerine-700); /* 종이 위의 큰 글자 · 선 */
+  --accent-on: var(--basalt-900); /* 포인트색 위의 그림 · 글자 */
+  --accent-tape: var(--tangerine-300); /* 마스킹테이프 */
+  --accent-ink: var(--sea-800); /* 소인 잉크 */
+}
+
+body[data-interview="02"],
+body[data-accent="sea"] {
+  --accent: var(--sea-600);
+  --accent-strong: var(--sea-800);
+  --accent-on: var(--paper-50);
+  --accent-tape: var(--sea-200);
+  --accent-ink: var(--tangerine-700);
+}
+
+.article {
+  --measure: 42rem; /* 본문 한 줄의 폭 */
+  padding-bottom: var(--space-9);
+}
+
+/* 기사 안의 우표 · 테이프 · 라벨은 포인트색을 따른다 */
+.article .stamp {
+  --stamp-bg: var(--accent);
+  --stamp-fg: var(--accent-on);
+}
+
+.article .tape {
+  --tape-color: var(--accent-tape);
+}
+
+/* 1. 대표 이미지 — 종이 액자에 끼운 사진, 모서리에 우표와 소인 ------------------------- */
+.article__cover {
+  position: relative;
+  isolation: isolate; /* 아래 두 겹(::before · ::after)이 페이지 바탕 뒤로 숨지 않게 */
+  width: min(100% - var(--gutter) * 2, var(--container));
+  margin: var(--space-6) auto 0;
+  padding: clamp(6px, 0.9vw, 12px);
+  border-radius: 3px 5px 4px 6px / 5px 3px 6px 4px; /* 손으로 자른 듯 살짝 고르지 않은 모서리 */
+}
+
+.article__cover::before,
+.article__cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background-image: var(--tex-paper);
+}
+
+/* 아래에 비껴 깔린 종이 한 장 */
+.article__cover::before {
+  background-color: var(--paper-200);
+  box-shadow: var(--shadow-paper);
+  rotate: -0.7deg;
+}
+
+/* 사진이 놓인 종이 */
+.article__cover::after {
+  background-color: var(--paper-50);
+  box-shadow: 0 0 0 1px rgb(var(--ink-rgb) / 0.07), var(--shadow-paper);
+}
+
+/* ✏️ 교체: 대표 이미지의 높이 = min(화면 높이의 62%, 640px, 화면 폭의 72%).
+   마지막 값은 휴대폰 · 태블릿에서 가로 사진이 세로로 길게 잘리지 않게 하는 상한이다.
+   넓은 화면에서는 사진의 위아래가 잘린다(가운데 기준) — 보여 줄 중심은 기사 HTML 의 img 에 style="object-position: 50% 20%" 로 옮긴다.
+   두 기사에 함께 적용할 높이 · 중심은 css/theme.css 의 --article-cover-h · --article-cover-pos 로 바꿀 수 있다 */
+.article__cover-img {
+  width: 100%;
+  height: var(--article-cover-h, min(62vh, 640px, 72vw));
+  border-radius: 1px;
+  background-color: var(--paper-200);
+  object-fit: cover;
+  object-position: var(--article-cover-pos, 50% 50%);
+}
+
+/* svh 를 아는 브라우저: 휴대폰 주소창이 보일 때의 화면 높이 기준(var() 가 든 선언은 겹쳐 쓰는 대체 선언이 통하지 않아 @supports 로 가른다) */
+@supports (height: 100svh) {
+  .article__cover-img {
+    height: var(--article-cover-h, min(62svh, 640px, 72vw));
+  }
+}
+
+.article__cover-post {
+  --post-w: clamp(8.5rem, 17vw, 13.5rem); /* 소인의 폭 */
+  position: absolute;
+  right: clamp(0.5rem, 3.6vw, 3.25rem);
+  bottom: calc(var(--post-w) * -0.17);
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+/* 소인의 물결선이 우표 위에 겹쳐 찍힌다 */
+.article__cover-post .postmark {
+  --postmark-w: var(--post-w);
+  --postmark-tilt: -7deg;
+  position: relative;
+  z-index: 1;
+  margin-right: calc(var(--post-w) * -0.3);
+  margin-bottom: calc(var(--post-w) * 0.05);
+  color: var(--accent-ink);
+}
+
+.article__cover-post .stamp {
+  --stamp-w: calc(var(--post-w) * 0.41);
+  --stamp-tilt: 5deg;
+}
+
+/* 2. 제목 묶음: 라벨 → 제목 → 부제 → 글쓴이 · 날짜 → 인터뷰이 ---------------------------- */
+.article__head {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  width: min(100% - var(--gutter) * 2, 46rem);
+  margin: var(--space-8) auto 0;
+  text-align: center;
+}
+
+/* 라벨 양옆에 포인트색 줄 */
+.article__eyebrow::before,
+.article__eyebrow::after {
+  background-color: var(--accent);
+}
+
+.article__eyebrow::after {
+  content: "";
+  flex: none;
+  width: 1.8em;
+  height: 2px;
+  border-radius: 2px;
+}
+
+.article__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  font-weight: var(--font-display-weight); /* 프리텐다드 굵게(800) — css/base.css */
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.article__subtitle {
+  max-width: 32em;
+  color: var(--color-text-soft);
+  font-family: var(--font-body);
+  font-size: var(--fs-m);
+  line-height: 1.7;
+  text-wrap: balance;
+}
+
+/* 글 · 사진 · 발행일 — 위아래 점선 사이에 */
+.article__byline {
+  width: 100%;
+  margin-top: var(--space-2);
+  padding-block: var(--space-3);
+  border-block: 1px dashed var(--color-line);
+  color: var(--color-text-soft);
+  font-size: var(--fs-s);
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+}
+
+/* 인터뷰이 소개 한 줄(손글씨) */
+.article__guest {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2em 0.7em;
+  color: var(--color-ink);
+  font-family: var(--font-hand);
+  font-size: calc(var(--fs-m) * var(--hand-scale));
+  line-height: 1.25;
+}
+
+.article__guest-label {
+  padding: 0.3em 0.85em 0.34em;
+  border: 1.5px solid currentColor;
+  border-radius: var(--radius-hand);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+/* 2-1. 인물 띠 — 큰 질문 + 사람마다 크림 종이에 테이프로 붙인 인물 사진 카드 -----------------
+   <section class="people"> 안에 질문(.people__q) → 카드 목록(.people__list > .person).
+   카드 한 장 = 사진 종이(.person__photo + 테이프) · 이름 · 소속 · 남기고 싶은 말(<q>) · 그 뜻 · '인터뷰 읽기'(카드 어디를 눌러도 이 링크로 간다).
+   카드는 사람 수만큼 한 줄에 놓인다(2명 · 3명 모두). 폭 720px 이하에서는 세로 목록(사진 왼쪽, 글 오른쪽).
+   ✏️ 교체: 카드 한 장의 가장 큰 폭 = --person-w, 사진 종이의 비율 = .person__photo 의 aspect-ratio,
+            사진 아래가 흐려지는 정도 = .person__photo img 의 mask-image(78% 까지 또렷하고 맨 아래에서 투명) */
+.people {
+  --person-w: 14.5rem;
+  width: min(100% - var(--gutter) * 2, 62rem);
+  margin: var(--space-8) auto 0;
+  text-align: center;
+}
+
+.people__q {
+  color: var(--color-title);
+  font-family: var(--font-display);
+  font-size: var(--fs-l);
+  font-weight: var(--font-display-weight);
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+}
+
+.people__list {
+  display: grid;
+  grid-auto-columns: minmax(0, var(--person-w));
+  grid-auto-flow: column; /* 사람 수만큼 칸이 생긴다 */
+  justify-content: center;
+  gap: var(--space-6) clamp(1.25rem, 3.4vw, 3.25rem);
+  margin-top: var(--space-8); /* 카드 윗변의 테이프가 질문에 닿지 않게 */
+  text-align: left;
+}
+
+.person {
+  position: relative; /* '인터뷰 읽기' 링크가 카드 전체를 덮는 기준 */
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* 사진 종이: 크림 종이 한 장(살짝 기울게) 위에 배경을 지운 인물 사진, 윗변에 마스킹테이프 */
+.person__photo {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  border-radius: 2px;
+  background-color: var(--paper-50);
+  background-image: var(--tex-paper);
+  box-shadow: 0 0 0 1px rgb(var(--ink-rgb) / 0.07), var(--shadow-paper);
+  rotate: -1.4deg;
+  transition: translate var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
+}
+
+.person:nth-child(even) .person__photo {
+  rotate: 1.2deg;
+}
+
+.person:nth-child(3n) .person__photo {
+  rotate: -0.5deg;
+}
+
+/* 사진은 종이 아래 가장자리에 붙이고(폭이 좁은 사진도 가운데), 아래쪽은 종이 속으로 흐려진다 */
+.person__photo img {
+  position: absolute;
+  bottom: 0;
+  left: 7%;
+  width: 86%;
+  height: 89%;
+  object-fit: contain;
+  object-position: 50% 100%;
+  filter: var(--photo-filter);
+  -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent);
+  mask-image: linear-gradient(to bottom, #000 78%, transparent);
+}
+
+.person__tape {
+  --tape-w: 5.2rem;
+  --tape-h: 1.45rem;
+  --tape-tilt: -3deg;
+  top: -0.65rem;
+  left: calc(50% - 2.6rem);
+  z-index: 1;
+}
+
+.person:nth-child(even) .person__tape {
+  --tape-tilt: 4deg;
+}
+
+.person__body {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.person__name {
+  color: var(--color-text-soft);
+  font-size: var(--fs-s);
+  line-height: 1.5;
+}
+
+.person__name strong {
+  display: block;
+  color: var(--color-text);
+  font-size: var(--fs-m);
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+/* 남기고 싶은 말(제주어) — 고운바탕 굵게, 아래에 표준어 뜻을 손글씨로 */
+.person__word {
+  width: 100%;
+  margin-top: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--color-line);
+  font-family: var(--font-jeju);
+  font-size: var(--fs-l);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.person__word q {
+  quotes: "“" "”";
+}
+
+.person__meaning {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--color-ink);
+  font-family: var(--font-hand);
+  font-size: calc(var(--fs-base) * var(--hand-scale));
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.person__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  margin-top: var(--space-2);
+  color: var(--accent-strong);
+  font-size: var(--fs-s);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* 카드 어디를 눌러도 이 링크로 */
+.person__more::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.person__more-arrow {
+  transition: translate var(--dur-fast) var(--ease-out);
+}
+
+.person:hover .person__photo,
+.person:focus-within .person__photo {
+  translate: 0 -4px;
+  box-shadow: 0 0 0 1px rgb(var(--ink-rgb) / 0.07), var(--shadow-lift);
+}
+
+.person:hover .person__more {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.22em;
+}
+
+.person:hover .person__more-arrow {
+  translate: 3px 0;
+}
+
+/* 폭 720px 이하: 세로 목록 — 사진 종이 왼쪽, 글 오른쪽 */
+@media (max-width: 45em) {
+  .people__list {
+    grid-auto-flow: row;
+    grid-template-columns: minmax(0, 30rem);
+    gap: var(--space-6);
+  }
+
+  .person {
+    grid-template-columns: 7rem minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-5);
+  }
+
+  .person__tape {
+    --tape-w: 3.6rem;
+    --tape-h: 1.05rem;
+    top: -0.45rem;
+    left: calc(50% - 1.8rem);
+  }
+
+  .person__word {
+    font-size: var(--fs-m);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .person__photo,
+  .person__more-arrow {
+    transition: none;
+  }
+
+  .person:hover .person__photo,
+  .person:focus-within .person__photo,
+  .person:hover .person__more-arrow {
+    translate: none;
+  }
+}
+
+/* 3. 본문 ----------------------------------------------------------------------- */
+.article__body {
+  width: min(100% - var(--gutter) * 2, var(--measure));
+  margin: var(--space-7) auto 0;
+  font-size: var(--article-fs, var(--text-size)); /* 본문 문단과 같은 크기(css/theme.css '0.' 의 --text-size). 기사만 따로 바꾸려면 '6.' 의 --article-fs */
+  line-height: var(--text-lh);
+}
+
+.article__body > * + * {
+  margin-top: 1.5em;
+}
+
+/* 리드 문단: 조금 크게, 왼쪽에 포인트색 줄 */
+.article__lead {
+  padding-left: 1.05em;
+  border-left: 3px solid var(--accent);
+  font-family: var(--font-body);
+  font-size: 1.2em;
+  line-height: 1.8;
+}
+
+/* 본문에 쓸 수 있는 기본 요소: 링크 · 굵게 · 강조 · 목록 · 짧은 인용 · 구분선 */
+.article__body a {
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+}
+
+.article__body a:hover {
+  color: var(--color-text);
+}
+
+.article__body strong {
+  font-weight: 700;
+}
+
+/* 강조(<em>): 기울이지 않고 형광펜처럼 밑을 칠한다 */
+.article__body em {
+  background-image: linear-gradient(to top, var(--accent-tape) 0 38%, transparent 38%);
+  font-style: normal;
+}
+
+/* color-mix 를 아는 브라우저에서는 포인트색을 옅게 섞어 칠한다
+   (var() 가 든 선언은 '모르는 값'이어도 버려지지 않아 대체 선언을 위에 겹쳐 쓰는 방법이 통하지 않는다 → @supports 로 가른다) */
+@supports (color: color-mix(in srgb, red 34%, transparent)) {
+  .article__body em {
+    background-image: linear-gradient(to top, color-mix(in srgb, var(--accent) 34%, transparent) 0 38%, transparent 38%);
+  }
+}
+
+.article__body ul:not([class]),
+.article__body ol:not([class]) {
+  padding-left: 1.4em;
+}
+
+.article__body li + li {
+  margin-top: 0.4em;
+}
+
+.article__body li::marker {
+  font-weight: 700;
+}
+
+/* 글머리 점만 포인트색(번호는 글자라서 본문색이어야 종이 위에서 읽힌다) */
+.article__body ul > li::marker {
+  color: var(--accent-strong);
+}
+
+.article__body > blockquote {
+  padding-left: 1.05em;
+  border-left: 3px double var(--color-line);
+  color: var(--color-text-soft);
+  font-family: var(--font-body);
+}
+
+/* 구분선(<hr>): 손으로 그은 물결선 */
+.article__body hr {
+  width: 7.5rem;
+  height: 1rem;
+  margin-block: 2.6em;
+  margin-inline: auto;
+  border: 0;
+  background-color: var(--accent-strong);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 20'%3E%3Cpath d='M4 11c10-9 20-9 31 0s21 9 31 0 20-9 31 0 21 9 31 0 16-8 28-3' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 20'%3E%3Cpath d='M4 11c10-9 20-9 31 0s21 9 31 0 20-9 31 0 21 9 31 0 16-8 28-3' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* 4. 묻고 답하기 — 질문은 굵게(앞에 포인트색 Q.), 답변은 보통 ---------------------------- */
+.article__body > .qa__q {
+  position: relative;
+  margin-top: 2.7em;
+  font-size: 1.1em;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.qa__q::before {
+  content: "Q.";
+  margin-right: 0.35em;
+  color: var(--accent-strong);
+  font-family: var(--font-body);
+  font-size: 1.36em; /* 24px 이상 — 포인트색 글자가 종이 위에서 읽히는 크기 */
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.article__body > .qa__q + * {
+  margin-top: 0.85em;
+}
+
+/* 4-1. 사람별 인터뷰 · 인용 · 제주어 낱말 --------------------------------------------------
+   한 사람 = <section id="p-…" class="article__body iv"> 한 묶음(본문과 같은 폭 · 같은 묻고 답하기 규칙).
+   머리: 글자가 적힌 마스킹테이프(.iv__label) → 작은 제목(.iv__kicker) + 제목(.iv__title) → 만난 사람(.article__guest) */
+.article__body.iv {
+  margin-top: var(--space-9);
+  scroll-margin-top: var(--space-5); /* '인터뷰 읽기'로 왔을 때 헤더 아래에 여유 */
+}
+
+.people + .article__body.iv {
+  margin-top: var(--space-8);
+}
+
+.iv__head {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px dashed var(--color-line);
+  text-align: center;
+}
+
+/* 글자가 적힌 마스킹테이프 — 양 끝은 손으로 뜯은 듯(css/base.css 의 .tape 와 같은 결) */
+.iv__label {
+  padding: 0.5em 1.5em 0.45em;
+  background-color: var(--accent-tape);
+  background-image:
+    linear-gradient(to bottom, rgb(var(--paper-rgb) / 0.4), transparent 30%, transparent 70%, rgb(var(--ink-rgb) / 0.08)),
+    repeating-linear-gradient(90deg, transparent 0 5px, rgb(var(--paper-rgb) / 0.22) 5px 6px);
+  color: var(--basalt-900);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  rotate: -2deg;
+  clip-path: polygon(0 0, 3% 14%, 0 28%, 3% 42%, 0 56%, 3% 70%, 0 84%, 2% 100%, 98% 100%, 100% 86%, 97% 72%, 100% 58%, 97% 44%, 100% 30%, 97% 16%, 100% 0);
+}
+
+/* 제목: 인터뷰이의 말을 그대로 옮긴 한 줄 → 제주어 글꼴(고운바탕). 그 위 작은 제목은 본문 글꼴 */
+.iv__title {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-jeju);
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.iv__kicker {
+  color: var(--color-text-soft);
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* 인터뷰이의 말을 그대로 옮긴 답변 — 왼쪽 포인트색 줄 + 제주어 글꼴 */
+.article__body > .qa__quote {
+  padding-left: 1.05em;
+  border-left: 3px solid var(--accent);
+  color: var(--color-text);
+  font-family: var(--font-jeju);
+  font-size: 1.08em;
+  line-height: 1.85;
+}
+
+/* 질문 바로 아래의 엽서 조각 인용은 질문에 붙여 둔다(위 테이프가 질문에 닿지 않을 만큼만 띄운다) */
+.article__body > .qa__q + .pullquote {
+  margin-top: 2em;
+}
+
+/* 제주어 낱말(<em class="jw">) — 형광펜 강조(<em>)보다 가볍게: 반굵게 + 감귤색 밑칠 */
+.article .jw {
+  font-style: normal;
+  font-weight: 600;
+  background-image: linear-gradient(transparent 58%, rgb(225 101 58 / 0.22) 58%);
+}
+
+/* 5. 중간 인용구 — 테이프로 붙인 엽서 조각 ---------------------------------------------- */
+.article__body > .pullquote {
+  margin-block: 3.4em;
+}
+
+.pullquote {
+  position: relative;
+  isolation: isolate;
+  padding: clamp(2.2rem, 1.6rem + 2.4vw, 3rem) clamp(1.4rem, 0.8rem + 3vw, 2.8rem) clamp(1.5rem, 1.2rem + 1.4vw, 2.1rem);
+  rotate: -1.1deg;
+  /* 찢긴 가장자리를 따라가는 그림자 */
+  filter: drop-shadow(0 1px 1px rgb(var(--ink-rgb) / 0.16)) drop-shadow(0 10px 14px rgb(var(--ink-rgb) / 0.14));
+}
+
+/* 종이: 오른쪽 가장자리가 손으로 찢은 듯 들쭉날쭉하다 */
+.pullquote::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--paper-50);
+  background-image:
+    linear-gradient(to right, transparent calc(100% - 3.2rem), rgb(var(--ink-rgb) / 0.035)),
+    var(--tex-paper);
+  clip-path: polygon(0 0.2%, 99.2% 0, 98.5% 7%, 99.6% 14%, 98.2% 23%, 99.3% 31%, 98% 41%, 99.5% 50%, 98.3% 60%, 99.6% 69%, 98.4% 79%, 99.4% 88%, 98.6% 95%, 99.7% 100%, 0.3% 99.6%);
+}
+
+/* 엽서 조각 윗변에 남은 항공우편 띠 */
+.pullquote::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 1.6%;
+  left: 0;
+  z-index: -1;
+  height: 7px;
+  background-image: repeating-linear-gradient(-45deg, var(--tangerine-500) 0 10px, var(--paper-50) 0 20px, var(--sea-600) 0 30px, var(--paper-50) 0 40px);
+  opacity: 0.9;
+}
+
+.pullquote__tape {
+  --tape-w: 6.4rem;
+  --tape-h: 1.7rem;
+  --tape-tilt: 3deg;
+  top: -0.8rem;
+  left: calc(50% - 3.2rem);
+}
+
+/* 큰따옴표(장식) — 모양은 마스크, 색은 포인트색 */
+.pullquote__text::before {
+  content: "";
+  display: block;
+  width: clamp(2.2rem, 1.8rem + 1.6vw, 3rem);
+  aspect-ratio: 64 / 46;
+  margin-bottom: var(--space-3);
+  background-color: var(--accent);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 46'%3E%3Cpath d='M27.5 4.5C14 8.5 4.5 19 4.5 31.5c0 7.2 4.7 12 11.2 12 6 0 10.6-4.4 10.6-10.4 0-5.700-4.100-9.800-9.600-9.800-.9 0-1.800.1-2.600.4 1.300-6.300 6.300-11.300 14.300-14.200zM60 4.500C46.500 8.500 37 19 37 31.500c0 7.200 4.700 12 11.200 12 6 0 10.600-4.400 10.600-10.400 0-5.700-4.100-9.800-9.600-9.800-.9 0-1.800.1-2.600.4 1.300-6.300 6.300-11.300 14.300-14.200z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 46'%3E%3Cpath d='M27.5 4.5C14 8.5 4.5 19 4.5 31.5c0 7.2 4.7 12 11.2 12 6 0 10.6-4.4 10.6-10.4 0-5.700-4.100-9.800-9.600-9.800-.9 0-1.800.1-2.600.4 1.300-6.300 6.300-11.300 14.300-14.200zM60 4.500C46.500 8.500 37 19 37 31.500c0 7.200 4.700 12 11.200 12 6 0 10.600-4.400 10.600-10.400 0-5.700-4.100-9.800-9.600-9.800-.9 0-1.800.1-2.600.4 1.300-6.300 6.300-11.300 14.300-14.200z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.pullquote__text {
+  font-family: var(--font-jeju); /* 인터뷰이의 말 = 제주어가 섞이는 자리 → J4 */
+  font-size: clamp(1.3125rem, 1.14rem + 0.82vw, 1.8125rem);
+  font-weight: 700;
+  line-height: 1.55;
+  text-wrap: balance;
+}
+
+.pullquote__by {
+  margin-top: var(--space-4);
+  color: var(--color-ink);
+  font-family: var(--font-hand);
+  font-size: calc(var(--fs-m) * var(--hand-scale));
+  line-height: 1.2;
+  text-align: right;
+}
+
+.pullquote__by::before {
+  content: "— ";
+}
+
+/* 6. 사진과 캡션 — 종이에 인화해 테이프로 붙인 사진 ---------------------------------------- */
+.article__body > .article__figure {
+  margin-block: 3.2em;
+}
+
+.article__figure {
+  position: relative;
+  padding: clamp(7px, 0.9vw, 11px);
+  border-radius: 2px;
+  background-color: var(--paper-50);
+  background-image: var(--tex-paper);
+  box-shadow: 0 0 0 1px rgb(var(--ink-rgb) / 0.07), var(--shadow-paper);
+  rotate: 0.6deg;
+}
+
+.article__figure img {
+  width: 100%;
+  border-radius: 1px;
+  background-color: var(--paper-200);
+}
+
+.article__figure-tape {
+  --tape-w: 5.6rem;
+  --tape-h: 1.6rem;
+  --tape-tilt: -32deg;
+  top: 0.2rem;
+  left: -0.9rem; /* 좁은 화면에서 테이프 끝이 화면 밖으로 잘리지 않을 만큼만 내민다 */
+  z-index: 1;
+}
+
+.article__figure figcaption {
+  display: flex;
+  gap: 0.7em;
+  padding: var(--space-3) var(--space-2) var(--space-2);
+  color: var(--color-text-soft);
+  font-size: var(--fs-s);
+  line-height: 1.6;
+}
+
+.article__figure figcaption::before {
+  content: "";
+  flex: none;
+  width: 1.5em;
+  height: 2px;
+  margin-top: 0.75em;
+  border-radius: 2px;
+  background-color: var(--accent);
+}
+
+/* 7. 맺음 ----------------------------------------------------------------------- */
+.article__closing {
+  font-family: var(--font-body);
+  font-size: 1.06em;
+}
+
+/* 글 끝 표시: 작은 우표 */
+.article__body > .article__end {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-7);
+}
+
+.article__end .stamp {
+  --stamp-w: 40px;
+  --stamp-cols: 8;
+  --stamp-rows: 10;
+  --stamp-tilt: -6deg;
+}
+
+/* 8. 다른 인터뷰 — 엽서 한 장 + 목록으로 --------------------------------------------------
+   엽서는 css/interviews.css · js/postcards.js 가 그린다(#more-interviews 안의 [data-pcards]) */
+.more {
+  --surface-soft: var(--color-text-soft-strong); /* 진한 종이 위의 보조 글자 */
+  padding-block: var(--space-8) var(--space-9);
+  background-color: var(--paper-200);
+  box-shadow: inset 0 14px 16px -16px rgb(var(--ink-rgb) / 0.3);
+}
+
+.more__inner {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  text-align: center;
+}
+
+.more__inner > * {
+  min-width: 0;
+}
+
+/* 라벨 앞의 줄도 기사의 포인트색으로 */
+.more .eyebrow::before {
+  background-color: var(--accent);
+}
+
+.more__title {
+  font-size: var(--fs-xl);
+}
+
+.more .pcards {
+  width: 100%;
+  margin-top: var(--space-6);
+  text-align: left;
+}
+
+.more__back {
+  margin-top: var(--space-7);
+}
+
+.more > .placeholder-note,
+.more__inner > .placeholder-note {
+  margin-top: var(--space-5);
+}
+
+/* 9. 넓은 화면 ---------------------------------------------------------------------
+   64em = 기본 글자 크기(16px)에서 1024px. 아래에서 본문 밖으로 내어 거는 양이 rem 이라 분기도 em 으로 잡는다
+   (브라우저 글자를 키워 둔 사람에게는 여백이 그만큼 남는 더 넓은 화면부터 적용된다) */
+@media (min-width: 64em) {
+  .article__cover {
+    margin-top: var(--space-7);
+  }
+
+  /* Q. 를 본문 왼쪽 여백에 내어 건다 */
+  .qa__q::before {
+    position: absolute;
+    top: 0.1em;
+    right: 100%;
+    margin-right: 0.4em;
+  }
+
+  /* 인용구와 사진은 본문보다 조금 넓게 */
+  .article__body > .pullquote {
+    margin-inline: -2.5rem;
+  }
+
+  .article__body > .article__figure {
+    margin-inline: -4.5rem;
+  }
+
+  .article__figure-tape {
+    top: 0.1rem;
+    left: -1.5rem;
+  }
+}
+
+/* 10. 고대비 모드(Windows) — 그림자가 그려지지 않으므로 종이의 경계를 테두리로 보여 준다 ------- */
+@media (forced-colors: active) {
+  .article__cover,
+  .article__figure,
+  .pullquote,
+  .person__photo,
+  .iv__label {
+    border: 1px solid CanvasText;
+  }
+
+  .article__body hr {
+    background-color: CanvasText;
+  }
+}

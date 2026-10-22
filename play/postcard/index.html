@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- 제주어 엽서 쓰러가기(링크 설정표의 '기능 · play/postcard') — 22차, 2026-10-21.
+       서브 메인 · 기사의 '제주어 엽서 써보기'와 오른쪽 아래 플로팅 버튼이 이 쪽으로 온다('/'로 끝나는 주소 play/postcard/).
+       · config.js 의 links.postcard 에 바깥 엽서 사이트 주소가 있으면: 그 사이트를 이 쪽 안에 화면 가득 띄운다(js/play.js) —
+         이 쪽에 머무는 동안 체류 시간(js/track.js 의 dwell_milestone · page_time, page = play/postcard)이 함께 재진다.
+       · 비어 있으면: 이 사이트의 제주어 엽서 쓰기 창(js/maker.js)을 바로 연다. 닫으면 웹진으로 돌아간다 -->
+  <title>제주어 엽서 쓰기 — 하영 고라보게</title>
+  <meta name="description" content="평소 말투로 마음을 쓰면 제주어 엽서로 바꿔 드려요. 소중한 사람에게 보내 보세요.">
+  <meta name="theme-color" content="#e1653a">
+  <link rel="icon" href="../../favicon.ico" sizes="32x32">
+  <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+
+  <!-- 글꼴: 서브 메인과 같다(엽서 그림 저장에 필요해 crossorigin 을 둔다) -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" crossorigin="anonymous" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Pen+Script&display=swap" media="print" onload="this.media='all'">
+
+  <link rel="stylesheet" href="../../css/base.css">
+  <link rel="stylesheet" href="../../css/maker.css">
+  <link rel="stylesheet" href="../../css/play.css">
+  <link rel="stylesheet" href="../../css/theme.css">
+
+  <!-- 엽서 이미지 저장 · 메일 발송(서브 메인과 같은 버전 고정) -->
+  <script async src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.js" integrity="sha384-Tha/42qsYmpYmQ07pX+nJzkKumO0BzKJxK/uzVc7xyBQxVCUgQBhQIG8L7vXK+9C" crossorigin="anonymous"></script>
+  <script async src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js" integrity="sha384-SALc35EccAf6RzGw4iNsyj7kTPr33K7RoGzYu+7heZhT8s0GZouafRiCg1qy44AS" crossorigin="anonymous"></script>
+  <script defer src="../../config.js"></script>
+  <script type="module" src="../../js/play.js"></script>
+</head>
+<body data-page="postcard">
+  <!-- 공통 상단바: 하영 고라보게 로고(→ 서브 메인) · 쪽 이름 · 웹진으로 -->
+  <header class="play-bar">
+    <a class="play-bar__brand" href="../../" title="하영 고라보게 웹진으로"><img src="../../assets/logo-hayeong.png" alt="하영 고라보게" width="860" height="556"></a>
+    <p class="play-bar__title">제주어 엽서 쓰기</p>
+    <a class="play-bar__back" href="../../">← 웹진</a>
+  </header>
+  <main id="main" class="play">
+    <!-- 바깥 엽서 사이트가 들어오는 자리(js/play.js) -->
+    <div class="play__frame" data-play-frame hidden></div>
+    <p class="play__out" data-play-out hidden>화면이 보이지 않으면 <a href="#" target="_blank" rel="noopener" data-play-link>새 창에서 열기</a></p>
+    <!-- 쪽 안에 띄울 수 없을 때(config.js 의 links.postcardOpen = 'link' — claude.ai 공유 링크): 엽서 사이트를 새 탭으로 여는 큰 단추 -->
+    <section class="play__card" data-play-card hidden>
+      <p class="play__card-kicker">하영 고라보게 × 제주어로 엽서 적기</p>
+      <h1 class="play__card-title">제주어 엽서 쓰러 가기</h1>
+      <p class="play__card-text">평소 말투로 쓰면 제주어로 바꿔 드려요.<br>엽서 사이트가 새 탭에서 열려요.</p>
+      <a class="play__card-btn" href="#" target="_blank" rel="noopener" data-play-card-link data-track-cta data-track-location="play">엽서 사이트 열기 <span aria-hidden="true">↗</span></a>
+    </section>
+  </main>
+</body>
+</html>

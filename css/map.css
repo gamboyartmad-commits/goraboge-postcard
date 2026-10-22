@@ -1,0 +1,1563 @@
+/* map.css — 5. 제주어 상호 지도: 지도 액자 · 우표 마커(묶음 우표) · 쪽지(툴팁) · 장소 목록(더보기)
+   index.html 에서만 불러온다. 두 페이지가 함께 쓰는 조각은 base.css 끝에 둔다.
+
+   지도는 Leaflet 이 .map__canvas 안에 그린다(js/map.js). 여기서는
+   · 지도 높이(--map-h)와 접힌 목록의 높이(--map-rows)를 미리 잡아 데이터가 오기 전후로 문서 길이가 달라지지 않게 하고
+     (목록은 처음에 위 3곳만 보이므로 장소가 몇 곳이든 높이가 같다 — 장소 수를 적는 곳은 없다)
+   · 타일(바탕 지도)에만 색 필터와 종이결을 입혀 '누런 종이에 찍힌 지도'처럼 보이게 한다.
+     저작권 표시(attribution)와 마커에는 필터를 걸지 않는다. */
+
+/* 0. 치수 · 색 ---------------------------------------------------------------- */
+.map {
+  --map-cols: 1; /* 목록의 단 수(휴대폰 1 · 태블릿 2 · 넓은 화면 4) */
+  /* 접힌 목록의 줄 수 = 처음 보여 주는 곳 수 ÷ 단 수, 올림 → 휴대폰 2(map.listFirstPhone 2곳 — css/theme.css '7. 지도') · 태블릿 2 · 넓은 화면 1(map.listFirst 4곳)
+     ✏️ 교체: map.listFirst 를 바꾸면 이 값(여기와 아래 '10.' — 또는 css/theme.css 의 '7. 지도')도 같은 셈으로 고친다 */
+  --map-rows: 4;
+  --map-row: 5.25rem; /* 목록 한 칸의 높이(이름 한 줄 + 위치 한 줄 + 뜻 한 줄 — 넘치는 글은 '…'로 줄인다) */
+  --map-gap: var(--space-3);
+  --map-list-max: min(60vh, 34rem); /* '더보기'로 펼친 목록의 최대 높이 — 넘치면 목록 안에서 스크롤 */
+
+  /* ✏️ 교체: 지도 높이 = clamp(가장 낮게, 화면 높이의 몇 %, 가장 높게).
+     '가장 낮게'는 화면 높이 − 6rem 을 넘지 않는다(가로로 든 휴대폰에서도 지도 위아래로 페이지를 스크롤할 자리가 남게) */
+  --map-vh: 1vh;
+  --map-h-room: calc(100 * var(--map-vh) - 6rem);
+  --map-h: clamp(min(20rem, var(--map-h-room)), calc(68 * var(--map-vh)), 35rem);
+
+  --map-ink: var(--sea-800); /* 지도 위 손글씨 · 테두리 선 */
+  /* 타일에 곱해지는 종이색(= 땅의 색). = color-mix(in srgb, var(--paper-100) 45%, var(--paper-200)) 를 미리 계산한 값
+     (color-mix() 를 모르는 브라우저에서 종이색이 통째로 빠져 흰 지도가 되지 않게) */
+  --map-paper: #f0e5ce;
+
+  /* ✏️ 교체: 위치 핀(물방울 모양) 크기와 분류별 색 — 지도를 가리지 않게 채도를 낮춘 차분한 색.
+     이름은 js/map.js 의 CATS 와 맞춘다: spot(명소) · cafe(카페·간식) · food(맛집) · shop(가게) · mix(여러 분류가 섞인 묶음) */
+  --pin-w: 22px;
+  --pin-h: calc(var(--pin-w) * 4 / 3);
+  --cat-spot: #5a7385;
+  --cat-cafe: #b08d47;
+  --cat-food: #b5664c;
+  --cat-shop: #7b8760;
+  --cat-mix: #66574c;
+
+  position: relative;
+  padding-block: var(--space-8) var(--space-9);
+  background-color: var(--oat); /* 오트밀 — 메인 화면과 같은 종이(css/base.css 의 --oat) */
+}
+
+.map > .tear {
+  --tear-color: var(--oat);
+}
+
+@supports (height: 100svh) {
+  .map {
+    --map-vh: 1svh;
+  }
+}
+
+/* 1. 머리말: 제목 · 안내 문구 · 범례 --------------------------------------------- */
+.map__head {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.map__intro {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+/* 제목: 윗줄 '알고 가면 더 재밌는'(작고 보통 굵기) + 아랫줄 '제주어 상호 지도'.
+   크기 · 자간 = 화면 폭마다 css/theme.css '0.' 의 --map-title-…(26차 — 휴대폰 값은 편집 모드로 고른 값 그대로) */
+.map .map__title {
+  font-size: var(--map-title-size, var(--title-size));
+}
+
+.map__title-top {
+  font-size: var(--map-title-top-size, 0.65em);
+  font-weight: 400;
+  letter-spacing: var(--map-title-top-tracking, -0.03em);
+}
+
+.map__desc {
+  max-width: var(--text-width); /* 글자 크기 · 줄 간격 · 한 줄 길이는 css/theme.css '0.' */
+  font-size: var(--text-size);
+  line-height: var(--text-lh);
+}
+
+/* 휴대폰: 안내 문구 아래에 범례(한 줄에 나란히 두면 곳 수 · 글꼴이 도착할 때 줄이 넘어가 문서 길이가 달라진다) */
+.map__guide {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3) var(--space-5);
+  min-width: 0;
+}
+
+/* 안내 문구: 아래 '숫자를 누르면…'(.map__cluster-hint)과 같은 글꼴 · 크기 · 색(25차 — 손글씨와 화살표를 뺐다) */
+.map__hint {
+  color: var(--color-text-soft-strong);
+  font-family: var(--font-body);
+  font-size: var(--text-small); /* css/theme.css '0.' */
+  line-height: 1.5;
+}
+
+/* 기본은 '눌러 보세요', 마우스를 쓰는 기기에서만 '올려 보세요' */
+.map__hint-mouse {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .map__hint-mouse {
+    display: inline;
+  }
+
+  .map__hint-touch {
+    display: none;
+  }
+}
+
+/* 지역 · 분류 단추: 줄 두 개([지역] · [분류]) */
+.map__filters {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.map__filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.map__filter-label {
+  min-width: 2.4em;
+  color: var(--color-text-soft-strong);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+/* 다른 줄과 겹치는 곳이 없는 단추(예: 서귀포시 + 명소) */
+.map__filter[aria-disabled="true"] {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+/* 목록 위의 큰 단추 */
+.map__filters--list {
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.map__filters--list .map__filter {
+  min-height: 3rem;
+  padding: 0 1.15em;
+  font-size: var(--fs-base);
+}
+
+.map__filters--list .map__filter-label {
+  min-width: 3em;
+  font-size: var(--fs-s);
+}
+
+/* 휴대폰(폭 767px 이하): 작은 칩 — 이름표(지역 · 분류)는 왼쪽에 작게, 단추는 한 줄에 나란히(넘치면 옆으로 밀어 본다).
+   개수(26곳)는 빼고 이름만(목록 제목에 곳 수가 있다). 지도 위 단추 줄(.map__guide)은 숨기고 목록 위 한 벌만 쓴다 — 그 단추가 지도 핀도 함께 거른다 */
+@media (max-width: 767px) {
+  .map__guide .map__filters {
+    display: none;
+  }
+
+  .map__filters--list {
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+
+  .map__filter-row {
+    flex-wrap: nowrap;
+    gap: 0.35rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .map__filter-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .map__filter-label,
+  .map__filters--list .map__filter-label {
+    flex: none;
+    min-width: 2.2em;
+    font-size: 0.6875rem;
+  }
+
+  .map__filter,
+  .map__filters--list .map__filter {
+    flex: none;
+    gap: 0.3em;
+    min-height: 2.125rem;
+    padding: 0 0.75em;
+    border-width: 1px;
+    font-size: 0.8125rem;
+  }
+
+  .map__filter-count {
+    display: none;
+  }
+
+  /* 목록 제목 옆 안내 한 줄('이름을 누르면 …')도 휴대폰에서는 뺀다(글을 줄이려고) */
+  .map__index-hint {
+    display: none;
+  }
+}
+
+/* 아주 좁은 휴대폰(359px 이하): 분류 단추 넷이 한 줄에 다 들어가게 조금 더 작게 */
+@media (max-width: 359px) {
+  .map__filter,
+  .map__filters--list .map__filter {
+    padding: 0 0.6em;
+    font-size: 0.75rem;
+  }
+}
+
+/* 숫자 동그라미(묶음 핀) 안내: 작은 동그라미 그림 + 한 줄 */
+.map__cluster-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  color: var(--color-text-soft-strong);
+  font-size: var(--text-small); /* css/theme.css '0.' */
+  line-height: 1.5;
+}
+
+.map__cluster-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  border-radius: 50%;
+  background-color: var(--cat-mix);
+  box-shadow: 0 0 0 2px #fffaf0, 0 0 0 3.5px rgb(0 0 0 / 0.1), 0 2px 3px 1px rgb(0 0 0 / 0.2);
+  color: #fffaf0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.map__filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  min-height: 2.75rem;
+  padding: 0 0.95em;
+  border: 1.5px solid var(--color-line);
+  border-radius: 999px;
+  background-color: var(--paper-50);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--fs-s);
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color var(--dur-fast), border-color var(--dur-fast);
+}
+
+.map__filter .map-glyph {
+  --glyph: 0.85em;
+}
+
+.map__filter-count {
+  color: var(--color-text-soft);
+  font-weight: 500;
+}
+
+.map__filter[aria-pressed="true"] {
+  border-color: var(--basalt-800);
+  background-color: var(--basalt-800);
+  color: var(--paper-50);
+}
+
+.map__filter[aria-pressed="true"] .map__filter-count {
+  color: var(--paper-200);
+}
+
+@media (hover: hover) {
+  .map__filter:hover {
+    border-color: var(--basalt-500);
+  }
+}
+
+/* 분류를 고르면 그 분류의 핀만 지도에 남는다(js/map.js 의 atlas.filter 가 다른 분류의 핀에 .is-filtered 를 붙이고 묶음을 다시 짠다) */
+.map-pin.is-filtered {
+  display: none;
+}
+
+/* 휠 안내: 지도를 누르기 전에 휠을 굴리면 잠깐 뜬다(js/map.js '휠 · 트랙패드로 확대 · 축소') */
+.map__wheel-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1003;
+  max-width: calc(100% - 2rem);
+  margin: 0;
+  padding: 0.6rem 1.1rem;
+  border-radius: 999px;
+  background-color: rgb(46 45 54 / 0.88);
+  color: #fffaf0;
+  font-size: var(--fs-s);
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+  opacity: 0;
+  translate: -50% -50%;
+  transition: opacity 0.25s;
+  pointer-events: none;
+}
+
+.map__wheel-hint.is-on {
+  opacity: 1;
+}
+
+/* 2. 지도 액자(종이 한 장) ------------------------------------------------------ */
+.map__sheet {
+  position: relative;
+  isolation: isolate; /* 아래 두 겹(::before · ::after)이 섹션 바탕 뒤로 숨지 않게 */
+  /* 휴대폰: 좌우 여백 쪽으로 조금 넓혀 섬이 크게 보이게 한다 */
+  margin: var(--space-6) calc(var(--gutter) * -0.4) 0;
+  padding: 6px;
+  border-radius: 3px 5px 4px 6px / 5px 3px 6px 4px; /* 손으로 자른 듯 살짝 고르지 않은 모서리 */
+}
+
+.map__sheet::before,
+.map__sheet::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background-image: var(--tex-paper);
+}
+
+/* 아래에 비껴 깔린 종이 한 장 */
+.map__sheet::before {
+  background-color: var(--paper-200);
+  box-shadow: var(--shadow-paper);
+  rotate: 0.6deg;
+}
+
+/* 지도가 놓인 종이 */
+.map__sheet::after {
+  background-color: var(--paper-50);
+  box-shadow: 0 0 0 1px rgb(var(--ink-rgb) / 0.07), var(--shadow-paper);
+}
+
+/* 모서리에 붙인 마스킹테이프 */
+.map__tape {
+  --tape-w: 72px;
+  --tape-h: 22px;
+  z-index: 3;
+}
+
+/* 테이프 끝이 화면 밖으로 나가 가로 스크롤이 생기지 않을 만큼만 내민다 */
+.map__tape--a {
+  --tape-tilt: -38deg;
+  top: 6px;
+  left: -11px;
+}
+
+/* 오른쪽 아래 테이프는 지도 화면 끝까지 닿는 저작권 표시의 모서리를 덮지 않게 조금 내려 붙인다 */
+.map__tape--b {
+  --tape-tilt: -38deg;
+  right: -11px;
+  bottom: -5px;
+}
+
+/* 3. 지도 화면 ------------------------------------------------------------------ */
+/* isolation: Leaflet 안쪽의 큰 z-index(400~1000)가 플로팅 버튼 · 모달 위로 올라오지 않게 가둔다 */
+.map__view {
+  position: relative;
+  isolation: isolate;
+  height: var(--map-h);
+  overflow: hidden;
+  border-radius: 1px;
+  background-color: var(--map-paper);
+  background-image: var(--tex-paper);
+}
+
+/* Leaflet 컨테이너. z-index 를 주지 않는다 → 안쪽 층(지도 400 · 저작권 표시 1000) 사이에 장식(500)을 끼울 수 있다 */
+.map .map__canvas {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+}
+
+/* 지도에 키보드 포커스가 있을 때의 테두리는 타일 위 층(.map__decor)에 그린다
+   (컨테이너의 outline 은 안쪽 지도 층에 덮여 보이지 않는다) */
+.map__canvas:focus-visible {
+  outline: none;
+}
+
+.map__canvas:focus-visible ~ .map__decor::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border: 3px solid var(--focus-ring);
+  box-shadow: inset 0 0 0 2px var(--paper-50); /* 바다 위에서도 보이게 종이색 안쪽 선 */
+}
+
+/* 3-1. 타일(바탕 지도)에만 거는 색 필터.
+   EOX 타일은 거의 무채색(흰 땅 · 회청색 바다)이라, 종이색을 곱한 뒤에도 바다의 푸른 기가 남도록 채도를 올리고
+   약한 세피아로 따뜻하게 누른다. ✏️ 교체: 지도의 색감은 아래 filter 값과 맨 위의 --map-paper 로 조절한다 */
+.map .paper-tiles {
+  filter: saturate(2.3) sepia(0.12) brightness(1.1);
+}
+
+/* 줌이 정수가 아닐 때(0.25 단위) 타일 사이에 실금이 비치지 않게 타일을 1px 씩 겹쳐 놓는다.
+   Leaflet 이 타일에 거는 plus-lighter 겹침은 이 방법과 함께 쓰면 겹친 줄이 밝아지므로 끈다 */
+.map .map__canvas .leaflet-tile {
+  width: 257px !important;
+  height: 257px !important;
+  mix-blend-mode: normal;
+}
+
+/* CARTO Voyager 는 이미 색이 있는 타일 → 채도를 낮추고 세피아를 조금 더 준다 */
+.map .paper-tiles--carto {
+  filter: sepia(0.32) saturate(0.72) contrast(0.96);
+}
+
+/* 3-2. 종이결: 타일 위 · 마커 아래에 종이색을 곱한다(js 가 지도를 끌 때마다 화면에 맞춰 자리를 다시 잡는다).
+   곱하기(multiply)를 모르는 브라우저에서는 지도를 가리지 않게 아예 깔지 않는다 */
+.map .leaflet-paper-pane {
+  z-index: 250;
+  display: none;
+  pointer-events: none;
+}
+
+@supports (mix-blend-mode: multiply) {
+  .map .leaflet-paper-pane {
+    display: block;
+    mix-blend-mode: multiply;
+  }
+}
+
+.map__grain {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: var(--map-paper);
+  background-image: var(--tex-paper);
+}
+
+/* 3-3. Leaflet 기본 스타일 다듬기 */
+/* 저작권 표시: 왼쪽 아래, 테두리 선 안쪽. 필터 · 종이결 · 그늘에 가려지지 않는다(z-index 1000) */
+.map .leaflet-control-attribution {
+  margin: 0 11px 11px;
+  padding: 2px 7px;
+  border-radius: 2px;
+  background-color: rgb(var(--paper-rgb) / 0.92);
+  box-shadow: 0 0 0 1px rgb(var(--ink-rgb) / 0.14);
+  color: var(--basalt-800);
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  line-height: 1.55;
+}
+
+.map .leaflet-control-attribution a {
+  color: var(--color-ink);
+  text-decoration-line: underline;
+  text-decoration-color: currentColor;
+  text-decoration-thickness: 1px;
+}
+
+/* 3-4. 지도 위 장식(컨테이너에 고정, 누를 수 없다): 가장자리 그늘 · 이중 테두리 선 · 나침반 */
+.map__decor {
+  position: absolute;
+  inset: 0;
+  z-index: 500;
+  pointer-events: none;
+}
+
+.map__vignette {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(ellipse 80% 76% at 50% 48%, transparent 56%, color-mix(in srgb, var(--paper-400) 62%, transparent) 100%);
+  mix-blend-mode: multiply;
+}
+
+.map__neatline {
+  position: absolute;
+  inset: 6px;
+  border: 1px solid color-mix(in srgb, var(--map-ink) 50%, transparent);
+  outline: 1.5px solid color-mix(in srgb, var(--map-ink) 72%, transparent);
+  outline-offset: 3px;
+}
+
+.map__compass {
+  position: absolute;
+  right: 14px;
+  bottom: 58px; /* 휴대폰에서 두 줄로 접히는 저작권 표시 위 */
+  width: 3.5rem;
+  height: auto;
+  overflow: visible;
+  color: var(--map-ink);
+  opacity: 0.85;
+  rotate: 5deg;
+}
+
+.map__compass path,
+.map__compass circle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.map__compass .map__compass-ring {
+  fill: rgb(var(--paper-rgb) / 0.5);
+}
+
+.map__compass .map__compass-ring--in {
+  fill: none;
+  stroke-width: 1.1;
+  stroke-dasharray: 1.5 3.4;
+}
+
+.map__compass .map__compass-east,
+.map__compass .map__compass-south {
+  fill: var(--paper-50);
+}
+
+.map__compass .map__compass-north {
+  fill: var(--color-point);
+}
+
+.map__compass .map__compass-pin {
+  fill: currentColor;
+}
+
+.map__compass .map__compass-n {
+  stroke-width: 2.1;
+}
+
+/* 4. 지도 단추 ------------------------------------------------------------------ */
+.map__tools {
+  position: absolute;
+  inset: 0;
+  z-index: 1001;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 15px;
+  pointer-events: none; /* 단추 사이 빈 곳은 지도가 받는다 */
+}
+
+.map__views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+/* 확대 · 축소: 흰 알약 하나에 두 단추(가운데 가는 줄) */
+.map__zoom {
+  display: grid;
+  flex: none;
+  overflow: hidden;
+  border: 1px solid rgb(var(--ink-rgb) / 0.12);
+  border-radius: 999px;
+  background-color: rgb(255 255 255 / 0.95);
+  box-shadow: 0 2px 8px -3px rgb(0 0 0 / 0.28);
+  pointer-events: auto;
+}
+
+/* 단추: 흰 알약 · 얇은 테두리 · 옅은 그늘(✏️ 교체: 바탕 = --btn-bg, 글자 크기 = font-size) */
+.map__tool {
+  --btn-bg: rgb(255 255 255 / 0.95);
+  --btn-bg-hover: #fff;
+  --btn-fg: var(--basalt-800);
+  min-height: 2.25rem;
+  padding: 0 0.95em;
+  border: 1px solid rgb(var(--ink-rgb) / 0.12);
+  border-radius: 999px;
+  box-shadow: 0 2px 8px -3px rgb(0 0 0 / 0.28);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  pointer-events: auto;
+}
+
+.map__tool:hover,
+.map__tool:active {
+  transform: none;
+  box-shadow: 0 3px 10px -3px rgb(0 0 0 / 0.32);
+}
+
+/* '지도 움직이기'가 켜져 있을 때: 짙은 알약 + 체크 표시(색만으로 알리지 않게) */
+.map__tool[aria-pressed="true"] {
+  --btn-bg: var(--basalt-800);
+  --btn-bg-hover: var(--basalt-800);
+  --btn-fg: var(--paper-50);
+  border-color: var(--basalt-800);
+}
+
+.map__tool[aria-pressed="true"]::before {
+  content: "";
+  flex: none;
+  width: 0.38em;
+  height: 0.7em;
+  margin-inline: 0.1em 0.05em;
+  border: solid currentColor;
+  border-width: 0 2.5px 2.5px 0;
+  translate: 0 -0.1em;
+  rotate: 42deg;
+}
+
+.map__zoom .map__tool--zoom {
+  width: 2.375rem;
+  min-height: 2.375rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background-color: transparent;
+}
+
+.map__zoom .map__tool--zoom + .map__tool--zoom {
+  border-top: 1px solid rgb(var(--ink-rgb) / 0.12);
+}
+
+.map__zoom .map__tool--zoom:hover,
+.map__zoom .map__tool--zoom:active {
+  background-color: var(--paper-100);
+  box-shadow: none;
+}
+
+.map__tool--zoom svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+/* 휴대폰: 단추를 더 작게(글자도 '섬 전체' · '북동부'로 짧게 — 아래 '10.') */
+@media (max-width: 767px) {
+  .map__tools {
+    padding: 10px;
+  }
+
+  .map__tool {
+    min-height: 2rem;
+    padding: 0 0.8em;
+    font-size: 0.75rem;
+  }
+
+  .map__zoom .map__tool--zoom {
+    width: 2.125rem;
+    min-height: 2.125rem;
+  }
+
+  .map__tool--zoom svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+/* 5. 위치 핀(물방울 모양) 마커 --------------------------------------------------
+   구조: .map-pin(Leaflet 이 좌표에 놓는다) > 점 · 이음선 + .map-pin__shift(겹칠 때 비켜남) > .map-pin__lift(들썩) > .map-glyph(svg)
+   핀의 뾰족한 끝이 실제 자리를 가리킨다(상자의 아래 가운데 = 좌표). --dx · --dy(비켜난 거리)는 js 가 마커마다 정한다 */
+.map-pin {
+  width: var(--pin-w);
+  height: var(--pin-h);
+  margin: calc(var(--pin-h) * -1) 0 0 calc(var(--pin-w) / -2);
+  outline: none; /* 포커스 링은 안쪽 핀에 그린다 */
+}
+
+/* 묶음 핀(숫자 동그라미)은 가운데가 좌표 */
+.map-pin--bundle {
+  height: var(--pin-w);
+  margin: calc(var(--pin-w) / -2) 0 0 calc(var(--pin-w) / -2);
+}
+
+/* 좌표 위의 빈 상자가 아니라 '보이는 우표'만 눌리게 한다(비켜난 우표가 옆 우표의 빈 상자에 가리지 않도록) */
+.map-pin.leaflet-interactive {
+  pointer-events: none;
+}
+
+.map-pin__shift {
+  position: absolute;
+  inset: 0;
+  translate: var(--dx, 0px) var(--dy, 0px);
+  transition: translate 0.3s var(--ease-out);
+}
+
+.map-pin__lift {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  pointer-events: auto;
+  transform-origin: 50% 100%; /* 핀 끝을 축으로 */
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* 살짝 튀어 오른다 */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 손가락으로 누르는 기기: 누르는 범위를 조금 넓힌다(마우스에서는 옆 우표를 가리지 않게 그대로 둔다) */
+@media (pointer: coarse) {
+  .map-pin__lift::before {
+    content: "";
+    position: absolute;
+    inset: -5px;
+  }
+}
+
+/* 위치 핀 그림: 분류 색의 물방울 + 가운데 크림색 구멍 + 크림색 테두리. 목록 · 분류 단추에서도 쓴다(--glyph = 폭, 높이는 4/3 배) */
+.map-glyph {
+  --glyph: var(--pin-w);
+  --c: var(--cat-food);
+  display: block;
+  width: var(--glyph);
+  height: calc(var(--glyph) * 4 / 3);
+  color: var(--c);
+}
+
+.map-glyph svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.map-glyph__body {
+  fill: currentColor;
+  stroke: #fffaf0;
+  stroke-width: 2;
+  paint-order: stroke;
+}
+
+.map-glyph__hole {
+  fill: #fffaf0;
+}
+
+/* 지도 위의 핀에만 그림자(목록 · 단추의 작은 핀은 납작하게) */
+.map-pin .map-glyph {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 1.5px 1.5px rgb(0 0 0 / 0.3));
+}
+
+.map-glyph--spot { --c: var(--cat-spot); }
+.map-glyph--cafe { --c: var(--cat-cafe); }
+.map-glyph--food { --c: var(--cat-food); }
+.map-glyph--shop { --c: var(--cat-shop); }
+
+/* 마우스를 올리거나, 포커스가 가거나, 목록에서 가리키면: 바로 서며 들썩 */
+.map-pin.is-active .map-pin__lift {
+  transform: scale(1.18) translateY(-2px);
+}
+
+/* 포커스 링 안팎에 종이색 띠를 깔아 바다 위에서도 또렷하게 */
+.map-pin:focus-visible .map-pin__lift {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 7px var(--paper-50);
+}
+
+/* 좌표가 대략인 곳: 우표 둘레에 점선 고리 */
+.map-pin--approx .map-pin__lift::after {
+  content: "";
+  position: absolute;
+  inset: -5px -6px;
+  border: 1.5px dashed rgb(23 72 92 / 0.75); /* --map-ink(바다색)의 75% */
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* 겹쳐서 비켜난 우표: 실제 자리에 점을 찍고 우표까지 선으로 잇는다 */
+.map-pin__dot,
+.map-pin__stalk {
+  position: absolute;
+  top: 100%; /* 핀 끝 = 실제 자리 */
+  left: 50%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.map-pin__dot {
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  border-radius: 50%;
+  background-color: var(--map-ink);
+  box-shadow: 0 0 0 1.5px var(--paper-50);
+}
+
+.map-pin__stalk {
+  width: var(--len, 0px);
+  height: 0;
+  border-top: 1.5px solid var(--map-ink);
+  transform-origin: 0 50%;
+  rotate: var(--ang, 0rad);
+}
+
+.map-pin.is-shifted .map-pin__dot,
+.map-pin.is-shifted .map-pin__stalk {
+  opacity: 1;
+}
+
+/* 5-1. 묶음 핀 — 멀리서 볼 때 겹치는 곳들을 하나로 합친 동그라미(곳 수가 적혀 있다). 누르면 그곳으로 다가가며 낱개로 풀린다.
+   js/map.js 가 줌이 바뀔 때마다 다시 짠다. 색: 모두 같은 분류면 그 색 · 섞이면 밤색 */
+/* 묶음 안에 들어간 낱개 우표는 숨긴다(자리 · 크기는 그대로 둔다 — js 가 크기를 잰다) */
+.map-pin.is-bundled {
+  visibility: hidden;
+}
+
+/* 묶음 핀: 곳 수가 적힌 동그라미(낱개 핀보다 크다) */
+.map-cluster {
+  --c: var(--cat-mix);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: calc(var(--pin-w) * 1.55);
+  height: calc(var(--pin-w) * 1.55);
+  margin: calc(var(--pin-w) * -0.775) 0 0 calc(var(--pin-w) * -0.775);
+  border-radius: 50%;
+  background-color: var(--c);
+  box-shadow: 0 0 0 2.5px rgb(255 250 240 / 0.95), 0 0 0 5px rgb(0 0 0 / 0.1), 1px 3px 5px rgb(0 0 0 / 0.3);
+  color: #fffaf0;
+}
+
+/* 묶음 핀에 마우스를 올리거나 포커스가 가면 뜨는 말풍선(Leaflet tooltip — js/map.js 의 TEXT.bundleTip) */
+.leaflet-tooltip.map-bundle-tip {
+  padding: 0.35rem 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  background-color: #2e2d36;
+  box-shadow: 0 6px 14px -6px rgb(0 0 0 / 0.5);
+  color: #fffaf0;
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.leaflet-tooltip-top.map-bundle-tip::before {
+  border-top-color: #2e2d36;
+}
+
+.map-cluster--spot { --c: var(--cat-spot); }
+.map-cluster--cafe { --c: var(--cat-cafe); }
+.map-cluster--food { --c: var(--cat-food); }
+.map-cluster--shop { --c: var(--cat-shop); }
+
+.map-pin__count {
+  font-family: var(--font-body);
+  font-size: calc(var(--pin-w) * 0.6);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+/* 세 자리 수(100곳 이상)는 조금 작게 */
+.map-pin__count[data-long] {
+  font-size: calc(var(--pin-w) * 0.46);
+}
+
+@media (hover: hover) {
+  .map-pin--bundle .map-pin__lift:hover {
+    transform: scale(1.18) translateY(-2px);
+  }
+}
+
+/* 6. 손글씨 지명 · 바다 장식(지도 좌표에 붙어 함께 움직인다. 누를 수 없다) ------------- */
+.map-label,
+.map-doodle {
+  width: 0;
+  height: 0;
+  color: var(--map-ink);
+  pointer-events: none;
+}
+
+.map-label svg,
+.map-doodle svg {
+  position: absolute;
+  max-width: none; /* 폭 0 인 상자 안이라 base.css 의 max-width: 100% 를 풀어 준다 */
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.map-label > *,
+.map-doodle > * {
+  transition: opacity 0.3s;
+}
+
+/* 지도를 멀리서 볼 때는 마커와 겹치는 지명을 숨긴다(js 가 줌에 따라 붙인다) */
+.map-label.is-far > * {
+  opacity: 0;
+}
+
+.map-label__dot {
+  position: absolute;
+  top: -3.5px;
+  left: -3.5px;
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  background-color: var(--paper-50);
+}
+
+.map-label__text {
+  position: absolute;
+  width: max-content;
+  font-family: var(--font-hand);
+  font-size: 1.3rem;
+  line-height: 1;
+  white-space: nowrap;
+  /* 글자 둘레를 종이색으로 번지게 해 바탕 위에서도 읽힌다 */
+  text-shadow: 0 0 2px var(--paper-50), 0 0 4px var(--paper-50), 0 0 7px var(--paper-50);
+}
+
+/* 글자를 점의 어느 쪽에 둘지: 아래(s) · 위(n) · 오른쪽(e) */
+.map-label--s .map-label__text {
+  top: 6px;
+  left: 0;
+  translate: -50% 0;
+}
+
+.map-label--n .map-label__text {
+  bottom: 7px;
+  left: 0;
+  translate: -50% 0;
+}
+
+.map-label--e .map-label__text {
+  top: 0;
+  left: 8px;
+  translate: 0 -52%;
+}
+
+/* 산: 점 대신 작은 봉우리 그림 */
+.map-label__peak {
+  top: -15px;
+  left: -17px;
+  width: 34px;
+  height: 20px;
+  stroke-width: 1.7;
+}
+
+.map-label--peak .map-label__text {
+  top: 8px;
+  font-size: 1.45rem;
+}
+
+/* 바다 위 물결 몇 줄 */
+.map-doodle__wave {
+  top: -9px;
+  left: -29px;
+  width: 58px;
+  height: 18px;
+  opacity: 0.4;
+  stroke-width: 1.7;
+}
+
+/* 바다 이름(제주어 '바당') */
+.map-doodle__sea {
+  position: absolute;
+  display: grid;
+  justify-items: center;
+  gap: 0.12em;
+  width: max-content;
+  translate: -50% -50%;
+  rotate: -7deg;
+  font-family: var(--font-hand);
+  font-size: 1.75rem;
+  line-height: 1;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em; /* 자간 때문에 생기는 오른쪽 빈틈만큼 밀어 가운데를 맞춘다 */
+  white-space: nowrap;
+  opacity: 0.55;
+}
+
+.map-doodle__sea small {
+  font-size: 0.58em;
+  letter-spacing: 0.08em;
+  text-indent: 0;
+}
+
+/* 7. 쪽지(툴팁) — js 가 <body> 끝에 하나만 만들어 두고 돌려 쓴다 ----------------------
+   자리는 js 가 transform 으로 잡는다(커서 옆 14px, 화면 가장자리에서는 안쪽으로 뒤집힘) */
+.map-tip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: var(--z-tooltip);
+  width: max-content;
+  max-width: min(260px, calc(100vw - 16px));
+  color: var(--color-text);
+  /* 접힌 모서리를 따라가는 낮은 그림자 */
+  filter: drop-shadow(0 1px 1px rgb(var(--ink-rgb) / 0.22)) drop-shadow(0 7px 8px rgb(var(--ink-rgb) / 0.2));
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none; /* 마우스를 따라다닐 때 쪽지가 커서를 가로채 깜빡이지 않게 */
+  transition: opacity 0.14s ease, visibility 0s 0.14s;
+}
+
+.map-tip.is-open {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.14s ease;
+}
+
+/* 눌러서 고정한 쪽지는 안쪽을 눌러도 닫히지 않는다 */
+.map-tip.is-pinned {
+  pointer-events: auto;
+}
+
+.map-tip__paper {
+  --fold: 15px;
+  position: relative;
+  padding: 1.05rem 1rem 0.8rem;
+  background-color: var(--paper-50);
+  background-image: var(--tex-paper);
+  box-shadow: inset 0 0 0 1px rgb(var(--ink-rgb) / 0.1);
+  rotate: -1.2deg;
+  /* 오른쪽 아래 모서리를 접은 모양 */
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--fold)), calc(100% - var(--fold)) 100%, 0 100%);
+}
+
+.map-tip__paper::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: var(--fold);
+  height: var(--fold);
+  background-image: linear-gradient(135deg, var(--paper-300) 0 50%, transparent 50%);
+  box-shadow: -1px -1px 2px rgb(var(--ink-rgb) / 0.14);
+}
+
+/* 위쪽 가운데의 테이프(가게 = 감귤, 명소 = 바다) */
+.map-tip__tape {
+  --tape-w: 56px;
+  --tape-h: 17px;
+  --tape-tilt: -3deg;
+  top: -7px;
+  left: calc(50% - 28px);
+  opacity: 0.86;
+}
+
+.map-tip[data-cat="spot"] .map-tip__tape {
+  --tape-color: var(--sea-200);
+  --tape-tilt: 3deg;
+}
+
+.map-tip__name {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1.15;
+}
+
+.map-tip__meta {
+  display: flex;
+  margin-top: 0.45rem;
+}
+
+/* 분류 칩(쪽지 · 목록 공용) */
+.map-chip {
+  display: inline-block;
+  flex: none;
+  padding: 0.14em 0.6em 0.18em;
+  border-radius: 3px;
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.map-chip--food { background-color: #fbd8c2; color: #6b2a10; }
+.map-chip--cafe { background-color: #f6e2b0; color: #5a3d06; }
+.map-chip--shop { background-color: #e3e6c8; color: #3c4318; }
+.map-chip--spot { background-color: var(--basalt-100); color: var(--basalt-800); }
+
+.map-tip__rows {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0.6rem 0 0;
+  padding-top: 0.55rem;
+  border-top: 1.5px dashed var(--color-line);
+}
+
+.map-tip__row {
+  display: grid;
+  grid-template-columns: 2.1em minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.4em;
+  font-size: var(--fs-s);
+  line-height: 1.5;
+}
+
+.map-tip__row dt {
+  color: var(--color-ink);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+
+.map-tip__row--meaning dd {
+  color: var(--color-ink);
+  font-family: var(--font-hand);
+  font-size: calc(var(--fs-base) * var(--hand-scale));
+  line-height: 1.2;
+}
+
+.map-tip__approx,
+.map__item-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  color: var(--color-text-soft);
+  font-size: var(--fs-xs);
+  line-height: 1.4;
+}
+
+.map-tip__approx {
+  margin-top: 0.5rem;
+}
+
+/* 마커의 점선 고리와 같은 표시 */
+.map-tip__approx::before,
+.map__item-flag::before {
+  content: "";
+  flex: none;
+  width: 0.85em;
+  height: 0.85em;
+  border: 1.5px dashed var(--color-ink);
+  border-radius: 50%;
+}
+
+/* 8. 장소 목록 ------------------------------------------------------------------ */
+.map__index {
+  margin-top: var(--space-8);
+}
+
+/* 휴대폰: 제목 아래에 보조 문구(곳 수가 채워질 때 줄이 넘어가지 않게 세로로 고정) */
+.map__index-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1) var(--space-5);
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-3);
+  border-bottom: 1.5px dashed var(--color-line);
+}
+
+.map__index-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-l);
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.map__index-count {
+  margin-left: 0.2em; /* 제목과의 사이에는 빈칸 한 자도 있다(화면 낭독기가 '이름들12곳'으로 붙여 읽지 않게) */
+  color: var(--color-ink);
+  font-family: var(--font-hand);
+  font-size: 1.1em;
+}
+
+.map__index-hint {
+  color: var(--color-text-soft);
+  font-size: var(--fs-s);
+}
+
+/* 줄 높이를 넉넉히 고정해 두어 데이터를 그리기 전후의 길이가 같다(글이 더 길면 그 줄만 늘어난다).
+   min-height = 접힌 목록(위 3곳)의 높이. '더보기'로 펼치면 곳 수만큼 길어진다 */
+.map__list {
+  display: grid;
+  grid-template-columns: repeat(var(--map-cols), minmax(0, 1fr));
+  grid-auto-rows: minmax(var(--map-row), auto);
+  gap: var(--map-gap);
+  min-height: calc(var(--map-rows) * var(--map-row) + (var(--map-rows) - 1) * var(--map-gap));
+}
+
+/* 펼쳤을 때(js 가 .is-open): 페이지가 끝없이 길어지지 않게 정해진 높이 안에서 목록만 스크롤한다 */
+.map__list.is-open {
+  max-height: var(--map-list-max);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 8px 6px 4px; /* 가리킬 때 들썩이는 칸이 잘리지 않게 */
+  margin: -4px -8px -6px -4px;
+  border-bottom: 1.5px dashed var(--paper-400);
+  scrollbar-gutter: stable;
+}
+
+/* 더보기 · 접기 단추. 단추가 나타나기 전(데이터가 오기 전)에도 같은 높이를 잡아 둔다 */
+.map__more {
+  display: flex;
+  justify-content: center;
+  min-height: 2.75rem;
+  margin-top: var(--space-5);
+}
+
+.map__more-btn {
+  min-height: 2.75rem;
+  padding-inline: 1.3em 1.1em;
+}
+
+.map__more-btn svg {
+  flex: none;
+  width: 1.05em;
+  height: 1.05em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: rotate 0.25s var(--ease-out);
+}
+
+/* 펼쳐져 있을 때('접기')는 화살표가 위를 본다 */
+.map__more-btn[aria-expanded="true"] svg {
+  rotate: 180deg;
+}
+
+/* 장소가 3곳 이하라 숨길 것이 없을 때(js 가 .is-few 를 붙인다): 단추 자리와 미리 잡아 둔 높이를 거둔다 */
+.map.is-few .map__more {
+  display: none;
+}
+
+.map.is-few .map__list {
+  min-height: 0;
+}
+
+.map__li {
+  display: grid;
+  min-width: 0;
+}
+
+/* 한 칸: 작은 우표 + 이름 · 분류 / 위치 / 뜻 */
+.map__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  align-content: center; /* 글이 짧은 칸은 세로 가운데에 놓는다 */
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.55rem 0.8rem 0.55rem 0.65rem;
+  border: 1px solid var(--color-line);
+  border-radius: 3px;
+  background-color: var(--paper-50);
+  background-image: var(--tex-paper);
+  color: var(--color-text);
+  text-align: left;
+  transition: translate 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out), border-color 0.25s;
+}
+
+button.map__item {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+  button.map__item:hover {
+    border-color: var(--basalt-800);
+    box-shadow: 3px 4px 0 0 var(--paper-300);
+    translate: -1px -2px;
+  }
+}
+
+/* 지도에서 그 마커를 가리키고 있을 때 */
+.map__item.is-active {
+  border-color: var(--basalt-800);
+  box-shadow: 3px 4px 0 0 var(--paper-300);
+  translate: -1px -2px;
+}
+
+.map__item-stamp {
+  display: block;
+  padding-top: 2px;
+}
+
+.map__item .map-glyph {
+  --glyph: 16px;
+  margin-top: 0.3em;
+}
+
+.map__item-body {
+  display: grid;
+  justify-items: start;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.map__item-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem 0.6rem;
+  min-width: 0;
+}
+
+.map__item-name {
+  font-family: var(--font-display);
+  font-size: var(--fs-m);
+  line-height: 1.25;
+}
+
+/* 위치 · 뜻은 한 줄씩(넘치면 '…' — 전체는 이름을 눌러 지도의 쪽지에서 본다) */
+.map__item-where,
+.map__item-meaning {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.map__item-where {
+  color: var(--color-text-soft);
+  font-size: var(--fs-xs);
+  line-height: 1.45;
+}
+
+.map__item-meaning {
+  color: var(--color-ink);
+  font-family: var(--font-hand);
+  font-size: calc(var(--fs-s) * var(--hand-scale));
+  line-height: 1.25;
+}
+
+/* 좌표를 아직 확인하지 못한 곳(지도에는 찍지 않는다) */
+.map__item.is-nocoord {
+  border-style: dashed;
+  background-color: transparent;
+  background-image: none;
+}
+
+.map__item-flag--todo {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.map__item-flag--todo::before {
+  border-style: solid;
+  border-color: var(--color-point-strong);
+}
+
+/* 9. 안내 쪽지 · 실패했을 때 ------------------------------------------------------ */
+/* 지도 화면 안의 안내(바탕 지도를 받지 못했을 때). 아래쪽에 두고, 마커를 누르는 데 방해되지 않게 한다 */
+.map__notice {
+  position: absolute;
+  bottom: 3.25rem;
+  left: 50%;
+  z-index: 1002;
+  width: max-content;
+  max-width: calc(100% - 3rem);
+  translate: -50% 0;
+  background-color: var(--paper-50);
+  box-shadow: var(--shadow-paper);
+  color: var(--color-text);
+  pointer-events: none;
+}
+
+/* 지도 라이브러리가 없을 때: 빈 액자를 낮추고 단추 · 장식을 거둔다(목록은 그대로). 안내는 한가운데에 */
+.map.is-nomap .map__view {
+  height: min(var(--map-h), 15rem);
+}
+
+.map.is-nomap .map__notice {
+  top: 50%;
+  bottom: auto;
+  translate: -50% -50%;
+}
+
+/* 지도가 없으면 '지점을 눌러 보세요' · '이름을 누르면 지도가…' 안내도 맞지 않으므로 거둔다 */
+.map.is-nomap .map__tools,
+.map.is-nomap .map__decor,
+.map.is-nomap .map__hint,
+.map.is-nomap .map__index-hint {
+  display: none;
+}
+
+/* 장소 데이터를 불러오지 못했을 때(main.js 가 섹션 끝에 안내를 붙인다): 빈 액자와 목록 자리를 거둔다 */
+.map.has-note .map__sheet,
+.map.has-note .map__index,
+.map.has-note .map__guide {
+  display: none;
+}
+
+.map.has-note > .placeholder-note {
+  margin-top: var(--space-6);
+}
+
+/* 10. 아주 좁은 휴대폰 · 태블릿 · 데스크톱 ------------------------------------------- */
+/* 휴대폰(767px 이하): 보기 단추의 글자를 줄여('섬 전체' · '북동부') 단추가 지도를 덜 가리게 한다(전체 이름은 aria-label 에 있다) */
+@media (max-width: 767px) {
+  .map__tool-more {
+    display: none;
+  }
+
+  /* (25차) 목록('더보기') 아래 빈 자리를 줄인다 — 다음은 주황 푸터 */
+  .map {
+    padding-bottom: var(--space-6);
+  }
+
+  /* (24차) 지도가 낮아졌으므로 저작권 표시를 작게(지운 것은 없다 — 글자 · 여백만 줄였다) */
+  .map .leaflet-control-attribution {
+    margin: 0 9px 9px;
+    padding: 1px 5px;
+    font-size: 0.5625rem;
+    line-height: 1.4;
+  }
+}
+
+/* 340px 미만: 이름 옆의 분류 꼬리표가 다음 줄로 내려간다 → 미리 잡아 두는 줄 높이를 조금 높인다 */
+@media (max-width: 339px) {
+  .map {
+    --map-row: 6.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .map {
+    --map-cols: 2;
+    --map-rows: 2;
+    --map-row: 5.25rem;
+    --map-gap: var(--space-3);
+    --map-h: clamp(min(24rem, var(--map-h-room)), calc(72 * var(--map-vh)), 40rem);
+    --pin-w: 24px;
+    padding-block: var(--space-9);
+  }
+
+  .map__guide {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .map__cluster-hint {
+    flex-basis: 100%;
+  }
+
+  .map__index-head {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  .map__sheet {
+    margin-inline: 0;
+    padding: 10px;
+  }
+
+  .map__tape {
+    --tape-w: 104px;
+    --tape-h: 28px;
+  }
+
+  .map__tape--a {
+    top: 10px;
+    left: -27px;
+  }
+
+  .map__tape--b {
+    right: -27px;
+    bottom: 10px;
+  }
+
+  .map__compass {
+    right: 20px;
+    bottom: 20px;
+    width: 4.5rem;
+  }
+
+  .map-label__text {
+    font-size: 1.4rem;
+  }
+
+  .map-label--peak .map-label__text {
+    font-size: 1.6rem;
+  }
+
+  .map-doodle__sea {
+    font-size: 2.1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .map {
+    --map-h: clamp(min(26rem, var(--map-h-room)), calc(78 * var(--map-vh)), 47.5rem);
+  }
+
+  /* 왼쪽에 제목, 오른쪽 아래에 안내 · 범례 */
+  .map__head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: var(--space-6);
+  }
+
+  .map__guide {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: flex-end;
+    padding-bottom: var(--space-1);
+  }
+
+  .map__cluster-hint {
+    flex-basis: auto;
+  }
+
+  .map__guide .map__filter-row {
+    justify-content: flex-end;
+  }
+
+  .map__sheet {
+    padding: 12px;
+  }
+}
+
+/* 넓은 화면: 4단 · 한 줄 */
+@media (min-width: 1024px) {
+  .map {
+    --map-cols: 4;
+    --map-rows: 1;
+  }
+}
+
+/* 11. 동작 줄이기 ----------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .map-pin__shift,
+  .map-pin__lift,
+  .map__more-btn svg,
+  .map__item,
+  .map-tip,
+  .map-tip.is-open {
+    transition: none;
+  }
+
+  .map-pin.is-active .map-pin__lift {
+    transform: scale(1.12);
+  }
+}
+
+/* 12. 고대비 모드(Windows) — 그림자가 그려지지 않으므로 쪽지의 가장자리를 테두리로 보여 준다 */
+@media (forced-colors: active) {
+  .map-tip__paper {
+    border: 1px solid CanvasText;
+  }
+}

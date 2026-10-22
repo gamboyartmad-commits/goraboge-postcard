@@ -1,0 +1,1458 @@
+/* intro.css — 1. 인트로: 봉투 · 엽서 · 종이 조각 · SCROLL 안내
+   index.html 에서만 불러온다. 두 페이지가 함께 쓰는 조각은 base.css 끝에 둔다.
+
+   두 가지 모습이 있다.
+   · 정적(기본값)  : 열린 봉투 한 화면 + 엽서 앞면 한 화면이 위아래로 놓인다('동작 줄이기', GSAP 로드 실패 등)
+   · 스크롤 연출   : <html class="motion-ok"> 이고 .intro-static 이 없을 때. 한 화면에 모두 겹쳐 놓고 js/intro.js 가 움직인다.
+                     무대가 고정되는 동안의 스크롤 길이(--intro-scroll)는 여기 CSS 가 #intro 의 높이로 미리 잡아 둔다 */
+
+/* 0. 치수 · 상태 값 ---------------------------------------------------------- */
+.intro {
+  --stage-h: 100vh; /* 화면 높이(모바일 주소창이 보일 때 기준) */
+  --intro-screens: 1.15; /* ✏️ 교체: 무대가 고정된 채 스크롤하는 길이(화면 높이의 몇 배) — 클수록 장면이 천천히 흐른다.
+                            (29차: 엽서가 펼쳐지는 장면을 되살려 0.85 → 1.15 — 처음 1.3 일 때와 같은 빠르기. js/intro.js 의 AT.end(88) 와 같은 비율) */
+  --intro-scroll: calc(var(--stage-h) * var(--intro-screens));
+  --env-w: min(78vw, 520px, 58vh); /* 봉투 폭 — 조각·엽서·글자 크기가 모두 이 값을 따른다(58vh: 낮은 화면에서 열린 뚜껑 끝이 화면 위로 잘리지 않는 한계) */
+  --env-h: calc(var(--env-w) / 1.45);
+  --env-cy: calc(var(--stage-h) * 0.55); /* 봉투 가운데의 세로 위치 */
+  /* ✏️ 교체: 배경(흐린 제주 사진) 위 필름 입자의 진하기(0 = 없음) */
+  --intro-grain: 0.16;
+  --intro-paper: var(--oat); /* 엽서 종이색 = 오트밀(css/base.css 의 --oat)(작은 엽서와 전체 화면 앞면이 같아야 이음매가 안 보인다) — 레퍼런스처럼 조금 바랜 종이 */
+  /* ✏️ 교체: 실사 사진의 필름 느낌(색 · 대비). 끄려면 none */
+  --film-filter: sepia(0.16) saturate(0.86) contrast(1.06) brightness(0.97) hue-rotate(-4deg);
+  /* 필름 입자(책상 전체에 아주 옅게 덮는다) */
+  --tex-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  /* ✏️ 교체: 메인 화면(엽서 앞면) 왼쪽 위 로고의 높이 */
+  --front-logo-h: clamp(2.6rem, 7vh, 4.6rem);
+  /* 봉인 스티커(로고) 가운데의 자리(봉투 폭 · 높이 대비) · 크기(봉투 폭 대비) · 기울기.
+     정적 모습에서는 열린 봉투 앞주머니의 오른쪽 아래에 작게(엽서 앞면의 로고와 겹쳐 보이지 않게) */
+  --seal-x: 70%;
+  --seal-y: 78%;
+  --seal-w: 17%;
+  --seal-r: 8deg;
+  /* 화면 오른쪽 위에 떠 있는 언어 전환 단추(css/base.css 의 --lang-clear = 단추가 차지하는 위쪽 높이)에 가리지 않게
+     위쪽 끝에 놓인 우표 · 라벨 · 종이 조각은 이 높이보다 위로 올라가지 않는다(아래 '5. 엽서 앞면' · '8. 반응형'의 max()) */
+  --intro-clear: var(--lang-clear, 0px);
+  --kicker-top: calc(clamp(1.25rem, calc(var(--stage-h) * 0.058), 3.25rem) - 0.6 * var(--fs-xs)); /* 위쪽 라벨의 원래 자리(아래 .intro__kicker 의 top 과 같은 값) */
+  --lining-wave: radial-gradient(circle at 50% 100%, transparent 0 6px, rgb(var(--paper-rgb) / 0.3) 6.5px 7.5px, transparent 8px);
+  /* 정적 모습: 뚜껑이 열리고 엽서가 반쯤 올라온 봉투 */
+  --flap-turn: 180deg;
+  --flap-z: 1;
+  --card-up: -52%;
+  position: relative;
+  background-color: var(--paper-100);
+}
+
+@supports (height: 100svh) {
+  .intro {
+    --stage-h: 100svh;
+    --env-w: min(78vw, 520px, 58svh);
+  }
+}
+
+/* 스크롤 연출의 첫 장면: 봉해진 봉투.
+   고정 구간의 자리(무대 한 화면 + 스크롤 길이)를 CSS 로 미리 잡아 둔다 → 스크립트 실행 전후로 문서 길이가 같다 */
+html.motion-ok:not(.intro-static) .intro {
+  height: calc(100vh + var(--intro-scroll));
+  height: calc(100lvh + var(--intro-scroll));
+  --env-cy: calc(var(--stage-h) * 0.47);
+  --flap-turn: 0deg;
+  --flap-z: 4;
+  --card-up: 0%;
+  --seal-x: 50%;
+  --seal-y: 57%; /* 닫힌 뚜껑 끝 */
+  --seal-w: 19%; /* ✏️ 교체: 스크롤 연출 첫 화면의 스티커 크기(봉투 폭 대비) */
+  --seal-r: 0deg;
+}
+
+/* 1. 무대 · 책상 ------------------------------------------------------------- */
+.intro__stage {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding-top: var(--stage-h); /* 정적: 첫 화면(봉투) 자리. 그 아래로 엽서 앞면이 이어진다 */
+}
+
+/* 스크롤 연출: 한 화면 크기의 무대(핀으로 고정). lvh = 모바일 주소창이 접혀도 아래가 비지 않게 */
+html.motion-ok:not(.intro-static) .intro__stage {
+  height: 100vh;
+  height: 100lvh;
+  padding-top: 0;
+}
+
+/* 스크립트가 준비되기 전(또는 끝내 실행되지 않을 때)에는 CSS 가 대신 무대를 붙잡아 둔다 */
+html.motion-ok:not(.intro-static):not(.intro-ready) .intro__stage {
+  position: sticky;
+  top: 0;
+}
+
+/* 배경: '빈티지 제주 배경' 사진을 살짝 흐리게 · 밝고 푸릇한 청량한 색으로(assets/intro/intro-bg.jpg — 12차 '너무 어둡다'는 의견으로
+   .work/gen/intro_bg_fresh.py 의 I(청량 민트 + 푸른 풀). 다른 후보 F · G · H 는 작업 폴더 design-options/r12/,
+   예전 따뜻한 빈티지 B 는 jeju-webzine-history/v11-2026-10-21/assets/intro/intro-bg.jpg) + 옅은 필름 입자. 가장자리만 아주 살짝 그늘.
+   ✏️ 교체: 그림 = 아래 url(), 입자의 진하기 = '0.' 의 --intro-grain(0 = 없음) */
+.intro__desk {
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--stage-h);
+  overflow: hidden;
+  background-color: #a9cfd6;
+  background-image:
+    radial-gradient(ellipse 110% 95% at 50% 48%, transparent 60%, rgb(20 60 70 / 0.14) 130%),
+    url("../assets/intro/intro-bg.jpg");
+  background-position: center;
+  background-size: auto, cover;
+}
+
+.intro__desk::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--tex-grain);
+  background-size: 180px 180px;
+  opacity: var(--intro-grain);
+  mix-blend-mode: overlay;
+}
+
+html.motion-ok:not(.intro-static) .intro__desk {
+  height: 100%;
+}
+
+/* 2. 종이 조각 ---------------------------------------------------------------
+   --x / --y : 조각 왼쪽 위 모서리의 자리(봉투 가운데가 0, 단위는 '봉투 폭의 몇 배')
+   --w       : 조각 폭(봉투 폭의 몇 배)   --r : 기울기
+   ✏️ 교체: 사진을 바꾼 뒤 자리나 크기가 어색하면 아래 숫자를 고치면 됩니다(폴라로이드 · 오린 사진의 모양은 css/scrapbook.css).
+            세로로 긴 화면(태블릿·휴대폰)의 자리는 이 파일 맨 아래 '8. 반응형'에 따로 있습니다(휴대폰 세로에 보이는 조각은 1·2·4·5번 네 장). */
+.intro__scrap {
+  --x: 0;
+  --y: 0;
+  --w: 0.5;
+  --r: 0deg;
+  position: absolute;
+  z-index: 1; /* 봉투 밑에 깔린다 */
+  /* --scrap-min-top: 이보다 위로 올라가지 않는다(언어 전환 단추 · 위쪽 라벨을 피하는 조각에만 아래 '8. 반응형'에서 정한다) */
+  top: max(calc(var(--env-cy) + var(--y) * var(--env-w)), var(--scrap-min-top, -100vh));
+  /* 화면이 좁아도 조각의 절반은 화면 안에 남게 한다 */
+  left: clamp(calc(var(--w) * var(--env-w) * -0.5), calc(50% + var(--x) * var(--env-w)), calc(100% - var(--w) * var(--env-w) * 0.5));
+  width: calc(var(--w) * var(--env-w));
+  max-width: none;
+  margin: 0;
+  filter: drop-shadow(0 1px 1px rgb(var(--ink-rgb) / 0.24)) drop-shadow(0 8px 12px rgb(var(--ink-rgb) / 0.17));
+  transform: rotate(var(--r));
+  pointer-events: none;
+  -webkit-user-select: none; /* Safari */
+  user-select: none;
+}
+
+.intro__scrap--over {
+  z-index: 3; /* 봉투 모서리 위에 얹힌다 */
+}
+
+/* 데스크톱: 봉투 둘레에 오밀조밀하게 열두 가지(왼쪽: 사진 · 이름표 · 필름 · 색 견본 · 메모, 오른쪽: 사진 셋 · 우표 · 라벨 · 엽서) */
+.intro__scrap--3 { --x: -1.25; --y: -0.74; --w: 0.52; --r: -6deg; } /* 우리 사진(폴라로이드 · 압정 · 테이프) */
+.intro__scrap--10 { --x: -0.78; --y: -0.7; --w: 0.29; --r: 10deg; } /* 이름표: 혼저 옵서 */
+.intro__scrap--13 { --x: -1.33; --y: -0.06; --w: 0.7; --r: -5deg; } /* 필름 띠 */
+.intro__scrap--12 { --x: -1.28; --y: 0.3; --w: 0.42; --r: -4deg; } /* 제주 색 견본 */
+.intro__scrap--14 { --x: -0.84; --y: 0.2; --w: 0.3; --r: 5deg; } /* 손글씨 메모 */
+.intro__scrap--11 { --x: -1.0; --y: 0.66; --w: 0.27; --r: 8deg; } /* 이름표: 와랑와랑 */
+.intro__scrap--6 { --x: 0.54; --y: -0.8; --w: 0.38; --r: 7deg; } /* 제주 배경2(폴라로이드 · 압정) */
+.intro__scrap--9 { --x: 0.96; --y: -0.72; --w: 0.3; --r: -6deg; } /* 제주 배경3(오린 사진 · 테이프) */
+.intro__scrap--7 { --x: 0.95; --y: -0.2; --w: 0.36; --r: 8deg; } /* 제주 배경1(폴라로이드 · 클립) */
+.intro__scrap--5 { --x: 0.55; --y: -0.08; --w: 0.15; --r: 10deg; } /* 우표 */
+.intro__scrap--8 { --x: 0.33; --y: 0.06; --w: 0.3; --r: 8deg; } /* 항공우편 라벨 — 봉투 모서리 위 */
+.intro__scrap--2 { --x: 0.25; --y: 0.34; --w: 0.84; --r: -3deg; } /* 해녀 엽서(손글씨 문구 · 테이프) */
+
+/* 해녀 엽서: 종이 엽서 한 장(가장자리를 아주 살짝 둥글게, 얇은 종이 테두리) */
+.intro__postcard img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgb(var(--ink-rgb) / 0.08);
+}
+
+/* 2-3. 색 마스킹테이프(E3): <span class="washi washi--orange washi--tl"> — 색: orange · blue · yellow, 자리: tl(왼쪽 위 모서리) · top(위 가운데) · end(왼쪽 끝) */
+.washi {
+  --washi: #f29a72;
+  position: absolute;
+  z-index: 3;
+  width: 34%;
+  height: 11%;
+  min-height: 12px;
+  max-height: 26px;
+  background-color: var(--washi);
+  background-image: repeating-linear-gradient(90deg, transparent 0 6px, rgb(255 255 255 / 0.18) 6px 7px);
+  opacity: 0.86;
+  clip-path: polygon(0 0, 4% 22%, 0 44%, 4% 66%, 0 88%, 3% 100%, 97% 100%, 100% 82%, 96% 60%, 100% 38%, 96% 16%, 100% 0);
+  pointer-events: none;
+}
+
+.washi--blue { --washi: #9fc2c9; }
+.washi--yellow { --washi: #e9d27a; }
+
+.washi--tl {
+  top: -2%;
+  left: -8%;
+  rotate: -32deg;
+}
+
+.washi--top {
+  top: -4%;
+  left: 33%;
+  rotate: -4deg;
+}
+
+.washi--end {
+  top: 20%;
+  left: -7%;
+  width: 16%;
+  height: 60%;
+  max-height: none;
+  rotate: 4deg;
+}
+
+/* 2-4. 클립(E9): 사진 위쪽을 집은 은색 클립 */
+.clip {
+  position: absolute;
+  z-index: 3;
+  top: -7%;
+  left: 18%;
+  width: 11%;
+  height: auto;
+  overflow: visible;
+  fill: none;
+  stroke: #cfd2d6;
+  stroke-linecap: round;
+  stroke-width: 3.4;
+  filter: drop-shadow(1px 2px 1px rgb(0 0 0 / 0.45));
+}
+
+/* 2-5. 필름 네거티브 띠(E7): 제주 사진 세 컷 */
+.film-strip {
+  display: flex;
+  gap: 5%;
+  padding: 7% 4%;
+  background-color: #1d1612;
+  background-image:
+    radial-gradient(circle, #f4efe5 0 32%, transparent 36%),
+    radial-gradient(circle, #f4efe5 0 32%, transparent 36%);
+  background-position: 0 4%, 0 96%;
+  background-repeat: repeat-x;
+  background-size: 6% 7%;
+}
+
+.film-strip img {
+  flex: 1 1 0;
+  min-width: 0;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  filter: var(--film-filter) contrast(1.05);
+}
+
+/* 2-6. 제주 색 견본 칩(E5): 감귤 · 현무암 · 바당 */
+.color-chips {
+  display: flex;
+  gap: 6%;
+}
+
+.chip {
+  flex: 1 1 0;
+  display: grid;
+  padding-bottom: 6%;
+  background-color: #fffdf8;
+  color: #3a2116;
+  font-size: max(7px, calc(var(--env-w) * 0.017));
+  font-weight: 800;
+  line-height: 1.25;
+  box-shadow: 0 3px 6px rgb(0 0 0 / 0.3);
+}
+
+.chip:nth-child(2) { rotate: 5deg; translate: 0 6%; }
+.chip:nth-child(3) { rotate: -4deg; }
+
+.chip i {
+  display: block;
+  aspect-ratio: 1;
+  background-color: var(--c);
+}
+
+.chip b,
+.chip small {
+  padding-inline: 8%;
+}
+
+.chip b {
+  padding-top: 6%;
+  letter-spacing: 0.04em;
+}
+
+.chip small {
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+/* 2-7. 손글씨 메모(E8): 작은 노란 종이 */
+.memo-note {
+  display: grid;
+  gap: 0.15em;
+  padding: 0.7em 0.9em 0.8em;
+  background-color: #f6efc7;
+  background-image: repeating-linear-gradient(to bottom, transparent 0 1.32em, rgb(63 111 182 / 0.18) 1.32em calc(1.32em + 1px));
+  color: #2b2a35;
+  font-family: var(--font-hand);
+  font-size: max(0.72rem, calc(var(--env-w) * 0.03));
+  line-height: 1.32;
+}
+
+.memo-note u {
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.18em;
+}
+
+/* 실사 사진의 필름 느낌(폴라로이드 · 오린 사진). 엽서 · 그림 · 우표는 no-fade 로 뺀다 */
+.intro__desk :is(.polaroid, .cutout):not(.no-fade) > img {
+  filter: var(--film-filter);
+}
+
+/* 책상 위 폴라로이드 종이는 조금 누렇게 */
+.intro__desk .polaroid {
+  background-color: #f6f1e6;
+}
+
+/* 우표 사진: 톱니 둘레를 그대로 오린 그림 */
+.intro__stamp {
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.3)) drop-shadow(0 6px 8px rgb(0 0 0 / 0.25));
+}
+
+/* 2-1. 압정(레퍼런스의 핀): <span class="pin pin--red"></span> 을 사진 안 맨 앞에 넣는다 */
+.pin {
+  --pin-color: #d8452f;
+  position: absolute;
+  z-index: 2;
+  top: 2.5%;
+  left: 50%;
+  width: clamp(12px, calc(var(--env-w) * 0.034), 20px);
+  aspect-ratio: 1;
+  margin-left: calc(clamp(12px, calc(var(--env-w) * 0.034), 20px) / -2);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 32%, rgb(255 255 255 / 0.75) 0 14%, transparent 34%), var(--pin-color);
+  box-shadow: inset -2px -3px 4px rgb(0 0 0 / 0.28), 2px 4px 4px rgb(0 0 0 / 0.35);
+}
+
+.pin--yellow { --pin-color: #e9b628; }
+.pin--blue { --pin-color: #3f6fb6; }
+
+/* 2-2. 크라프트 이름표(제주어 낱말 + 뜻). 구멍과 실 */
+.kraft-tag {
+  display: grid;
+  gap: 0.15em;
+  padding: 0.7em 0.9em 0.75em 1.7em;
+  background-color: #c79f6e;
+  background-image: var(--tex-paper), linear-gradient(100deg, rgb(255 255 255 / 0.12), transparent 60%);
+  color: #3b2414;
+  font-size: max(0.7rem, calc(var(--env-w) * 0.026));
+  line-height: 1.1;
+  clip-path: polygon(14% 0, 100% 0, 100% 100%, 14% 100%, 0 50%);
+}
+
+.kraft-tag::before { /* 구멍 */
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 7%;
+  width: 0.55em;
+  aspect-ratio: 1;
+  margin-top: -0.275em;
+  border-radius: 50%;
+  background-color: #2a1a10;
+  box-shadow: inset 0 0 0 0.12em #e9dcc4;
+}
+
+.kraft-tag__word {
+  font-family: var(--font-hand);
+  font-size: 1.55em;
+}
+
+.kraft-tag__mean {
+  font-size: 0.82em;
+  opacity: 0.8;
+}
+
+.kraft-tag--b {
+  background-color: #b98e5d;
+}
+
+/* 3. 첫 화면의 글자: 위쪽 라벨 · 손글씨 쪽지 --------------------------------
+   둘 다 작은 종이 조각 위에 적는다 → 어떤 조각(사진) 위에 겹쳐도 읽힌다. 문구가 길면 줄이 바뀐다 */
+.intro__kicker {
+  position: absolute;
+  z-index: 4;
+  top: calc(clamp(1.25rem, calc(var(--stage-h) * 0.058), 3.25rem) - 0.6em);
+  right: 0;
+  left: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3em 0.8em;
+  width: fit-content;
+  max-width: calc(100% - 2 * var(--space-3));
+  margin-inline: auto;
+  padding: 0.6em 1em 0.6em 1.28em; /* 왼쪽은 자간(0.28em)만큼 더 — 글자가 오른쪽으로 쏠리지 않게 */
+  background-color: var(--paper-50);
+  background-image: var(--tex-paper);
+  box-shadow: var(--shadow-paper);
+  color: var(--color-ink);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.28em;
+  text-align: center;
+}
+
+.intro__kicker::before,
+.intro__kicker::after {
+  content: "";
+  width: 1.8em;
+  height: 2px;
+  border-radius: 2px;
+  background-color: var(--color-point);
+}
+
+/* 찢어진 종이 쪽지 두 장: ① 봉투 위 '제주에서 엽서가 도착했어요' ② 봉투 아래 '스티커를 눌러 보세요'(스티커를 가리키는 화살표).
+   그림자는 바깥(p)에, 찢긴 모양(clip-path)은 안쪽(.torn-paper)에 — 한 요소에 두면 그림자까지 잘린다 */
+.intro__note {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  max-width: calc(100% - 2 * var(--gutter));
+  margin: 0;
+  translate: -50% 0;
+  font-size: calc(clamp(1.05rem, 0.85rem + 0.8vw, 1.5rem) * var(--hand-scale));
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.3)) drop-shadow(0 6px 8px rgb(0 0 0 / 0.28));
+  pointer-events: none;
+}
+
+.intro__note--hello {
+  top: calc(var(--env-cy) - var(--env-h) / 2 - 2.9em);
+  rotate: -2.5deg;
+}
+
+/* 봉투 바로 아래. 화면이 낮으면 SCROLL 안내 위까지만 내려간다 */
+.intro__note--hint {
+  top: min(
+    calc(var(--env-cy) + var(--env-h) / 2 + clamp(0.6rem, calc(var(--stage-h) * 0.03), 1.8rem)),
+    calc(var(--stage-h) - 6.2rem - 2.2em)
+  );
+  rotate: 1.5deg;
+}
+
+/* 정적 모습(뚜껑이 열리고 엽서가 반쯤 올라온 봉투 — '동작 줄이기' 등): 봉투 위는 엽서가 차지하므로 두 쪽지를 봉투 아래에 나란히 */
+:is(html:not(.motion-ok), html.intro-static) .intro__note--hello {
+  top: min(
+    calc(var(--env-cy) + var(--env-h) / 2 + clamp(0.6rem, calc(var(--stage-h) * 0.03), 1.8rem)),
+    calc(var(--stage-h) - 6.2rem - 2.2em)
+  );
+  left: calc(50% - var(--env-w) * 0.3);
+}
+
+:is(html:not(.motion-ok), html.intro-static) .intro__note--hint {
+  left: calc(50% + var(--env-w) * 0.32);
+}
+
+@media (max-width: 767px) {
+  :is(html:not(.motion-ok), html.intro-static) .intro__note--hello {
+    left: 50%;
+  }
+
+  :is(html:not(.motion-ok), html.intro-static) .intro__note--hint {
+    left: 50%;
+    margin-top: 2.5em;
+  }
+}
+
+.torn-paper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.38em 1.25em 0.46em;
+  background-color: #fbf7ee;
+  background-image: var(--tex-paper);
+  color: #2b2a35;
+  font-family: var(--font-hand);
+  line-height: 1.15;
+  white-space: nowrap;
+  clip-path: var(--torn-a);
+}
+
+.torn-paper--a {
+  --torn-a: polygon(0.0% 0.4%,10.0% 0.9%,20.0% 0.6%,30.0% 1.0%,40.0% 1.0%,50.0% 0.1%,60.0% 0.0%,70.0% 1.3%,80.0% 0.4%,90.0% 0.4%,100.0% 1.6%,98.5% 3.8%,95.9% 7.7%,97.2% 11.5%,95.4% 15.4%,98.1% 19.2%,97.2% 23.1%,97.2% 26.9%,98.7% 30.8%,97.0% 34.6%,96.5% 38.5%,98.6% 42.3%,98.4% 46.2%,98.1% 50.0%,97.8% 53.8%,96.8% 57.7%,97.2% 61.5%,98.2% 65.4%,97.3% 69.2%,99.8% 73.1%,99.7% 76.9%,99.5% 80.8%,95.2% 84.6%,99.9% 88.5%,97.2% 92.3%,96.8% 96.2%,100.0% 99.0%,90.0% 99.9%,80.0% 99.7%,70.0% 99.3%,60.0% 99.0%,50.0% 99.8%,40.0% 99.9%,30.0% 98.6%,20.0% 99.5%,10.0% 98.5%,0.0% 98.6%,1.2% 96.2%,2.1% 92.3%,2.0% 88.5%,1.4% 84.6%,1.0% 80.8%,3.1% 76.9%,3.8% 73.1%,4.0% 69.2%,1.5% 65.4%,2.3% 61.5%,0.2% 57.7%,0.8% 53.8%,1.0% 50.0%,1.2% 46.2%,1.2% 42.3%,1.8% 38.5%,0.7% 34.6%,0.6% 30.8%,0.3% 26.9%,2.7% 23.1%,0.5% 19.2%,2.8% 15.4%,0.4% 11.5%,2.6% 7.7%,0.9% 3.8%);
+}
+
+.torn-paper--b {
+  --torn-a: polygon(0.0% 0.7%,10.0% 0.6%,20.0% 0.2%,30.0% 1.4%,40.0% 0.0%,50.0% 0.8%,60.0% 1.4%,70.0% 0.1%,80.0% 0.9%,90.0% 1.0%,100.0% 0.1%,98.8% 3.8%,96.9% 7.7%,99.6% 11.5%,98.1% 15.4%,96.7% 19.2%,97.8% 23.1%,99.7% 26.9%,99.1% 30.8%,97.2% 34.6%,98.8% 38.5%,98.6% 42.3%,96.2% 46.2%,97.1% 50.0%,99.7% 53.8%,99.7% 57.7%,98.7% 61.5%,99.7% 65.4%,98.1% 69.2%,98.2% 73.1%,99.1% 76.9%,99.6% 80.8%,99.2% 84.6%,98.8% 88.5%,96.4% 92.3%,97.2% 96.2%,100.0% 99.4%,90.0% 98.4%,80.0% 99.1%,70.0% 100.0%,60.0% 98.7%,50.0% 99.5%,40.0% 99.3%,30.0% 99.7%,20.0% 99.3%,10.0% 99.5%,0.0% 99.9%,4.5% 96.2%,0.1% 92.3%,1.6% 88.5%,2.4% 84.6%,3.1% 80.8%,2.8% 76.9%,0.5% 73.1%,0.2% 69.2%,3.0% 65.4%,0.7% 61.5%,1.2% 57.7%,2.9% 53.8%,2.2% 50.0%,3.7% 46.2%,2.3% 42.3%,5.1% 38.5%,2.5% 34.6%,2.0% 30.8%,0.6% 26.9%,2.5% 23.1%,0.6% 19.2%,2.8% 15.4%,3.0% 11.5%,0.1% 7.7%,1.7% 3.8%);
+  background-color: #f3ead6;
+}
+
+.intro__note .tape {
+  --tape-w: 3.1em;
+  --tape-h: 1em;
+  --tape-tilt: -24deg;
+  top: -0.45em;
+  left: -0.9em;
+}
+
+/* 스티커를 가리키는 화살표(왼쪽 위로) */
+.intro__note-arrow {
+  flex: none;
+  width: 1.5em;
+  height: auto;
+  margin: -0.4em 0 0 0.1em;
+  overflow: visible;
+  fill: none;
+  stroke: var(--tangerine-700);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.6;
+}
+
+/* 4. 봉투 --------------------------------------------------------------------
+   기준 좌표 580 x 400. 주머니의 V자 골은 (50%, 51%), 뚜껑 끝은 61.5% 높이까지 내려온다. */
+.intro__envelope {
+  position: absolute;
+  z-index: 2;
+  top: calc(var(--env-cy) - var(--env-h) / 2);
+  left: calc(50% - var(--env-w) / 2);
+  width: var(--env-w);
+  height: var(--env-h);
+  transform: rotate(-2.5deg);
+}
+
+/* 4-1. 봉투 안쪽 — 뚜껑이 열리면 V자 틈으로 안감이 보인다 */
+.intro__inside {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-color: var(--sea-800);
+  background-image: linear-gradient(to bottom, rgb(var(--ink-rgb) / 0.5), rgb(var(--ink-rgb) / 0.12) 55%), var(--lining-wave), var(--lining-wave);
+  background-position: 0 0, 0 0, 9px 4.5px;
+  background-size: auto, 18px 9px, 18px 9px;
+  clip-path: polygon(0 0, 100% 0, 100% 5%, 50% 57%, 0 5%);
+}
+
+/* 4-2. 뚜껑 — 위쪽 변을 축으로 넘어간다. 겉면·속면 두 장을 backface-visibility 로 가른다 */
+.intro__flap-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: var(--flap-z); /* 90°를 넘으면 js 가 엽서 뒤(1)로 내린다 */
+  filter: drop-shadow(0 2px 2px rgb(var(--ink-rgb) / 0.2)) drop-shadow(0 5px 9px rgb(var(--ink-rgb) / 0.13));
+}
+
+.intro__flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 61.5%;
+  transform: rotateX(var(--flap-turn));
+  transform-origin: 50% 0;
+  transform-style: preserve-3d;
+}
+
+.intro__flap-face {
+  position: absolute;
+  inset: 0;
+  -webkit-backface-visibility: hidden; /* Safari */
+  backface-visibility: hidden;
+}
+
+/* 겉면: 끝이 살짝 둥근 삼각형 */
+.intro__flap-face--out {
+  background-color: var(--paper-100);
+  background-image:
+    linear-gradient(to bottom, rgb(var(--ink-rgb) / 0.07), transparent 5%),
+    linear-gradient(to bottom, rgb(var(--paper-rgb) / 0.65), transparent 55%, rgb(var(--ink-rgb) / 0.05)),
+    var(--tex-paper);
+  clip-path: polygon(0 0, 100% 0, 54% 91.5%, 52.4% 97%, 50% 100%, 47.6% 97%, 46% 91.5%);
+}
+
+/* 속면: 미리 뒤집어 그려 둔다(뚜껑이 넘어가면 바로 보인다) */
+.intro__flap-face--in {
+  background-color: var(--paper-100);
+  background-image: linear-gradient(to top, rgb(var(--ink-rgb) / 0.1), transparent 8%), var(--tex-paper);
+  clip-path: polygon(0 100%, 100% 100%, 54% 8.5%, 52.4% 3%, 50% 0, 47.6% 3%, 46% 8.5%);
+  transform: rotateX(180deg);
+}
+
+/* 뚜껑이 넘어가는 동안의 음영(js 가 투명도를 바꾼다) */
+.intro__flap-shade {
+  position: absolute;
+  inset: 0;
+  /* 차가운 회색이 아니라 종이색이 짙어진 따뜻한 그늘 */
+  background-color: var(--paper-400);
+  background-image: linear-gradient(rgb(var(--ink-rgb) / 0.3), rgb(var(--ink-rgb) / 0.3));
+  opacity: 0;
+}
+
+/* 바다색 물결무늬 안감 */
+.intro__lining {
+  position: absolute;
+  inset: 0;
+  background-color: var(--sea-600);
+  background-image: linear-gradient(to top, rgb(var(--ink-rgb) / 0.22), transparent 45%), var(--lining-wave), var(--lining-wave);
+  background-position: 0 0, 0 0, 9px 4.5px;
+  background-size: auto, 18px 9px, 18px 9px;
+  clip-path: polygon(6.5% 93.5%, 93.5% 93.5%, 53.2% 15%, 50% 10.5%, 46.8% 15%);
+}
+
+/* 4-3. 작은 엽서 — slot 은 위로 올라오고(js: y), card 는 화면을 덮을 때까지 커진다(js: scale) */
+.intro__card-slot {
+  position: absolute;
+  z-index: 2; /* 주머니(3) 뒤. 완전히 빠져나오면 js 가 앞(6)으로 올린다 */
+  top: 5.5%;
+  left: 7%;
+  width: 86%;
+  aspect-ratio: 3 / 2;
+  transform: translateY(var(--card-up));
+}
+
+.intro__card {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 2px;
+  background-color: var(--intro-paper);
+  box-shadow: 0 1px 2px rgb(var(--ink-rgb) / 0.22), 0 8px 16px -8px rgb(var(--ink-rgb) / 0.35);
+}
+
+/* 종이결 — 엽서가 커져도 결은 커지지 않게 js 가 반대로 줄여 준다 */
+.intro__card-paper {
+  position: absolute;
+  inset: 0;
+  background-color: var(--intro-paper);
+  background-image: var(--tex-paper);
+}
+
+/* 작은 엽서의 얼굴(커지는 동안 사라진다) */
+.intro__card-face {
+  --airmail-w: 5;
+  --airmail-stripe: 6px;
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: calc(var(--env-w) * 0.014);
+  color: var(--color-text);
+}
+
+/* 작은 로고(큰 타이틀과 같은 그림) */
+.intro__card-logo {
+  width: calc(var(--env-w) * 0.4);
+  max-width: none;
+  margin-top: calc(var(--env-w) * 0.03); /* 위쪽의 호수 · 우표와 겹치지 않게 조금 내린다 */
+}
+
+.intro__card-vol {
+  position: absolute;
+  top: 7%;
+  left: 4.5%;
+  color: var(--color-ink);
+  font-size: max(6px, calc(var(--env-w) * 0.021));
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.22em;
+}
+
+.intro__card-stamp {
+  position: absolute;
+  top: 5%;
+  right: 4%;
+  width: calc(var(--env-w) * 0.075);
+  max-width: none;
+  height: auto;
+  rotate: 5deg;
+  filter: drop-shadow(0 1px 1px rgb(var(--ink-rgb) / 0.3));
+}
+
+/* 4-4. 앞주머니 — V자로 파인 앞판. 엽서는 이 뒤에서 올라온다 */
+.intro__pocket-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  /* 위로 가는 옅은 그림자(주머니 가장자리가 엽서에 드리운다) + 책상 위 그림자 */
+  filter: drop-shadow(0 -1px 2px rgb(var(--ink-rgb) / 0.2)) drop-shadow(0 2px 2px rgb(var(--ink-rgb) / 0.16)) drop-shadow(0 12px 18px rgb(var(--ink-rgb) / 0.2));
+}
+
+.intro__pocket {
+  position: absolute;
+  inset: 0;
+  background-color: var(--paper-100);
+  background-image: var(--tex-paper);
+  clip-path: polygon(0 0, 50% 51%, 100% 0, 100% 100%, 0 100%);
+}
+
+/* 접힌 선과 음영 */
+.intro__pocket-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.intro__shade-0 {
+  stop-color: rgb(var(--ink-rgb));
+  stop-opacity: 0;
+}
+
+.intro__shade-1 {
+  stop-color: rgb(var(--ink-rgb));
+  stop-opacity: 0.075;
+}
+
+.intro__light-0 {
+  stop-color: rgb(var(--paper-rgb));
+  stop-opacity: 0;
+}
+
+.intro__light-1 {
+  stop-color: rgb(var(--paper-rgb));
+  stop-opacity: 0.7;
+}
+
+.intro__fold {
+  fill: none;
+  stroke: rgb(var(--ink-rgb) / 0.2);
+  stroke-linejoin: round;
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+
+.intro__fold--soft {
+  stroke: rgb(var(--ink-rgb) / 0.06);
+  stroke-width: 8;
+}
+
+.intro__fold--edge {
+  stroke: rgb(var(--paper-rgb) / 0.95);
+  stroke-width: 1.6;
+}
+
+/* 4-5. 봉인 스티커 = 동그란 스티커 안의 하영고라보게 로고. 단추이기도 하다 — 누르면 스크롤하지 않아도 봉투가 열린다(js/intro.js)
+   주황 테두리 + 그 위의 흰 점선 고리 + 크림색 원 안의 로고.
+   ✏️ 교체: 스티커 크기 · 자리는 위 '0.' 의 --seal-w · --seal-x · --seal-y, 색은 아래 --seal-ring */
+.intro__seal {
+  --seal-ring: var(--tangerine-500);
+  position: absolute;
+  z-index: 5;
+  top: var(--seal-y);
+  left: var(--seal-x);
+  display: block;
+  width: var(--seal-w);
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle closest-side, var(--paper-50) 0 77%, var(--seal-ring) 78%);
+  filter: drop-shadow(0 1px 1px rgb(var(--ink-rgb) / 0.35)) drop-shadow(0 4px 6px rgb(var(--ink-rgb) / 0.25));
+  translate: -50% -50%; /* 가운데 맞춤(움직임은 js 가 transform 으로 따로 준다) */
+  rotate: var(--seal-r);
+  cursor: pointer;
+  transition: scale var(--dur-fast) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 주황 테두리 위의 흰 점선 고리 + 손가락으로 누르기 쉽게 조금 넓은 자리 */
+.intro__seal::before {
+  content: "";
+  position: absolute;
+  inset: 5.5%;
+  border: max(1px, calc(var(--env-w) * 0.0028)) dashed rgb(var(--paper-rgb) / 0.95);
+  border-radius: 50%;
+  outline: 10px solid transparent; /* 보이지 않는 여유 자리(누르는 영역) */
+}
+
+/* 맥박 고리: 스티커가 눌리는 것임을 은은하게 알린다('동작 줄이기'에서는 없다 — 아래 6번의 미디어 쿼리) */
+.intro__seal::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--color-point);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  animation: intro-pulse 2.4s var(--ease-out) infinite;
+}
+
+.intro__seal-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60%;
+  max-width: none;
+  height: auto;
+  translate: -50% -50%;
+}
+
+@media (hover: hover) {
+  .intro__seal:hover {
+    scale: 1.06;
+  }
+}
+
+.intro__seal:active {
+  scale: 0.96;
+}
+
+/* 스티커가 떨어져 사라진 뒤(js 가 .is-off 를 붙인다): 누를 수 없고, 키보드 포커스도 가지 않는다(tabindex="-1" 은 js 가 붙인다) */
+.intro__seal.is-off {
+  pointer-events: none;
+}
+
+.intro__seal.is-off::after {
+  animation: none;
+}
+
+/* 5. 엽서 앞면 = 메인 화면(화면 전체) ------------------------------------------
+   ※ 27차: index.html 에서 메인 화면을 뺐다(지금은 쓰이지 않는 규칙 — 다시 넣을 때를 위해 남겨 둔다. 빼기 전 HTML = .work/front-block-r27.html)
+   레퍼런스(바랜 색연필 포스터): 종이 위에 왼쪽 위 로고 → 화면의 2/3 쯤 되는 그림(그 위에 짧은 글) → 아래 목차.
+   ✏️ 교체: 그림 위 글의 크기 · 색은 아래 .front__copy 의 변수들 */
+.intro__front {
+  --front-gap: clamp(0.6rem, 2vh, 1.4rem);
+  --front-pad: clamp(1rem, 2.6vw, 2.6rem);
+  --front-ink: #3a3631;
+  position: relative;
+  z-index: 5;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--front-gap);
+  height: var(--stage-h);
+  min-height: 34rem;
+  padding: max(var(--front-pad), calc(var(--page-frame-w, 0px) + 0.6rem)) max(var(--front-pad), calc(var(--page-frame-w, 0px) + 0.8rem));
+  background-color: var(--intro-paper);
+  background-image: var(--tex-paper);
+  color: var(--front-ink);
+}
+
+/* 스크롤 연출: 무대 위에 겹쳐 두고 감춘다(js 가 마지막에 나타나게 하고, 다 나타난 뒤에만 누를 수 있게 한다 — inert) */
+html.motion-ok:not(.intro-static) .intro__front {
+  position: absolute;
+  inset: 0;
+  height: auto;
+  min-height: 0;
+  opacity: 0;
+}
+
+/* 5-1. 위: 로고(왼쪽) + 호수. 오른쪽 위는 언어 전환 단추 자리라 비워 둔다 */
+.front__top {
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(0.8rem, 2vw, 1.6rem);
+  min-width: 0;
+  padding-right: calc(var(--lang-clear, 0px) + 9rem);
+}
+
+.intro__title {
+  flex: none;
+  line-height: 0;
+}
+
+.intro__title img {
+  width: auto;
+  max-width: none;
+  height: var(--front-logo-h);
+}
+
+/* 스티커를 눌러 앞면에 닿으면 js 가 포커스를 타이틀로 옮긴다(화면 낭독기가 웹진 이름을 읽게). 누르는 것이 아니므로 포커스 고리는 그리지 않는다 */
+.intro__title:focus {
+  outline: none;
+}
+
+.front__vol {
+  padding-bottom: 0.35em;
+  color: var(--tangerine-700);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.24em;
+  white-space: nowrap;
+}
+
+/* 5-2. 그림(화면의 2/3) + 그 위의 글 */
+.front__photo {
+  position: relative;
+  min-height: 0;
+  margin: 0;
+}
+
+/* <picture>(넓은 화면 · 휴대폰 그림)는 상자를 만들지 않게 — 그림이 사진 칸을 그대로 채운다 */
+.front__photo > picture {
+  display: contents;
+}
+
+.front__img {
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  object-fit: cover;
+  object-position: 40% 55%; /* 좁은 화면에서 잘릴 때 보여 줄 중심(오름 · 파도) */
+  box-shadow: 0 0 0 1px rgb(var(--ink-rgb) / 0.06);
+}
+
+/* 그림 위 글: 사진 높이의 --front-copy-y(%) 자리에 글 가운데가 온다(50% = 한가운데). 값은 css/theme.css '0.'(화면 폭마다) · 글자 조절판 '제목 글 위치' */
+.front__copy {
+  --copy-size: var(--front-text-size); /* 글자 크기는 css/theme.css '0.' */
+  position: absolute;
+  top: var(--front-copy-y, 50%);
+  right: 0;
+  left: 0;
+  translate: 0 -50%;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: clamp(0.5rem, 1.6vh, 1.05rem);
+  padding: clamp(1rem, 4vh, 3rem) clamp(1rem, 6vw, 6rem);
+  color: var(--front-ink);
+  text-align: center;
+}
+
+/* 제목 두 줄: 위 줄(작고 가늘게) + 아래 줄(크고 굵게). 크기는 css/theme.css '0.' 의 --front-title-top-size · --front-title-size */
+.front__subtitle {
+  display: grid;
+  justify-items: center;
+  gap: 0.35em;
+  margin-bottom: 0.7rem;
+  color: #2c2925;
+  text-wrap: balance;
+}
+
+/* 글 뒤만 하얗게 번지게(테두리 경계 없이): 두 줄 전체 뒤에 가장자리로 갈수록 아주 천천히 옅어지는 흰 번짐 하나(::before)
+   + 글자 둘레의 옅은 빛(text-shadow). 사진의 푸른 풀밭 · 바다는 그대로 보인다(14차).
+   ✏️ 교체: 진하기 = --front-glow 의 마지막 숫자(0 = 없음), 번지는 넓이 = ::before 의 inset(음수가 클수록 넓게) */
+.front__subtitle {
+  --front-glow: 252 250 245;
+  position: relative;
+  isolation: isolate; /* 흰 번짐(::before)이 사진 뒤로 숨지 않고 글자 바로 뒤에 놓이게 */
+}
+
+.front__subtitle::before {
+  content: "";
+  position: absolute;
+  inset: -1.4em -2.6em;
+  z-index: -1;
+  background: radial-gradient(closest-side,
+    rgb(var(--front-glow) / 0.78) 0%,
+    rgb(var(--front-glow) / 0.62) 35%,
+    rgb(var(--front-glow) / 0.32) 62%,
+    rgb(var(--front-glow) / 0.1) 82%,
+    rgb(var(--front-glow) / 0) 100%);
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+.front__subtitle-top,
+.front__subtitle-main {
+  text-shadow: 0 0 0.6em rgb(var(--front-glow) / 0.9), 0 0 1.2em rgb(var(--front-glow) / 0.7);
+}
+
+.front__subtitle-top {
+  font-size: var(--front-title-top-size);
+  font-weight: 300;
+  line-height: 1.35;
+  letter-spacing: var(--front-title-top-tracking);
+}
+
+.front__subtitle-main {
+  font-size: var(--front-title-size);
+  font-weight: 700;
+  line-height: var(--front-title-lh);
+  letter-spacing: var(--front-title-tracking);
+}
+
+/* 글: 가운데 맞춤이라 두 줄이 되면 줄 길이를 고르게(balance). 문단을 더하면(편집 모드) 문단 사이 = --text-gap */
+.front__texts > p {
+  margin-inline: auto;
+}
+
+.front__texts > p + p {
+  margin-top: var(--front-text-gap); /* 줄(문단) 사이 — css/theme.css '0.' */
+}
+
+.front__text {
+  max-width: 30em;
+  font-size: var(--copy-size);
+  line-height: var(--front-text-lh);
+  letter-spacing: var(--front-text-tracking);
+  text-wrap: balance;
+}
+
+/* 마지막 한 줄: 굵은 고딕(Pretendard) · 진한 주황 */
+.front__closing {
+  margin-top: 0.15em;
+  color: var(--tangerine-700);
+  font-size: var(--front-closing-size);
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: var(--front-closing-tracking);
+  text-wrap: balance;
+}
+
+.front__unesco {
+  display: grid;
+  gap: 0.15em;
+  max-width: 40em;
+  margin-top: 0.4em;
+  padding-top: 0.7em;
+  border-top: 1px solid rgb(var(--ink-rgb) / 0.25);
+  color: var(--tangerine-700);
+  font-size: calc(var(--copy-size) * 0.9);
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+/* 그림 오른쪽 아래 모서리에 붙인 우표 + 그 위를 지나가는 소인 */
+.front__stamp {
+  position: absolute;
+  right: clamp(-0.6rem, -1vw, -0.2rem);
+  bottom: clamp(-1.4rem, -3vh, -0.6rem);
+  width: clamp(3.4rem, 6.4vw, 6.4rem);
+  max-width: none;
+  height: auto;
+  rotate: 6deg;
+  filter: drop-shadow(0 1px 1px rgb(var(--ink-rgb) / 0.3)) drop-shadow(0 6px 10px rgb(var(--ink-rgb) / 0.22));
+}
+
+.front__postmark {
+  position: absolute;
+  right: clamp(2.2rem, 4.8vw, 4.8rem);
+  bottom: clamp(-0.8rem, -2vh, -0.2rem);
+  width: clamp(5rem, 10vw, 9.5rem);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.front__postmark .postmark {
+  --postmark-w: 100%;
+  --postmark-tilt: -10deg;
+  display: block;
+}
+
+/* 5-3. 아래: 이름(왼쪽) + 목차(누르면 그 섹션으로) */
+/* 크기는 css/theme.css '0.' 의 --front-toc-size(차례 제목) · --front-toc-no-size(번호 · 왼쪽 이름). 차례마다 위에 가는 줄(잡지 목차처럼) */
+.front__toc {
+  display: grid;
+  grid-template-columns: minmax(8rem, 1fr) 4fr;
+  gap: var(--space-4) var(--space-5);
+  align-items: start;
+  min-width: 0;
+  padding-block: clamp(0.4rem, 1.4vh, 1rem) clamp(0.2rem, 0.8vh, 0.6rem);
+}
+
+.front__name {
+  padding-top: 0.7rem;
+  border-top: 1.5px solid rgb(var(--ink-rgb) / 0.55);
+  font-size: var(--front-toc-no-size);
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.front__name span {
+  font-weight: 400;
+}
+
+.front__toc-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(0.7rem, 2vh, 1.4rem) var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.front__toc-list a {
+  display: grid;
+  align-content: start;
+  gap: 0.3em;
+  min-height: 2.75rem;
+  padding-top: 0.7rem;
+  border-top: 1.5px solid rgb(var(--ink-rgb) / 0.55);
+  color: inherit;
+  text-decoration: none;
+}
+
+.front__toc-no {
+  color: var(--tangerine-700);
+  font-size: var(--front-toc-no-size);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.front__toc-title {
+  font-size: var(--front-toc-size);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+@media (hover: hover) {
+  .front__toc-list a:hover .front__toc-title {
+    text-decoration: underline;
+    text-decoration-color: var(--color-point);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.25em;
+  }
+}
+
+/* 6. SCROLL 안내 --------------------------------------------------------------- */
+.intro__scroll {
+  position: absolute;
+  z-index: 6;
+  top: calc(var(--stage-h) - 6.2rem); /* bottom 이 아니라 top: 모바일 주소창에 가리지 않게 */
+  right: 0;
+  left: 0;
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  color: #f4e9d8;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.34em;
+  pointer-events: none;
+  animation: intro-bob 1.9s ease-in-out infinite;
+}
+
+.intro__scroll-mouse {
+  position: relative;
+  width: 20px;
+  height: 31px;
+  border: 1.5px solid currentColor;
+  border-radius: 11px;
+  background-color: rgb(0 0 0 / 0.2);
+}
+
+.intro__scroll-wheel {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 3px;
+  height: 6px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background-color: var(--tangerine-300);
+  animation: intro-wheel 1.9s ease-in-out infinite;
+}
+
+.intro__scroll-text {
+  padding-left: 0.34em;
+}
+
+@keyframes intro-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+@keyframes intro-wheel {
+  0% {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  80%,
+  100% {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+}
+
+/* 6-1. 바로 보기 단추: 오른쪽 아래. 엽서가 다 올라오면(<html class="intro-at-end"> — js/intro.js) · 인트로를 지나면 숨는다 */
+.intro__skip {
+  position: absolute;
+  z-index: 7;
+  top: calc(var(--stage-h) - 4.75rem); /* bottom 이 아니라 top: 모바일 주소창에 가리지 않게 */
+  right: max(1rem, calc(var(--lang-gap, 1rem) + 0.25rem));
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  min-height: 2.75rem;
+  padding: 0 1.1em;
+  border: 1px solid rgb(255 255 255 / 0.7);
+  border-radius: 999px;
+  background-color: rgb(255 255 255 / 0.82);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 16px -8px rgb(0 0 0 / 0.35);
+  color: var(--basalt-900);
+  font: inherit;
+  font-size: var(--fs-s);
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.3s, visibility 0s;
+}
+
+.intro__skip-arrow {
+  width: 1.1em;
+  height: 1.1em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.intro__skip:hover {
+  background-color: #fff;
+}
+
+html.intro-at-end .intro__skip,
+html[data-intro="done"] .intro__skip {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0s 0.3s;
+}
+
+/* 봉인 스티커의 맥박 고리: 스티커 둘레에서 퍼지며 사라진다 */
+@keyframes intro-pulse {
+  0% {
+    opacity: 0.75;
+    transform: scale(1);
+  }
+
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}
+
+/* 인트로가 끝난 뒤(아래 섹션을 보는 동안)에는 까딱임을 멈춘다 — 보이지 않는 애니메이션이 페이지 내내 돌지 않게 */
+html[data-intro="done"] .intro__scroll,
+html[data-intro="done"] .intro__scroll-wheel,
+html[data-intro="done"] .intro__seal::after {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro__scroll,
+  .intro__scroll-wheel,
+  .intro__seal::after {
+    animation: none;
+  }
+
+  .intro__seal {
+    transition: none;
+  }
+}
+
+/* 7. 스크롤 연출 중에만: 움직이는 조각을 미리 레이어로 올려 둔다 ----------------
+   인트로가 끝나면(html[data-intro="done"]) 레이어를 풀어 아래 섹션을 보는 동안 메모리를 쓰지 않는다 */
+html.motion-ok:not(.intro-static)[data-intro="active"] :is(.intro__scrap, .intro__envelope, .intro__inside, .intro__flap-wrap, .intro__flap, .intro__card-slot, .intro__card, .intro__card-paper, .intro__pocket-wrap, .intro__seal) {
+  will-change: transform;
+}
+
+html.motion-ok:not(.intro-static)[data-intro="active"] :is(.intro__front, .intro__card-face) {
+  will-change: opacity;
+}
+
+html.motion-ok:not(.intro-static)[data-intro="active"] .intro__title {
+  will-change: transform, opacity;
+}
+
+/* 8. 반응형 --------------------------------------------------------------------
+   세로로 긴 화면(태블릿·모바일 세로)에서는 봉투 좌우가 좁으므로 조각을 봉투 위아래로 옮긴다 */
+@media (max-width: 1023px) and (orientation: portrait) {
+  .intro__scrap--3 { --x: -0.68; --y: -1.06; --w: 0.56; --r: -6deg; } /* 우리 사진: 봉투 위 왼쪽 */
+  .intro__scrap--6 { --x: 0.14; --y: -0.94; --w: 0.46; --r: 7deg; } /* 제주 배경2: 봉투 위 오른쪽 */
+  .intro__scrap--5 { --x: -0.14; --y: -0.66; --w: 0.2; --r: -8deg; } /* 우표: 두 사진 사이 */
+  .intro__scrap--2 { --x: -0.52; --y: 0.56; --w: 1.04; --r: -3deg; } /* 해녀 엽서: 봉투 아래 */
+  .intro__scrap--10 { --x: 0.28; --y: 0.4; --w: 0.32; --r: 9deg; } /* 이름표: 엽서 오른쪽 위 */
+  .intro__scrap--12 { --x: -1.02; --y: 0.36; --w: 0.4; --r: -5deg; } /* 색 견본(태블릿만) */
+  .intro__scrap--7,
+  .intro__scrap--8,
+  .intro__scrap--9,
+  .intro__scrap--11,
+  .intro__scrap--13,
+  .intro__scrap--14 {
+    display: none;
+  }
+}
+
+/* 태블릿 세로: 위쪽 라벨을 가리지 않게 두 장을 조금 비킨다 */
+@media (min-width: 768px) and (max-width: 1023px) and (orientation: portrait) {
+  .intro__scrap--3 { --x: -0.92; --y: -0.99; }
+  .intro__scrap--6 { --x: 0.22; --y: -0.86; }
+}
+
+/* 키가 작은 휴대폰: 우리 사진이 위쪽 라벨을 덮지 않게 줄여서 내린다 */
+@media (max-width: 1023px) and (orientation: portrait) and (max-height: 760px) {
+  .intro__scrap--3 { --y: -0.9; --w: 0.48; }
+}
+
+/* 언어 전환 단추(오른쪽 위) 자리 비우기: 오른쪽 위에 놓이는 조각은 단추 아래로 —
+   가로 화면은 제주 배경2 · 3(6 · 9), 세로로 긴 화면은 제주 배경2(6) */
+@media not all and (max-width: 1023px) and (orientation: portrait) {
+  .intro__scrap--6,
+  .intro__scrap--9 { --scrap-min-top: var(--intro-clear); }
+}
+
+@media (max-width: 1023px) and (orientation: portrait) {
+  .intro__scrap--6 { --scrap-min-top: var(--intro-clear); }
+}
+
+/* 모바일 */
+@media (max-width: 767px) {
+  /* 화면 폭을 거의 다 쓰는 위쪽 라벨은 언어 전환 단추 아래로 내리고, 그 아래의 우리 사진(3) · 제주 배경2(6)도 라벨 밑으로 */
+  .intro__kicker {
+    top: max(var(--kicker-top), var(--intro-clear));
+  }
+
+  .intro__scrap--3,
+  .intro__scrap--6 {
+    --scrap-min-top: calc(max(var(--kicker-top), var(--intro-clear)) + 2.4 * var(--fs-xs) + var(--space-1)); /* 2.4 × 글자 크기 = 라벨 한 줄의 높이 */
+  }
+
+  .intro__scrap--12 {
+    display: none;
+  }
+
+  /* 메인 화면: 로고 · 그림 · 목차를 한 화면에. 이름 블록은 빼고(로고와 같은 내용) 목차는 두 줄 세 칸 → 세 줄 두 칸.
+     (24차) 그림은 화면을 다 채우지 않고 --front-photo-h(css/theme.css '0.')까지만 → 목차가 그림 바로 아래로 올라온다.
+     화면이 낮아 다 들어가지 않으면 그림이 먼저 줄어든다(minmax 의 0) */
+  .intro__front {
+    grid-template-rows: auto minmax(0, var(--front-photo-h, 400px)) auto;
+    align-content: start;
+  }
+
+  .front__top {
+    padding-right: calc(var(--lang-clear, 0px) + 7.5rem);
+  }
+
+  .front__vol {
+    display: none;
+  }
+
+  .front__toc {
+    grid-template-columns: 1fr;
+  }
+
+  .front__name {
+    display: none;
+  }
+
+  .front__toc-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem var(--space-4);
+  }
+
+  .front__toc-list a {
+    min-height: 2.75rem;
+    padding-top: 0.55rem;
+  }
+
+  .front__copy {
+    gap: 0.5rem;
+    padding: 1rem 1rem;
+  }
+
+  /* 휴대폰: '제주에서만 만들 수 있는' / '엽서를 보내 보세요' 를 늘 두 줄로 */
+  .front__subtitle-main .keep {
+    display: block;
+  }
+
+  /* 휴대폰: 글이 사진 폭을 거의 다 쓰므로 흰 번짐을 좌우로 덜 넓혀 사진 가장자리에서 잘리지 않게(잘리면 경계 선이 생긴다) */
+  .front__subtitle::before {
+    inset: -1.2em -0.6em;
+  }
+
+}
+
+/* 휴대폰 세로: 인트로가 끝나면 오른쪽 아래에 플로팅 버튼(글자 두 줄짜리 알약)이 나타난다 → 좁은 화면에서는 가운데의
+   SCROLL 안내와 맞닿으므로, 그때 안내를 거둔다(안내의 할 일은 끝났다. 위로 되돌아가면 다시 보인다) */
+@media (max-width: 479px) {
+  .intro__scroll {
+    transition: opacity var(--dur-fast);
+  }
+
+  html[data-intro="done"] .intro__scroll {
+    opacity: 0;
+  }
+}
+
+/* 아주 좁은 화면: 위쪽 라벨의 양끝 선을 빼고 자간을 좁혀 한 줄에 담는다 */
+@media (max-width: 359px) {
+  .intro__kicker {
+    padding-left: 1.2em;
+    letter-spacing: 0.2em;
+  }
+
+  .intro__kicker::before,
+  .intro__kicker::after {
+    display: none;
+  }
+}
+
+/* 낮은 화면(가로로 눕힌 휴대폰 등): 첫 화면의 글자를 덜어 내고, 메인 화면은 긴 글 두 문단을 접는다(부제 · 유네스코 줄 · 목차만) */
+@media (max-height: 560px) {
+  .intro__kicker {
+    display: none;
+  }
+
+  .intro__note {
+    font-size: 1rem;
+  }
+
+  .intro__note--hello {
+    top: calc(var(--env-cy) - var(--env-h) / 2 - 2.6em);
+  }
+
+  .front__text {
+    display: none;
+  }
+
+  .front__name {
+    display: none;
+  }
+
+  .front__toc {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-height: 480px) {
+  .intro__scroll {
+    top: calc(var(--stage-h) - 4.6rem);
+    gap: 0.35rem;
+  }
+
+  .intro__scroll-mouse {
+    width: 16px;
+    height: 24px;
+  }
+
+  .intro__scroll-wheel {
+    top: 4px;
+    height: 5px;
+  }
+
+  .front__unesco span + span {
+    display: none;
+  }
+
+  .front__toc-list {
+    gap: 0 var(--space-3);
+  }
+
+  .front__toc-list a {
+    min-height: 2.2rem;
+  }
+}

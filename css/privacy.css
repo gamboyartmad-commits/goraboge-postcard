@@ -1,0 +1,287 @@
+/* privacy.css — 개인정보처리방침 페이지(privacy.html)
+   제목 묶음 · 본문은 기사 페이지(css/article.css 의 .article__head · .article__body)를 그대로 쓰고, 이 파일은 그 위에 더하는 것만.
+   순서: 0. 바탕 · 포인트색  1. 한눈에 보기 · 차례  2. 절 제목  3. 표(좁은 화면에서는 카드로)  4. 연락처 · 구제 기관 */
+
+/* 0. 바탕 · 포인트색 — 메인 화면과 같은 오트밀 종이, 감귤색 포인트 */
+body[data-page="privacy"] {
+  --accent: var(--tangerine-500);
+  --accent-strong: var(--tangerine-700);
+  --accent-tape: var(--tangerine-300);
+  background-color: var(--oat);
+}
+
+.policy {
+  --measure: 46rem; /* 본문 한 줄의 폭 */
+}
+
+.policy .article__body {
+  font-size: var(--text-size);
+}
+
+/* 1. 한눈에 보기 · 차례 -------------------------------------------------------- */
+.policy-summary,
+.policy-toc {
+  padding: var(--space-5);
+  border: 1px dashed var(--color-line);
+  border-radius: 6px;
+  background-color: rgb(255 255 255 / 0.55);
+}
+
+.policy-summary__title,
+.policy-toc__title {
+  margin-bottom: var(--space-3);
+  color: var(--accent-strong);
+  font-size: var(--fs-s);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.policy-summary__list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.policy-summary__list > div {
+  display: grid;
+  grid-template-columns: 8.5em minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+.policy-summary__list dt {
+  font-weight: 700;
+}
+
+.policy-toc ol {
+  display: grid;
+  gap: var(--space-2) var(--space-6);
+  counter-reset: toc;
+}
+
+.policy-toc li {
+  counter-increment: toc;
+  display: flex;
+  gap: 0.6em;
+}
+
+.policy-toc li + li {
+  margin-top: 0;
+}
+
+.policy-toc li::before {
+  content: counter(toc);
+  flex: none;
+  min-width: 1.4em;
+  color: var(--accent-strong);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.policy-toc a {
+  display: inline-block;
+  padding-block: 0.15em; /* 손가락으로 누르기 쉽게 */
+  text-decoration: none;
+}
+
+.policy-toc a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 599px) {
+  .policy-summary,
+  .policy-toc {
+    padding: var(--space-4);
+  }
+
+  .policy-summary__list > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.15em;
+  }
+}
+
+@media (min-width: 768px) {
+  .policy-toc ol {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* 2. 절 제목 — 번호 동그라미 + 굵은 제목, 위에 점선 ------------------------------------ */
+.article__body > .policy__h {
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  margin-top: 2.6em;
+  padding-top: 1.4em;
+  border-top: 1px dashed var(--color-line);
+  font-size: 1.25em;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.policy__no {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 1.75em;
+  height: 1.75em;
+  border-radius: 50%;
+  background-color: var(--accent);
+  color: var(--basalt-900);
+  font-size: 0.8em;
+  font-variant-numeric: tabular-nums;
+}
+
+.article__body > .policy__h + * {
+  margin-top: 0.9em;
+}
+
+.article__body > .policy__sub {
+  margin-top: 1.8em;
+  font-size: 1.05em;
+  font-weight: 700;
+}
+
+.article__body > .policy__sub + * {
+  margin-top: 0.6em;
+}
+
+.policy__note {
+  color: var(--color-text-soft);
+  font-size: 0.92em;
+}
+
+.policy__top {
+  margin-top: 3em;
+  text-align: center;
+}
+
+/* 3. 표 — 넓은 화면에서는 표, 좁은 화면(599px 이하)에서는 줄마다 카드로 쌓는다(옆으로 밀지 않게) ------------- */
+.policy-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92em;
+  line-height: 1.6;
+}
+
+.policy-table th,
+.policy-table td {
+  padding: 0.75em 0.8em;
+  border-bottom: 1px solid var(--color-line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.policy-table thead th {
+  border-bottom: 2px solid var(--basalt-900);
+  font-size: 0.92em;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.policy-table tbody th {
+  font-weight: 700;
+}
+
+.policy-table a {
+  font-size: 0.92em;
+}
+
+@media (max-width: 599px) {
+  .policy-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .policy-table table,
+  .policy-table tbody,
+  .policy-table tr,
+  .policy-table th,
+  .policy-table td {
+    display: block;
+  }
+
+  .policy-table tr {
+    padding: 0.9em 1em;
+    border: 1px solid var(--color-line);
+    border-radius: 6px;
+    background-color: rgb(255 255 255 / 0.55);
+  }
+
+  .policy-table tr + tr {
+    margin-top: 0.75em;
+  }
+
+  .policy-table th,
+  .policy-table td {
+    padding: 0;
+    border: 0;
+  }
+
+  .policy-table tbody th {
+    margin-bottom: 0.5em;
+    font-size: 1.05em;
+  }
+
+  /* 칸 이름(받는 항목 · 쓰는 곳 …)을 칸 앞에 작게 */
+  .policy-table td + td,
+  .policy-table th + td {
+    margin-top: 0.55em;
+  }
+
+  .policy-table td::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--accent-strong);
+    font-size: 0.85em;
+    font-weight: 700;
+  }
+}
+
+/* 4. 연락처 · 구제 기관 ------------------------------------------------------------- */
+.policy-contact {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  border-left: 3px solid var(--accent);
+  background-color: rgb(255 255 255 / 0.55);
+}
+
+.policy-contact > div {
+  display: grid;
+  grid-template-columns: 6.5em minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+.policy-contact dt {
+  font-weight: 700;
+}
+
+.policy-contact dd {
+  overflow-wrap: anywhere;
+}
+
+.policy-help {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+}
+
+.policy-help li {
+  display: grid;
+  gap: 0.2em;
+  margin-top: 0;
+  padding: 0.85em 1em;
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+}
+
+.policy-help span {
+  color: var(--color-text-soft);
+  font-size: 0.92em;
+}
+

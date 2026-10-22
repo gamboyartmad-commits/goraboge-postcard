@@ -1,0 +1,700 @@
+/* scrapbook.css — 스크랩북 디자인(3차, 2026-10): 주황 테두리 · 찢어진 종이 띠 · 폴라로이드 · 오린 사진 · 색바랜 사진
+   세 페이지(index · interview-01 · interview-02)가 모두 불러온다. 섹션 CSS 다음, theme.css 앞.
+   색은 css/base.css 의 토큰(--frame · --band · --band-ink · --paper-…)을 쓴다.
+
+   1. 값  2. 주황 테두리  3. 찢어진 종이(.tear)  4. 사진: 폴라로이드(.polaroid) · 오린 사진(.cutout) · 색바랜 효과
+   5. 주황 띠 바탕(.band)  6. 섹션별 옷 입히기  7. 사진 띠(.photo-strip)  8. 제주어 문장 글꼴  9. 인쇄 */
+
+/* 1. 값 ---------------------------------------------------------------------- */
+:root {
+  /* ✏️ 교체: 사진 색바랜 효과(F2). 끄려면 none, 더 바래게 하려면 sepia · 채도 숫자를 키운다 */
+  --photo-filter: sepia(0.28) saturate(0.72) contrast(0.86) brightness(1.08);
+  /* ✏️ 교체: 화면 둘레 주황 테두리의 두께 · 안쪽 모서리 둥글기. 12차(2026-10-21)에 테두리를 없앴다(0px).
+     되살리려면 두께 clamp(6px, 1.1vw, 16px) · 둥글기 clamp(8px, 1.3vw, 18px) */
+  --page-frame-w: 0px;
+  --page-frame-r: 0px;
+  /* ✏️ 교체: 찢어진 가장자리의 높이 · 무늬 한 칸의 폭(넓을수록 들쭉날쭉이 완만해진다) */
+  --tear-h: clamp(16px, 2.4vw, 32px);
+  --tear-tile: clamp(640px, 80vw, 1200px);
+  --z-frame: 880; /* 플로팅 버튼(900) · 언어 단추(950)보다 아래, 섹션 내용보다 위 */
+}
+
+/* 2. 주황 테두리 -------------------------------------------------------------
+   화면에 고정된 테두리(내용이 그 밑으로 스크롤된다). 안쪽 모서리는 둥글게 — 둥근 상자의 바깥 그림자로 테두리를 칠한다 */
+body::after {
+  content: "";
+  display: var(--page-frame-display, none); /* 테두리를 되살릴 때는 block 으로(위 '1. 값' 의 두께도 함께) */
+  position: fixed;
+  inset: var(--page-frame-w);
+  z-index: var(--z-frame);
+  border-radius: var(--page-frame-r);
+  box-shadow: 0 0 0 calc(var(--page-frame-w) + var(--page-frame-r) + 4px) var(--frame);
+  pointer-events: none;
+  transition: opacity 0.5s var(--ease-out);
+}
+
+/* index: 인트로(책상 · 메인 화면)를 보는 동안에는 테두리를 걷는다 — 첫 섹션에 닿으면 나타난다(js/main.js 가 <html class="past-intro"> 를 붙인다) */
+html[data-intro]:not(.past-intro) body::after {
+  opacity: 0;
+}
+
+/* 3. 찢어진 종이 ---------------------------------------------------------------
+   <div class="tear tear--up" aria-hidden="true"></div> 를 섹션의 첫 자식으로 넣으면 그 섹션의 종이가 윗변에서 찢겨 위 섹션을 살짝 덮는다.
+   tear--down 은 섹션의 아랫변(아래 섹션을 덮는다). 섹션에는 position: relative 가 있어야 하고 overflow 를 자르면 안 된다.
+   모양: tear--a · --b · --c (assets/paper/tear-*.svg — .work/gen/make_paper_assets.py 로 다시 만들 수 있다)
+   종류: 기본 = T1(흰 종이 섬유가 비치는 가장자리) · tear--soft = T3(같은 크림끼리, 그림자만 살짝)
+   색: --tear-color = 찢긴 종이의 색(보통 그 섹션의 바탕색) */
+.tear {
+  --tear-color: var(--color-bg);
+  --tear-fiber: rgb(var(--paper-rgb) / 0.96);
+  position: absolute;
+  right: 0;
+  left: 0;
+  z-index: 3;
+  height: var(--tear-h);
+  pointer-events: none;
+}
+
+.tear--up {
+  bottom: calc(100% - 1px); /* 1px 겹쳐 이음매가 비치지 않게 */
+}
+
+.tear--down {
+  top: calc(100% - 1px);
+  transform: scaleY(-1);
+}
+
+.tear::before,
+.tear::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+  -webkit-mask-position: 0 100%;
+  mask-position: 0 100%;
+  -webkit-mask-size: var(--tear-tile) 100%;
+  mask-size: var(--tear-tile) 100%;
+}
+
+/* 섬유(또는 그림자) — 종이보다 조금 더 높이 들쭉날쭉하다 */
+.tear::before {
+  background-color: var(--tear-fiber);
+  -webkit-mask-image: url("../assets/paper/tear-fiber-a.svg");
+  mask-image: url("../assets/paper/tear-fiber-a.svg");
+}
+
+/* 종이 */
+.tear::after {
+  background-color: var(--tear-color);
+  -webkit-mask-image: url("../assets/paper/tear-a.svg");
+  mask-image: url("../assets/paper/tear-a.svg");
+}
+
+.tear--b::before {
+  -webkit-mask-image: url("../assets/paper/tear-fiber-b.svg");
+  mask-image: url("../assets/paper/tear-fiber-b.svg");
+}
+
+.tear--b::after {
+  -webkit-mask-image: url("../assets/paper/tear-b.svg");
+  mask-image: url("../assets/paper/tear-b.svg");
+}
+
+.tear--c::before {
+  -webkit-mask-image: url("../assets/paper/tear-fiber-c.svg");
+  mask-image: url("../assets/paper/tear-fiber-c.svg");
+}
+
+.tear--c::after {
+  -webkit-mask-image: url("../assets/paper/tear-c.svg");
+  mask-image: url("../assets/paper/tear-c.svg");
+}
+
+/* 무늬가 섹션마다 같은 자리에서 시작하지 않게 */
+.tear--shift::before,
+.tear--shift::after {
+  -webkit-mask-position: calc(var(--tear-tile) * -0.37) 100%;
+  mask-position: calc(var(--tear-tile) * -0.37) 100%;
+}
+
+/* T3: 섬유 대신 옅은 그림자, 조금 낮게 */
+.tear--soft {
+  --tear-fiber: rgb(var(--ink-rgb) / 0.1);
+  height: calc(var(--tear-h) * 0.75);
+}
+
+/* 4. 사진 ----------------------------------------------------------------------- */
+/* P1 폴라로이드: <figure class="polaroid"><img …><figcaption>…</figcaption></figure>
+   사진 비율은 기본 세로 4:5, polaroid--square 는 정사각, polaroid--tall 은 세로 3:4, polaroid--wide 는 가로 4:3.
+   ✏️ 교체: 여백 = --pol-pad(옆 · 위) · --pol-bottom(아래, 글씨 자리) — 폴라로이드 폭 대비 % */
+/* 자리 잡기는 우선순위 0(:where) — 인트로 사진처럼 다른 곳에서 position 을 정한 사진은 그쪽을 따른다 */
+:where(.polaroid, .cutout) {
+  position: relative;
+  display: block;
+  margin: 0;
+}
+
+.polaroid {
+  --pol-pad: 5.5%;
+  --pol-bottom: 19%;
+  --pol-ratio: 4 / 5;
+  background-color: #fffdf8;
+  background-image: var(--tex-paper);
+  box-shadow: 0 1px 2px rgb(var(--ink-rgb) / 0.12), 0 14px 24px -12px rgb(var(--ink-rgb) / 0.42);
+}
+
+.polaroid--square {
+  --pol-ratio: 1;
+  --pol-bottom: 17%;
+}
+
+.polaroid--tall {
+  --pol-ratio: 3 / 4;
+  --pol-bottom: 18%;
+}
+
+.polaroid--wide {
+  --pol-ratio: 4 / 3;
+  --pol-bottom: 15%;
+}
+
+.polaroid > img {
+  display: block;
+  width: calc(100% - 2 * var(--pol-pad));
+  max-width: none;
+  height: auto;
+  margin: var(--pol-pad) var(--pol-pad) var(--pol-bottom); /* % 는 폴라로이드 폭 기준 */
+  aspect-ratio: var(--pol-ratio);
+  object-fit: cover;
+  filter: var(--photo-filter);
+}
+
+.polaroid > figcaption {
+  position: absolute;
+  right: var(--pol-pad);
+  bottom: 0;
+  left: var(--pol-pad);
+  display: grid;
+  place-items: center;
+  height: var(--pol-bottom-h, 3.2em);
+  color: var(--basalt-700);
+  font-family: var(--font-hand);
+  font-size: calc(var(--fs-s) * var(--hand-scale));
+  line-height: 1.15;
+  text-align: center;
+}
+
+/* P2 오린 사진: <figure class="cutout cutout--a"><img …></figure>
+   흰 종이를 가위로 오린 바깥선(--cut-paper) 안에 사진(--cut-photo). 배경을 지운 PNG 를 넣어도 흰 테두리는 사각형 둘레에 남는다.
+   모양 a · b · c 는 .work/gen/make_paper_assets.py 가 만든 것(아래 숫자를 직접 고쳐도 된다) */
+.cutout::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: #fffdf8;
+  clip-path: var(--cut-paper);
+}
+
+.cutout > img {
+  position: relative; /* 흰 종이 위에 */
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  clip-path: var(--cut-photo);
+  filter: var(--photo-filter);
+}
+
+.cutout--a { --cut-paper: polygon(0.0% 0.5%,20.0% 0.2%,40.0% 1.0%,60.0% 0.1%,80.0% 0.9%,99.4% 0.0%,99.9% 20.0%,99.2% 40.0%,99.9% 60.0%,99.3% 80.0%,100.0% 99.9%,80.0% 99.9%,60.0% 99.3%,40.0% 98.7%,20.0% 99.8%,0.4% 100.0%,1.0% 80.0%,1.5% 60.0%,0.9% 40.0%,0.6% 20.0%); --cut-photo: polygon(4.6% 4.6%,34.9% 5.0%,65.1% 4.6%,95.0% 4.6%,94.7% 34.9%,95.2% 65.1%,95.4% 94.7%,65.1% 95.0%,34.9% 94.8%,4.6% 95.4%,5.1% 65.1%,5.0% 34.9%); }
+.cutout--b { --cut-paper: polygon(0.0% 1.1%,20.0% 1.3%,40.0% 0.8%,60.0% 0.8%,80.0% 0.6%,98.4% 0.0%,99.5% 20.0%,99.8% 40.0%,99.6% 60.0%,99.6% 80.0%,100.0% 99.5%,80.0% 99.6%,60.0% 99.8%,40.0% 99.5%,20.0% 99.5%,0.9% 100.0%,0.3% 80.0%,0.1% 60.0%,0.3% 40.0%,0.9% 20.0%); --cut-photo: polygon(4.6% 5.1%,34.9% 4.7%,65.1% 4.7%,95.0% 4.6%,95.2% 34.9%,94.8% 65.1%,95.4% 94.8%,65.1% 94.8%,34.9% 95.1%,5.2% 95.4%,5.0% 65.1%,5.2% 34.9%); }
+.cutout--c { --cut-paper: polygon(0.0% 0.0%,20.0% 0.2%,40.0% 0.6%,60.0% 1.1%,80.0% 0.2%,99.8% 0.0%,99.6% 20.0%,98.8% 40.0%,99.8% 60.0%,98.8% 80.0%,100.0% 98.9%,80.0% 99.8%,60.0% 99.1%,40.0% 99.3%,20.0% 99.3%,1.6% 100.0%,0.1% 80.0%,0.0% 60.0%,1.5% 40.0%,0.6% 20.0%); --cut-photo: polygon(4.6% 5.0%,34.9% 4.9%,65.1% 5.0%,95.1% 4.6%,94.8% 34.9%,95.3% 65.1%,95.4% 95.1%,65.1% 94.9%,34.9% 95.0%,5.2% 95.4%,4.8% 65.1%,4.9% 34.9%); }
+
+/* 그 밖의 사진에도 같은 색바랜 효과: 인터뷰 엽서 · 기사 사진 · 인용 인물 사진.
+   효과를 빼고 싶은 사진에는 class="no-fade" */
+.pcard__photo,
+.article__cover-img,
+.article__figure img,
+.quotes__item--framed .quotes__img,
+.quotes__thumb img,
+.photo-strip img {
+  filter: var(--photo-filter);
+}
+
+/* 인용 인물: 가위로 막 오려 붙인 흰 종이(그림 voice-0N-paper.webp 에 들어 있다 — .work/gen/voices_roughcut.py)에 그림자만 */
+.quotes__item:not(.quotes__item--framed) .quotes__img {
+  filter: drop-shadow(0 2px 2px rgb(var(--ink-rgb) / 0.25)) drop-shadow(0 12px 16px rgb(var(--ink-rgb) / 0.22));
+  rotate: -1.5deg;
+}
+
+.quotes__item--flip:not(.quotes__item--framed) .quotes__img {
+  rotate: 1.8deg;
+}
+
+/* 배경이 있는 인물 사진("frame": true): 폴라로이드처럼 아래 여백을 넓게(P1) */
+.quotes__item--framed .quotes__img {
+  padding-bottom: clamp(1.4rem, 3.6vh, 2.4rem);
+  background-color: #fffdf8;
+  aspect-ratio: auto;
+}
+
+/* 기사 속 사진: 이미 흰 여백 + 테이프를 두른 인화 사진 → 설명을 폴라로이드 아래 여백의 손글씨로(P1) */
+.article__figure {
+  background-color: #fffdf8;
+}
+
+.article__figure figcaption {
+  justify-content: center;
+  padding-block: var(--space-3) var(--space-3);
+  color: var(--basalt-700);
+  font-family: var(--font-hand);
+  font-size: calc(var(--fs-base) * var(--hand-scale));
+  line-height: 1.35;
+  text-align: center;
+}
+
+.article__figure figcaption::before {
+  display: none;
+}
+
+img.no-fade,
+.no-fade img {
+  filter: none;
+}
+
+/* 인트로 책상 위 사진: 그림자는 조각(.intro__scrap)의 drop-shadow 하나로 */
+.intro__scrap.polaroid {
+  box-shadow: none;
+}
+
+/* 5. 주황 띠 바탕(T1 섹션 · 푸터) -------------------------------------------------
+   링크 · 버튼 · 라벨 · 포커스 링이 읽는 '바탕 변수'(css/base.css 4.)를 주황 띠에 맞춘다 */
+.band,
+.site-footer {
+  --focus-ring: var(--paper-50);
+  --surface-ink: var(--band-ink);
+  --surface-soft: var(--paper-100);
+  --surface-link: currentColor;
+  --surface-link-line: var(--paper-200);
+  --surface-edge: var(--paper-50);
+  --surface-hover: rgb(var(--paper-rgb) / 0.14);
+  --postmark-blend: normal;
+  --color-title: var(--band-ink);
+  --color-on-dark: var(--band-ink);
+  --color-on-dark-soft: var(--paper-100);
+  background-color: var(--band);
+  background-image: var(--tex-paper);
+  color: var(--band-ink);
+}
+
+.band .eyebrow::before,
+.site-footer .eyebrow::before {
+  background-color: var(--paper-200);
+}
+
+/* 6. 섹션별 옷 입히기 ----------------------------------------------------------- */
+/* 섹션 제목: 프리텐다드 굵게 + 주황 */
+.section-title {
+  color: var(--color-title);
+  font-weight: var(--font-display-weight);
+  letter-spacing: var(--title-tracking); /* css/theme.css '0.' */
+}
+
+/* 6-2. 인용(Voices): 사람마다 바탕색을 바꾸지 않고 한 장의 크림 종이 위에 오린 인물 사진을 붙인다(T3 윗변).
+   인물 뒤의 동그란 바탕도 쓰지 않는다. 사진 아래쪽은 흐리게 끝낸다(사진의 아랫단이 배경과 섞여 있어서) */
+.quotes__photo::before {
+  display: none;
+}
+
+/* 인물 아이콘: 크림 바탕의 동그라미 안에 오린 얼굴 */
+.quotes__thumb {
+  background-color: var(--paper-50);
+}
+
+.quotes > .tear {
+  --tear-color: var(--q-bg);
+}
+
+.quotes > .tear::after {
+  transition: background-color var(--q-dur) ease;
+}
+
+/* 6-3. 인터뷰: 주황 띠(T1) — 위아래가 찢기고 흰 섬유가 비친다 */
+.interviews.band {
+  box-shadow: none;
+}
+
+.interviews .tear {
+  --tear-color: var(--band);
+}
+
+.interviews .pcards-hint {
+  color: var(--band-ink);
+}
+
+/* 6-3-2. 유네스코 소멸 위기 언어 단계 카드: 엽서 쓰기 섹션(No.01)의 '왜 제주어로 써야 할까요?' 오른쪽(css/maker.css '7.' 의 .write__why).
+   테이프로 붙인 크림 종이 한 장 */
+.why__stat {
+  position: relative;
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 2.2rem 1.6rem 1.6rem;
+  background-color: #fffaf0;
+  background-image: var(--tex-paper);
+  color: var(--basalt-900);
+  rotate: 1.5deg;
+  box-shadow: 0 2px 3px rgb(0 0 0 / 0.2), 0 22px 34px -18px rgb(0 0 0 / 0.55);
+}
+
+.why__stat .tape {
+  top: -12px;
+  left: calc(50% - 52px);
+}
+
+.why__stat-label {
+  color: var(--tangerine-700);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.why__stat-num {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3em;
+  line-height: 1;
+}
+
+.why__stat-num b {
+  color: var(--tangerine-600);
+  font-size: clamp(4.5rem, 3rem + 5vw, 7rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.why__stat-num span {
+  color: var(--basalt-500);
+  font-size: var(--fs-l);
+  font-weight: 700;
+}
+
+.why__stat-name {
+  font-size: var(--fs-m);
+  font-weight: 800;
+}
+
+.why__stat-name small {
+  color: var(--basalt-500);
+  font-size: 0.75em;
+  font-weight: 500;
+}
+
+/* 다섯 단계 막대: 오른쪽으로 갈수록 진해진다. 지금 제주어의 자리(4단계)에 굵은 테 */
+.why__scale {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 3px;
+  margin: 0.7rem 0 0.5rem;
+  padding: 0;
+  list-style: none;
+  font-size: max(0.75rem, var(--fs-xs) * 0.9);
+  line-height: 1.25;
+  text-align: center;
+}
+
+.why__scale li {
+  display: grid;
+  place-items: center;
+  min-height: 3.2em;
+  padding: 0.45em 0.2em;
+  border-radius: 3px;
+  background-color: var(--paper-200);
+  color: var(--basalt-800);
+  font-weight: 600;
+}
+
+.why__scale li:nth-child(2) { background-color: var(--tangerine-300); }
+.why__scale li:nth-child(3) { background-color: var(--tangerine-500); color: #2a160d; }
+.why__scale li:nth-child(4) { background-color: var(--band); color: var(--band-ink); }
+.why__scale li:nth-child(5) { background-color: var(--basalt-900); color: var(--paper-100); }
+
+.why__scale li[aria-current] {
+  outline: 3px solid var(--basalt-900);
+  outline-offset: 2px;
+  font-weight: 800;
+}
+
+.why__stat figcaption {
+  color: var(--basalt-700);
+  font-size: var(--text-small); /* css/theme.css '0.' */
+  line-height: 1.6;
+}
+
+/* 6-3-3. 위쪽 고정 목차(index): 인트로가 끝나면 위에서 내려온다. 오른쪽 끝은 언어 단추 자리(그 단추와 높이를 맞춘다).
+   ✏️ 교체: 차례 문구는 index.html 의 <nav class="topbar"> */
+:root {
+  --topbar-h: calc(2 * (var(--lang-gap) - var(--page-frame-w)) + var(--lang-btn));
+  --topbar-space: calc(var(--topbar-h) + var(--page-frame-w));
+}
+
+/* 섹션으로 이동하면 제목이 고정 목차 아래에 오게 */
+html[data-intro] {
+  scroll-padding-top: calc(var(--topbar-space) + 0.5rem);
+}
+
+.topbar {
+  position: fixed;
+  top: var(--page-frame-w);
+  right: var(--page-frame-w);
+  left: var(--page-frame-w);
+  z-index: calc(var(--z-frame) - 1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  height: var(--topbar-h);
+  padding: 0 calc(var(--lang-gap) + 15rem) 0 max(1rem, calc(var(--lang-gap) - var(--page-frame-w) + 0.4rem));
+  border-bottom: 1.5px dashed var(--paper-400);
+  background-color: rgb(255 250 240 / 0.94);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  translate: 0 calc(-100% - var(--page-frame-w) - 4px);
+  visibility: hidden;
+  transition: translate 0.4s var(--ease-out), visibility 0s 0.4s;
+}
+
+html.past-intro .topbar {
+  translate: 0 0;
+  visibility: visible;
+  transition: translate 0.4s var(--ease-out), visibility 0s;
+}
+
+.topbar__logo {
+  flex: none;
+  display: block;
+  line-height: 0;
+}
+
+.topbar__logo img {
+  width: auto;
+  max-width: none;
+  height: calc(var(--topbar-h) * 0.62);
+}
+
+.topbar__list {
+  display: flex;
+  gap: 0.15rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-width: none;
+}
+
+.topbar__list::-webkit-scrollbar {
+  display: none;
+}
+
+.topbar__list a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  min-height: 2.5rem;
+  padding: 0 0.85em;
+  border-radius: 999px;
+  color: var(--color-text);
+  font-size: var(--fs-s);
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.topbar__list a span {
+  color: var(--tangerine-700);
+  font-size: 0.8em;
+  font-weight: 800;
+}
+
+@media (hover: hover) {
+  .topbar__list a:hover {
+    background-color: rgb(var(--ink-rgb) / 0.07);
+  }
+}
+
+/* 지금 보고 있는 섹션(js/main.js 가 aria-current 를 붙인다) */
+.topbar__list a[aria-current="true"] {
+  background-color: var(--basalt-800);
+  color: var(--paper-50);
+}
+
+.topbar__list a[aria-current="true"] span {
+  color: var(--paper-200);
+}
+
+@media (max-width: 767px) {
+  /* 오른쪽 끝 = 접힌 언어 단추(지금 언어 하나 — css/base.css '언어 전환') 자리 */
+  .topbar {
+    padding-right: calc(var(--lang-gap) + var(--lang-btn) + 1.25rem);
+  }
+
+  .topbar__logo {
+    display: none;
+  }
+
+  .topbar__list a {
+    padding: 0 0.6em;
+    font-size: var(--fs-xs);
+  }
+}
+
+/* 아주 좁은 휴대폰(폭 419px 이하): 번호(01 · 02 …)를 빼서 네 항목이 한 줄에 다 보이게 */
+@media (max-width: 419px) {
+  .topbar__list a {
+    padding: 0 0.55em;
+  }
+
+  .topbar__list a span {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .topbar,
+  html.past-intro .topbar,
+  body::after {
+    transition: none;
+  }
+}
+
+/* 6-4. 엽서 쓰기(No.01): (25차) 인터뷰 · 푸터와 같은 주황 띠(.band — index.html 의 class) — 페이지에서 이 섹션이 가장 눈에 띄게.
+   예전 크림(--paper-100) 바탕은 .work/index.before-r25.html 과 이 아래 줄들을 되돌리면 된다.
+   윗변은 메인 화면(엽서 앞면) 위로 찢겨 올라오고, 아래는 Voices 의 오트밀이 찢겨 덮는다.
+   주황 위에서는 글자를 크림으로(--color-ink · --color-text-soft-strong 을 이 섹션 안에서만 바꾼다). 예시 쪽지 · 단추 · 엽서는 그대로 */
+.write {
+  --color-ink: var(--band-ink);
+  --color-text-soft-strong: var(--paper-200);
+  overflow: visible;
+  overflow-x: clip; /* 기울어진 견본 엽서가 가로 스크롤을 만들지 않게(위아래는 열어 둔다 — 찢어진 윗변) */
+  background-color: var(--band);
+  box-shadow: none;
+}
+
+.write .tear {
+  --tear-color: var(--band);
+}
+
+/* 세 걸음: 번호 1 · 3 = 짙은 동그라미(그대로), 2(제주어로 바꿔 드려요) = 크림 동그라미 + 주황 숫자. 번호를 잇는 점선 = 옅은 크림 */
+.write .write__flow-step:nth-child(2) .write__flow-no {
+  background-color: var(--band-ink);
+  color: var(--band);
+}
+
+.write .write__flow-step:not(:last-child)::before {
+  border-left-color: rgb(var(--paper-rgb) / 0.55);
+}
+
+/* 예시 엽서 넘김 점 · '왜 제주어로' 위의 점선 · 포커스 테두리: 크림 */
+.write .write__dot::before {
+  border-color: var(--band-ink);
+}
+
+.write .write__dot[aria-pressed="true"]::before {
+  background-color: var(--band-ink);
+}
+
+.write .write__why {
+  border-top-color: rgb(var(--paper-rgb) / 0.5);
+}
+
+.write .write__btn:focus-visible,
+.write .write__zoom:focus-visible {
+  outline-color: var(--paper-50);
+}
+
+/* 6-5. 푸터: 주황 띠(T1) */
+.site-footer {
+  position: relative;
+}
+
+.site-footer .tear {
+  --tear-color: var(--band);
+}
+
+.site-footer a:not(.btn):hover {
+  color: var(--paper-200);
+}
+
+.site-footer__heading {
+  color: var(--paper-200);
+}
+
+/* 주황 띠 위의 로고: 흰 칼선을 둘러 스티커처럼(주황 로고가 주황 바탕에 묻히지 않게) */
+.site-footer .brand-logo {
+  --edge: 2px;
+  filter:
+    drop-shadow(var(--edge) 0 0 #fff) drop-shadow(calc(-1 * var(--edge)) 0 0 #fff)
+    drop-shadow(0 var(--edge) 0 #fff) drop-shadow(0 calc(-1 * var(--edge)) 0 #fff)
+    drop-shadow(0 3px 4px rgb(var(--ink-rgb) / 0.25));
+  rotate: -3deg;
+}
+
+.site-footer__heading::after,
+.site-footer__bottom {
+  border-color: rgb(var(--paper-rgb) / 0.4);
+}
+
+/* 6-6. 기사 페이지: '다른 인터뷰'는 한 톤 진한 크림(T3) */
+.more {
+  position: relative;
+  background-color: var(--paper-200);
+}
+
+.more .tear {
+  --tear-color: var(--paper-200);
+}
+
+/* 7. 사진 띠(T2) ---------------------------------------------------------------
+   <div class="photo-strip"> 안에 사진 여러 장을 가로로 붙인다. 위 섹션의 종이가 아래로(tear--down), 아래 섹션의 종이가 위로(tear--up)
+   찢겨 띠의 위아래를 덮는다. 사진은 assets/strip/ — 장 수를 바꾸면 폭이 알아서 나뉜다.
+   ✏️ 교체: 띠 높이 = --strip-h */
+.photo-strip {
+  --strip-h: clamp(9rem, 22vw, 17rem);
+  position: relative;
+  display: flex;
+  height: var(--strip-h);
+  overflow: hidden;
+  background-color: var(--basalt-700);
+}
+
+.photo-strip img {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: none;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 휴대폰: 세 장만 */
+@media (max-width: 599px) {
+  .photo-strip img:nth-child(n + 4) {
+    display: none;
+  }
+}
+
+/* 8. 제주어 문장 글꼴(J4: 고운바탕 + 아래아 조각) --------------------------------
+   제주어로 쓴 글에는 lang="jje" 를 붙이거나 class="jeju" 를 준다. 제주어 화면(?lang=jje)에서는 본문 글(문단 · 목록 · 인용)이 모두 이 글꼴.
+   :where() 로 감싸 우선순위를 0 으로 둔다 → 손글씨 쪽지처럼 글꼴을 따로 정한 자리는 그대로 */
+.jeju,
+[lang="jje"]:not(html),
+:where(html[lang="jje"]) :where(p, li, blockquote, figcaption, dd) {
+  font-family: var(--font-jeju);
+}
+
+/* 9. 인쇄: 테두리 · 찢어진 가장자리는 뺀다 ---------------------------------------- */
+@media print {
+  body::after,
+  .tear {
+    display: none;
+  }
+}
