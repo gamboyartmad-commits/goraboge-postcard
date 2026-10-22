@@ -649,6 +649,15 @@ function onCardTemplate(index) {
     chip.dataset.text = t.text;
     chip.textContent = t.to;
     chip.addEventListener('click', () => {
+      // 이미 고른 글 단추를 다시 누르면 그 글(To · 편지)을 지워 빈칸으로. 이때부터는 엽서를 바꿔도 템플릿 글이 다시 써지지 않음
+      if (chip.getAttribute('aria-pressed') === 'true') {
+        writingOwn = true;
+        hideTemplateUndo();
+        writeField(mobileMessage, '');
+        if (mobileTo.value.trim() === t.to) writeField(mobileTo, '');
+        markTemplate();
+        return;
+      }
       if (hasOwnText() && !undo) undo = { to: mobileTo.value, text: mobileMessage.value };   // 처음 직접 쓴 글을 기억
       writeTemplate(t);
       if (undo) {
