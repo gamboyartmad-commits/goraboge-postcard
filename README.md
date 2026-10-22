@@ -19,7 +19,7 @@
 https://gamboyartmad-commits.github.io/webzine/ 이고, 엽서 사이트는 https://gamboyartmad-commits.github.io/webzine/postcard/ 예요.
 
 이 저장소는 원래 엽서 사이트 저장소 `goraboge-postcard` 였어요(2026-10-22 이름을 바꾸고 웹진과 합침 — 그 전 기록은 엽서 사이트 v7.10까지).
-예전 엽서 주소 `https://gamboyartmad-commits.github.io/goraboge-postcard/…`(이미 보낸 엽서 링크 포함)는 작은 저장소 `goraboge-postcard` 가 새 주소 `…/webzine/postcard/…` 로 그대로 넘겨줘요.
+예전 엽서 주소 `https://gamboyartmad-commits.github.io/goraboge-postcard/…` 는 새 주소 `…/webzine/postcard/…` 로 옮겼어요.
 
 ## 내 컴퓨터에서 보기
 
