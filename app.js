@@ -1,3 +1,6 @@
+// 성과 측정(v7.11): track.js 의 hyTrack 으로 보냄. track.js 를 못 불러와도 사이트는 그대로 움직이게
+const hy = (name, params) => { try { if (window.hyTrack) window.hyTrack(name, params); } catch (e) { /* 측정만 빠짐 */ } };
+
 // ---------- 엽서 목록 ----------
 // 16장 모두 같은 틀(1920×1280, 오른쪽 절반에 To / 8줄 / From)이라 쓰는 자리가 같음
 // hidden: true 인 그림은 고르기 띠에서 뺌. 번호(순서)는 그대로 두어야 예전에 보낸 엽서 링크 · 게시판 엽서가 같은 그림으로 열림
@@ -91,6 +94,7 @@ function selectCard(index) {
   cardImage.alt = CARDS[index].alt + ' 엽서';
   showPhoto(false);
   if (changed && onCardChange) onCardChange(index);
+  if (changed) hy('pc_card_pick', { card: index + 1 });
 }
 
 // 고른 그림을 동화 속 봉투 안 엽서에도 똑같이
@@ -691,7 +695,8 @@ mobileMessage.addEventListener('input', (e) => {
 });
 cardMessage.addEventListener('input', () => requestAnimationFrame(markTemplate));
 
-// 하고 싶은 말 글자 수 (최대 120자, 칸 오른쪽 아래 'N/120자')
+// 하고 싶은 말 글자 수 (최대 144자, 칸 오른쪽 아래 'N/144자') — v7.11: 하영 손글씨로 엽서 한 줄에 한글 18자 × 8줄 = 144자.
+// 띄어쓰기 · 문장부호가 섞이면 더 들어가지만(보통 문장 약 177자) 한글만 이어 써도 잘리지 않게 144자로 둠
 const messageCount = document.querySelector('#messageCount b');
 const updateMessageCount = () => { messageCount.textContent = graphemes(mobileMessage.value).length; };
 mobileMessage.addEventListener('input', updateMessageCount);
@@ -777,6 +782,7 @@ function renderView(next) {
   if (view !== next) scrollMemory[view] = window.scrollY;
   view = next;
   document.body.dataset.view = next;
+  hy('pc_view', { view: next });   // v7.11 성과 측정: 어느 화면을 열었는지(머문 시간은 track.js 가 화면마다 잰다)
   writePanelEl.hidden = next === 'board';
   Object.entries(PAGES).forEach(([name, el]) => { el.hidden = name !== next; });
   boardSection.hidden = next !== 'board';
@@ -1205,7 +1211,8 @@ const CARD_W = 1920;
 const CARD_H = 1280;
 const LINE = 92;                       // 엽서 줄 간격
 const FONT_PX = CARD_H * 0.038;        // style.css의 font-size: 3.8cqh
-const FONT = `${FONT_PX}px "NanumMyeongjo YetHangul", "Malgun Gothic", "Apple SD Gothic Neo", serif`;
+const LETTER_FAMILY = '"Hayeong Hand", "NanumMyeongjo YetHangul", "Malgun Gothic", "Apple SD Gothic Neo", serif';   // v7.11: 엽서 글씨 = 하영 손글씨 (style.css의 --letter-font)
+const FONT = `${FONT_PX}px ${LETTER_FAMILY}`;
 const SPOTS = {
   message: { x: 1064, top: 313, width: 727, lines: 8 },
   to: { x: 1130, top: 221, width: 560 },   // 줄인 우표(1704) 앞까지 — 긴 To도 편지 글과 같은 크기로. 이보다 길면 글자를 줄임 (toScale)
@@ -1259,7 +1266,7 @@ function drawCover(ctx, img, width, height) {
 
 async function renderCard() {
   const text = cardMessage.value + cardTo.value + cardFrom.value;
-  try { await document.fonts.load(`${FONT_PX}px "NanumMyeongjo YetHangul"`, text || '가'); } catch (e) { /* 기본 글꼴로 그림 */ }
+  try { await document.fonts.load(`${FONT_PX}px "Hayeong Hand"`, text || '가'); } catch (e) { /* 기본 글꼴로 그림 */ }
   if (!cardImage.complete) await cardImage.decode();
 
   const canvas = document.createElement('canvas');
@@ -1288,7 +1295,7 @@ async function renderCard() {
 
   // 날짜는 조금 작고 옅게
   const DATE_PX = CARD_H * 0.031;
-  ctx.font = `${DATE_PX}px "NanumMyeongjo YetHangul", "Malgun Gothic", "Apple SD Gothic Neo", serif`;
+  ctx.font = `${DATE_PX}px ${LETTER_FAMILY}`;
   ctx.fillStyle = '#6f6455';
   const dm = ctx.measureText('0');
   const dAscent = dm.fontBoundingBoxAscent || DATE_PX * 0.8;
@@ -1356,6 +1363,7 @@ function openSend() {
   writePanel.classList.add('is-sending');
   if (KAKAO_JS_KEY) uploadCardImage().catch(() => {});   // 카카오톡 공유에 쓸 엽서 이미지를 미리 올려 둠
   sendPanel.show();   // 창이 아니라 엽서 아래에 펼쳐지는 버튼 목록
+  hy('pc_send_open', { jeju: jejuApplied ? 'yes' : 'no' });   // 제주어로 바꾼 뒤 보내기 화면이 열림
 }
 
 function closeSend() {
@@ -1373,8 +1381,9 @@ const viewBoardBtn = document.getElementById('viewBoardBtn');
 
 // 보낸 뒤에도 다른 화면으로 넘어가지 않고 이 보내기 화면에 그대로 머묾 (엔딩 · '새 엽서 쓰기'는 쓰지 않음).
 // 다시 쓰려면 '← 편지 다시 쓰기'로 돌아감
-function finishSend(text) {
+function finishSend(text, method = '') {
   setSheetStatus(text || '보냈어요!');
+  hy('pc_send_done', { method });   // v7.11 성과 측정: 어떤 방법으로 보냈는지(track.js)
 }
 
 // 엔딩: 편지가 제주 바람을 타고 하늘로 날아가고, 마지막 문장과 로고. 보낸 뒤 한 번만 저절로 내려감
@@ -1438,14 +1447,14 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   if (window.matchMedia('(pointer: coarse)').matches && navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({ files: [file] });
-      finishSend('엽서 그림을 저장하거나 보냈어요.');
+      finishSend('엽서 그림을 저장하거나 보냈어요.', 'image_share');
       return;
     } catch (e) {
       if (e.name === 'AbortError') return;
     }
   }
   download(blob);
-  finishSend('엽서를 이미지로 저장했어요.');
+  finishSend('엽서를 이미지로 저장했어요.', 'image');
 });
 
 
@@ -1521,7 +1530,7 @@ async function copyText(text) {
 document.getElementById('copyLinkBtn').addEventListener('click', async () => {
   if (cardHasBadWord()) { setSheetStatus(BAD_WORD_MESSAGE, true); return; }
   if (await copyText(postUrl())) {
-    finishSend('엽서 링크를 복사했어요. 받는 사람에게 붙여 넣어 보내 주세요.' + PHOTO_NOTE() + LOCAL_NOTE);
+    finishSend('엽서 링크를 복사했어요. 받는 사람에게 붙여 넣어 보내 주세요.' + PHOTO_NOTE() + LOCAL_NOTE, 'link');
   } else {
     setSheetStatus('링크를 복사하지 못했어요. 다시 눌러 주세요.', true);
   }
@@ -1628,7 +1637,7 @@ document.getElementById('kakaoBtn').addEventListener('click', async () => {
     setSheetStatus('카카오톡을 여는 중이에요...');
     try {
       await shareToKakao();
-      finishSend('카카오톡 공유 창을 열었어요. 받을 친구를 골라 보내 주세요.' + PHOTO_NOTE() + LOCAL_NOTE);
+      finishSend('카카오톡 공유 창을 열었어요. 받을 친구를 골라 보내 주세요.' + PHOTO_NOTE() + LOCAL_NOTE, 'kakao');
     } catch (e) {
       setSheetStatus(`카카오톡을 열지 못했어요. 카카오 개발자 사이트에 이 사이트 주소(${location.origin})가 등록돼 있는지 확인해 주세요. (${e.message || e})`, true);
     } finally {
@@ -1640,7 +1649,7 @@ document.getElementById('kakaoBtn').addEventListener('click', async () => {
     try {
       // 카카오톡은 text와 url을 이어 붙여 보여 줌 → 엽서 링크(url) 앞에 사이트 주소도 함께
       await navigator.share({ title: '제주어 엽서', text: `제주어 엽서가 도착했어요.\n나도 제주어 엽서 쓰기: ${siteUrl()}\n엽서 보기:`, url });
-      finishSend('');
+      finishSend('', 'kakao_share');
     } catch (err) {
       if (err.name !== 'AbortError') setSheetStatus('공유 창을 열지 못했어요. URL 복사로 보내 주세요.', true);
     }
@@ -1648,7 +1657,7 @@ document.getElementById('kakaoBtn').addEventListener('click', async () => {
   }
   // 키도 공유 창도 없는 PC 브라우저: 링크를 복사해 두고 카카오톡에 붙여 넣게 안내
   await copyText(shareText(url));
-  finishSend('엽서 링크와 편지 사이트 주소를 복사했어요. 카카오톡 대화창에 붙여 넣어 보내 주세요.' + PHOTO_NOTE() + LOCAL_NOTE);
+  finishSend('엽서 링크와 편지 사이트 주소를 복사했어요. 카카오톡 대화창에 붙여 넣어 보내 주세요.' + PHOTO_NOTE() + LOCAL_NOTE, 'kakao_copy');
 });
 
 // 메일 (Google Apps Script 웹앱)
@@ -1686,7 +1695,7 @@ mailForm.addEventListener('submit', async (e) => {
     const json = await res.json();
     if (!json.ok) throw new Error(json.error || '알 수 없는 오류');
     mailForm.reset();
-    finishSend('엽서를 메일로 보냈어요!');
+    finishSend('엽서를 메일로 보냈어요!', 'mail');
   } catch (err) {
     setSheetStatus(`메일을 보내지 못했어요. (${err.message}) 이미지로 저장해서 직접 보내 주세요.`, true);
   } finally {
@@ -1991,7 +2000,7 @@ boardPostConfirm.addEventListener('click', async () => {
 
   boardPost.close();
   addBoardCard(post, { prepend: true, fresh: true });
-  finishSend(message);
+  finishSend(message, 'board');
   sendDone.hidden = false;   // 게시판에 붙였을 때만 '게시판에서 보기' 글자 단추를 보여 줌
   viewBoardBtn.hidden = false;
 });
@@ -2041,6 +2050,7 @@ receivedToggle.addEventListener('click', () => {
 });
 
 if (received) {
+  hy('pc_received_view', { standard: received.standard ? 'yes' : 'no' });   // 받은 엽서 링크로 들어옴
   fillMiniCard(receivedCard, received);
   receivedToggle.hidden = !received.standard;
   receivedView.showModal();

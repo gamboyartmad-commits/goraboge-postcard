@@ -20,7 +20,7 @@
 <link rel="preload" as="image" href="images/tale/prologue-sky.webp">
 <link rel="preload" as="font" type="font/woff2" href="fonts/BookkMyungjo-Bold.woff2?v=228" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="fonts/Griun-NeatHandwriting.woff2?v=228" crossorigin>
-<link rel="stylesheet" href="style.css?v=234">
+<link rel="stylesheet" href="style.css?v=235">
 </head>
 <body>
   <a class="skip-link" href="#scene2">바로 편지 쓰기로 건너뛰기</a>
@@ -30,7 +30,7 @@
     <div class="tale-bar-start">
       <a class="tale-logo" href="#story"><img src="images/logo-goraboge.png" alt="하영고라보게 · 제주어로 엽서 적기" width="398" height="259"></a>
       <!-- 홈: 웹진 '하영 고라보게' 첫 화면 -->
-      <a class="bar-btn bar-home" href="https://claude.ai/artifact/3EHktt3KU8zWRdGv1MFnvC" aria-label="웹진 하영 고라보게에서 기사 보러가기">
+      <a class="bar-btn bar-home" href="https://claude.ai/artifact/3EHktt3KU8zWRdGv1MFnvC" data-webzine-link="bar" aria-label="웹진 하영 고라보게에서 기사 보러가기">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h11.5a1 1 0 0 1 1 1V18a1.5 1.5 0 0 0 3 0V8.5h-3M5 4.5v13.5A1.5 1.5 0 0 0 6.5 19.5h14.5M8 8.5h6.5M8 12h6.5M8 15.5h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
         기사 보러가기
       </a>
@@ -85,7 +85,7 @@
         <h2 class="scene-title" id="pickTitle" tabindex="-1" data-chars>당신의 마음을<br>제주어로 전해보세요</h2>
         <!-- 내 편지 쓰기: 누르면 아래에 편지 쓰는 칸(받는 사람 · 하고 싶은 말 · 보내는 사람)이 생김. 처음에는 엽서 템플릿 글만 -->
         <div class="pick-tools">
-          <!-- '제주어로 바꾸기': 엽서 글을 제주어로 바꿔 바로 보내기 화면으로 (숨겨 둔 아래 #translateBtn을 누름) -->
+          <!-- '제주어로 바꾸기'(v7.11 — v7.9의 '이대로 보내기'를 되돌림): 엽서 글을 제주어로 바꿔 바로 보내기 화면으로 (숨겨 둔 아래 #translateBtn을 누름) -->
           <button type="button" class="translate-top-btn" id="translateTopBtn">제주어로 바꾸기 <span aria-hidden="true">→</span></button>
           <button type="button" class="write-open-btn" id="writeOpenBtn" aria-controls="writerPanel" aria-expanded="false"><span class="write-open-t" aria-hidden="true">T</span>내 편지 쓰기</button>
         </div>
@@ -101,7 +101,7 @@
                       <span class="sr-only">받는 사람</span>
                       <input type="text" id="cardTo" maxlength="14" autocomplete="off">
                     </label>
-                    <textarea class="card-field card-message" id="cardMessage" maxlength="120" aria-label="엽서 내용" placeholder="여기에 마음을 적어 보세요"></textarea>
+                    <textarea class="card-field card-message" id="cardMessage" maxlength="144" aria-label="엽서 내용" placeholder="여기에 마음을 적어 보세요"></textarea>
                     <label class="card-field card-from">
                       <span class="sr-only">보내는 사람</span>
                       <input type="text" id="cardFrom" maxlength="10" autocomplete="off">
@@ -154,8 +154,8 @@
                   <label>From <input type="text" id="mobileFrom" maxlength="10" autocomplete="off" placeholder="보내는 사람"></label>
                 </div>
                 <div class="message-box">
-                  <textarea id="mobileMessage" maxlength="120" aria-label="엽서 내용" aria-describedby="messageCount" placeholder="여기에 마음을 적어 보세요. 엽서에 바로 보여요."></textarea>
-                  <span class="message-count" id="messageCount"><b>0</b>/120자</span>
+                  <textarea id="mobileMessage" maxlength="144" aria-label="엽서 내용" aria-describedby="messageCount" placeholder="여기에 마음을 적어 보세요. 엽서에 바로 보여요."></textarea>
+                  <span class="message-count" id="messageCount"><b>0</b>/144자</span>
                 </div>
                 <!-- 템플릿으로 바꾸기 전 글로 되돌리기 (직접 쓴 글이 있었을 때만 잠깐 보임) -->
                 <p class="template-undo" id="templateUndo" role="status" hidden><button type="button" class="text-btn" id="templateUndoBtn">← 방금 쓴 글로 되돌리기</button></p>
@@ -277,12 +277,13 @@
                   <button type="button" class="stitch-btn is-accent" id="newCardBtn" hidden>새 엽서 쓰기</button>
                   <button type="button" class="text-btn" id="viewBoardBtn" hidden>게시판에서 보기</button>
                 </div>
-                <button type="button" class="text-btn send-back" id="sendBack">← 편지 다시 쓰기</button>
+                <!-- v7.11: 글자 단추 → 위 '제주어로 바꾸기'와 같은 짙은 알약 단추(잘 보이게) -->
+                <button type="button" class="translate-top-btn send-back" id="sendBack"><span aria-hidden="true">←</span> 편지 다시 쓰기</button>
               </dialog>
 
         <!-- 맨 끝: 웹진 하영 고라보게 홍보 띠 (간단하게 한 줄). 누르면 웹진이 새 탭으로.
              그림은 웹진 인터뷰 그림 (_tools/build_promo_assets.py → images/promo/) -->
-        <a class="webzine-promo" href="https://claude.ai/artifact/3EHktt3KU8zWRdGv1MFnvC" target="_blank" rel="noopener">
+        <a class="webzine-promo" href="https://claude.ai/artifact/3EHktt3KU8zWRdGv1MFnvC" target="_blank" rel="noopener" data-webzine-link="promo">
           <img class="promo-thumb" src="images/promo/interview-02.webp" width="720" height="540" loading="lazy" alt="">
           <span class="promo-text">
             <span class="promo-eyebrow">웹진 하영 고라보게</span>
@@ -423,11 +424,12 @@
     </div>
   </dialog>
 
-  <script src="config.js?v=3"></script>
+  <script src="config.js?v=4"></script>
+  <script src="track.js?v=1"></script>
   <script src="jeju-dict.js?v=1"></script>
   <script src="translate.js?v=5"></script>
   <script src="badwords.js?v=1"></script>
-  <script src="app.js?v=235"></script>
+  <script src="app.js?v=236"></script>
 </body>
 
 </html>

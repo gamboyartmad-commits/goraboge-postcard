@@ -9,4 +9,14 @@ window.POSTCARD_CONFIG = {
   // publishable 키는 공개용. 누가 무엇을 할 수 있는지는 데이터베이스 규칙(RLS)이 지킴
   SUPABASE_URL: 'https://arihrphljtppzmtllzeu.supabase.co',
   SUPABASE_KEY: 'sb_publishable_2zNSN3lxwQhhMP1Berri_A_IBsNhT1e',
+
+  // 성과 측정 (track.js, v7.11) — 웹진 '하영 고라보게'와 같은 GA4 측정 ID(G-로 시작)를 넣는다. 비어 있으면 아무 데도 보내지 않음.
+  // 웹진 안(…/team1/play/postcard/)에 띄워졌을 때는 이 값과 상관없이 웹진의 GA4 로 넘김(웹진 config.js 의 analytics.ga4)
+  GA4_ID: '',
+  // 웹진 주소(이 사이트를 띄우는 바깥 페이지)의 출처 — 여기서 온 '인사'만 믿고 측정 · 이동 신호를 보냄. 웹진 주소가 바뀌면 함께 고칠 것
+  WEBZINE_ORIGINS: ['https://www.hankyung.com', 'https://hankyung.com', 'http://localhost:4174', 'http://127.0.0.1:4174', 'http://localhost:4175', 'http://127.0.0.1:4175'],
+  // GA4 교차 도메인(따로 열렸을 때 웹진과 같은 방문으로 이어 보기)
+  WEBZINE_DOMAINS: ['hankyung.com', 'gamboyartmad-commits.github.io'],
+  // 따로 열렸을 때 '기사 보러가기' · 웹진 홍보 띠가 갈 웹진 주소. 웹진이 실제 주소(…/team1/)에 올라가면 그 주소로 바꿀 것
+  WEBZINE_URL: 'https://claude.ai/artifact/3EHktt3KU8zWRdGv1MFnvC',
 };
