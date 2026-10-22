@@ -13,7 +13,7 @@
    한 굵기뿐이라 굵게 · 보통 모두 이 파일을 씀 (가짜 굵게 처리 없이). 아래아가 필요한 엽서 글씨는 나눔명조 옛한글 */
 @font-face {
   font-family: 'Bookk Myungjo';
-  src: url('fonts/BookkMyungjo-Bold.woff2?v=219') format('woff2');
+  src: url('fonts/BookkMyungjo-Bold.woff2?v=228') format('woff2');
   font-weight: 100 900;
   font-display: swap;
 }
@@ -21,7 +21,7 @@
 /* 손글씨 자막: 그리운 단정한손글씨 (첫 화면의 작은 글: 전하지 못한 마음이 있다면 …) */
 @font-face {
   font-family: 'Griun Neat Handwriting';
-  src: url('fonts/Griun-NeatHandwriting.woff2?v=219') format('woff2');
+  src: url('fonts/Griun-NeatHandwriting.woff2?v=228') format('woff2');
   font-display: swap;
 }
 
@@ -3222,3 +3222,41 @@ html.intro-open { overflow: hidden; }
 
 /* 게시판 크게 보기: '표준어로 보기' 단추를 '닫기' 왼쪽에 */
 .board-view .sheet-close { display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+
+/* ---------- 'T 메시지 편집': 엽서 안, 글 바로 아랫줄 가운데 (8줄을 다 채우면 From 줄 밑 오른쪽 아래) ---------- */
+.card-edit-btn {
+  position: absolute;
+  z-index: 3;
+  left: 74.35%;   /* 편지 칸(55.42% + 37.86%)의 가운데 */
+  /* 두 점선 사이 한가운데. 엽서 그림의 점선은 y=390, 482, … (1280 중, 92씩) → 사이 가운데 = (344 + 92 × 줄 수) / 1280 */
+  top: calc(26.875% + var(--edit-line, 1) * 7.1875cqh);
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8cqh;
+  height: 5.5cqh;
+  padding: 0 1.9cqh 0 1.5cqh;
+  border: 1px solid var(--tale-line);
+  border-radius: 1.4cqh;
+  background: #fffdf8;
+  box-shadow: 0 2px 6px -3px rgb(50 40 28 / 0.3);
+  font: inherit;
+  font-size: 2.9cqh;
+  line-height: 1;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--tale-ink);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+.card-edit-btn .write-open-t { font-size: 1.15em; }
+.card-edit-btn:hover { background: #fff; transform: translate(-50%, calc(-50% - 1px)); }
+.card-edit-btn.is-full { left: auto; right: 6.72%; top: auto; bottom: 1.6%; transform: none; }
+.card-edit-btn.is-full:hover { transform: translateY(-1px); }
+.card-edit-btn:focus-visible { outline: 3px solid var(--tale-tangerine); outline-offset: 3px; }
+.card-edit-btn[hidden] { display: none; }
+.write-card.is-windy .card-edit-btn { opacity: 0; }
+
+/* 템플릿 단추 줄: 엽서 바로 아래 (엽서 그림 고르기 위) */
+.scene-pick .write-card + .letter-templates { margin: 16px auto 4px; }

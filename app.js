@@ -479,6 +479,35 @@ writeOpenBtn.addEventListener('click', () => {
   goWriteField('mobileTo');
 });
 
+// 'T 메시지 편집' (엽서 안, 글 바로 아랫줄 가운데): 엽서에 있는 글을 그대로 둔 채 편지 쓰는 칸으로.
+// 엽서 글과 쓰는 칸은 늘 같은 글이라 옮길 것은 없음. 8줄을 다 채우면 From 줄 밑 오른쪽 아래로
+const cardEditBtn = document.getElementById('cardEditBtn');
+cardEditBtn.addEventListener('click', (e) => {
+  e.stopPropagation();   // 엽서 누르기(가까운 칸으로)와 겹치지 않게
+  goWriteField('mobileMessage');
+});
+const CARD_LINES = 8;
+let cardEditKey = '';
+function placeCardEdit() {
+  const box = cardMessage.clientHeight;
+  if (!box) return;
+  const key = `${cardMessage.value}|${box}|${cardMessage.clientWidth}`;
+  if (key === cardEditKey) return;
+  cardEditKey = key;
+  // 글이 몇 줄인지: 잠깐 높이를 0으로 두고 글 높이를 잼
+  const keep = cardMessage.style.height;
+  cardMessage.style.height = '0px';
+  const textHeight = cardMessage.value ? cardMessage.scrollHeight : 0;
+  cardMessage.style.height = keep;
+  const lines = Math.round(textHeight / (box / CARD_LINES));
+  cardEditBtn.classList.toggle('is-full', lines >= CARD_LINES);
+  cardEditBtn.style.setProperty('--edit-line', String(Math.max(lines, 1)));
+}
+(function watchCardText() {   // 엽서 글은 여러 곳에서 바뀌므로 화면 그릴 때마다 바뀌었는지만 봄
+  placeCardEdit();
+  requestAnimationFrame(watchCardText);
+})();
+
 function goWriteField(id) {
   openWriter();
   const heading = writerPanel;   // 쓰는 칸 맨 위(To)
@@ -606,7 +635,7 @@ const hasOwnText = () => {
   return (text && !isTemplateText(text)) || (to && !TEMPLATE_TOS.has(to));
 };
 
-// 엽서를 바꿀 때: 직접 쓴 글이 없으면 그 엽서 글로 바로 채우고, 단추 줄은 글이 두 가지이거나 직접 쓴 글이 있을 때만 보임
+// 엽서를 바꿀 때: 직접 쓴 글이 없으면 그 엽서 글로 바로 채우고, 엽서 아래 단추 줄에 그 엽서의 글을 보여 줌
 function onCardTemplate(index) {
   const list = CARD_TEMPLATES[index] || [];
   const own = hasOwnText();
@@ -630,7 +659,7 @@ function onCardTemplate(index) {
     templateList.appendChild(chip);
     return chip;
   });
-  templateRow.hidden = !(list.length > 1 || (list.length && (own || writingOwn)));
+  templateRow.hidden = !list.length;   // 템플릿이 있는 엽서는 늘 보임 (내 사진 칸은 없음)
   markTemplate();
 }
 onCardChange = onCardTemplate;

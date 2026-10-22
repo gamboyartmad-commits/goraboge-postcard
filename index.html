@@ -18,9 +18,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="images/tale/prologue-sky.webp">
-<link rel="preload" as="font" type="font/woff2" href="fonts/BookkMyungjo-Bold.woff2?v=219" crossorigin>
-<link rel="preload" as="font" type="font/woff2" href="fonts/Griun-NeatHandwriting.woff2?v=219" crossorigin>
-<link rel="stylesheet" href="style.css?v=219">
+<link rel="preload" as="font" type="font/woff2" href="fonts/BookkMyungjo-Bold.woff2?v=228" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/Griun-NeatHandwriting.woff2?v=228" crossorigin>
+<link rel="stylesheet" href="style.css?v=228">
 </head>
 <body>
   <a class="skip-link" href="#scene2">바로 편지 쓰기로 건너뛰기</a>
@@ -107,6 +107,8 @@
                       <input type="text" id="cardFrom" maxlength="10" autocomplete="off">
                     </label>
                     <div class="card-field card-date" id="cardDate" aria-label="쓴 날짜"></div>
+                    <!-- 엽서 안 글 바로 아랫줄(8줄을 다 채우면 From 줄 밑): 누르면 지금 엽서 글 그대로 아래 편지 쓰는 칸으로 -->
+                    <button type="button" class="card-edit-btn" id="cardEditBtn" aria-controls="writerPanel"><span class="write-open-t" aria-hidden="true">T</span>메시지 편집</button>
                               <img class="card-stamp" id="cardStamp" src="images/stamp-goraboge.png?v=2" alt="" aria-hidden="true" hidden>
                   </div>
           <svg class="wind" id="wind" viewBox="0 0 600 400" preserveAspectRatio="none" aria-hidden="true">
@@ -115,6 +117,12 @@
             <path d="M-40 280 C90 250 210 320 320 270 S530 230 660 290"/>
             <path d="M-40 160 C120 140 240 190 380 150 S560 130 660 160"/>
           </svg>
+        </div>
+        <!-- 엽서 템플릿 단추 줄 (엽서 바로 아래, 엽서 그림 고르기 위): 엽서를 고르면 그 엽서의 To · 편지 글이 바로 써짐
+             (app.js CARD_TEMPLATES). 모든 엽서에서 보임 -->
+        <div class="letter-templates" role="group" aria-labelledby="templateLabel" hidden>
+          <p class="letter-templates-label" id="templateLabel">이 엽서에 어울리는 글</p>
+          <div class="letter-templates-list" id="templateList"></div>
         </div>
         <!-- 내 사진을 넣었을 때만: 사진 크기 · 위치 단추 (엽서 왼쪽 그림 자리 안에서) -->
         <div class="photo-tools" id="photoTools" hidden>
@@ -137,12 +145,6 @@
                 <div class="carousel" id="carousel" tabindex="0" aria-label="엽서 그림 고르기. 옆으로 넘기면 가운데 그림이 골라져요"></div>
               </div>
 
-        <!-- 엽서 템플릿 단추 줄: 엽서를 고르면 그 엽서의 To · 편지 글이 바로 써짐(app.js CARD_TEMPLATES).
-             이 줄은 글이 두 가지인 엽서(노부부: 엄마에게 · 아빠에게)이거나, 직접 쓴 글이 있을 때만 보임 -->
-        <div class="letter-templates" role="group" aria-labelledby="templateLabel" hidden>
-          <p class="letter-templates-label" id="templateLabel">이 엽서에 어울리는 글</p>
-          <div class="letter-templates-list" id="templateList"></div>
-        </div>
         <!-- 마음 쓰기 칸: 'T 내 편지 쓰기'(또는 엽서 위 줄글)를 누르면 열림 (app.js openWriter) -->
         <div class="writer-panel" id="writerPanel" hidden>
         <!-- 마음 쓰기: 받는 사람 · 하고 싶은 말 · 보내는 사람. 쓰는 대로 위 엽서에 옮겨짐 -->
@@ -420,7 +422,7 @@
   <script src="jeju-dict.js?v=1"></script>
   <script src="translate.js?v=5"></script>
   <script src="badwords.js?v=1"></script>
-  <script src="app.js?v=220"></script>
+  <script src="app.js?v=228"></script>
 </body>
 
 </html>
