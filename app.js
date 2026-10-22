@@ -468,6 +468,7 @@ function openWriter() {
 // 이미 직접 쓴 글은 지우지 않음. 이때부터는 엽서를 바꿔도 템플릿 글이 다시 써지지 않음(그 엽서 글은 단추로만)
 let writingOwn = false;
 document.getElementById('translateTopBtn').addEventListener('click', () => translateBtn.click());
+document.getElementById('writerSendBtn').addEventListener('click', () => translateBtn.click());   // 쓰는 칸 아래 '편지 보내기'
 
 writeOpenBtn.addEventListener('click', () => {
   writingOwn = true;
@@ -1354,7 +1355,7 @@ function closeSend() {
 
 sendPanel.addEventListener('close', () => {
   writePanel.classList.remove('is-sending');
-  translateBtn.focus({ preventScroll: true });
+  document.getElementById('translateTopBtn').focus({ preventScroll: true });
 });
 
 // 보내기를 마치면 결과를 알려 주고, 다른 방법으로도 더 보낼 수 있게 버튼 목록은 그대로 둠
@@ -2003,6 +2004,12 @@ function clearReceived() {
 document.getElementById('writeBackBtn').addEventListener('click', () => {
   receivedView.close();
   if (!received) return;
+  // 답장은 보통 직접 쓰니까 엽서 템플릿 글은 지우고 빈칸으로 시작 ('T 내 편지 쓰기'와 같음). 템플릿은 아래 단추로 고를 수 있음
+  writingOwn = true;
+  const text = mobileMessage.value.trim();
+  if (!text || isTemplateText(text)) writeField(mobileMessage, '');
+  hideTemplateUndo();
+  onCardTemplate(currentCard);
   [['mobileTo', received.from], ['mobileFrom', received.to]].forEach(([id, name]) => {
     const input = document.getElementById(id);
     input.value = name.slice(0, input.maxLength > 0 ? input.maxLength : 10);

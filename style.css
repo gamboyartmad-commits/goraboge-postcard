@@ -3259,4 +3259,22 @@ html.intro-open { overflow: hidden; }
 .write-card.is-windy .card-edit-btn { opacity: 0; }
 
 /* 템플릿 단추 줄: 엽서 바로 아래 (엽서 그림 고르기 위) */
-.scene-pick .write-card + .letter-templates { margin: 16px auto 4px; }
+.scene-pick .write-card + .letter-templates { margin: 12px auto 0; }   /* 글 이름 단추만, 엽서 그림 고르기와 가깝게 */
+
+/* 고른 템플릿: 'T 내 편지 쓰기'와 같은 크림색 단추 (안 고른 것은 옅은 테두리만) */
+.template-chip[aria-pressed='true'] {
+  border-color: var(--tale-line);
+  background: rgb(255 250 241 / 0.7);
+  box-shadow: 0 6px 16px rgb(50 40 28 / 0.14);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-weight: 700;
+  color: var(--tale-ink);
+}
+.template-chip[aria-pressed='false'] { background: transparent; color: var(--tale-soft); }
+.template-chip[aria-pressed='true']:hover { background: rgb(255 250 241 / 0.92); }
+
+.write-actions[hidden] { display: none; }
+
+/* 쓰는 칸 아래 '편지 보내기' (쓰는 칸이 열려 있을 때만 보임) */
+.writer-send { display: flex; justify-content: center; margin: 22px 0 4px; }

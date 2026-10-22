@@ -20,7 +20,7 @@
 <link rel="preload" as="image" href="images/tale/prologue-sky.webp">
 <link rel="preload" as="font" type="font/woff2" href="fonts/BookkMyungjo-Bold.woff2?v=228" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="fonts/Griun-NeatHandwriting.woff2?v=228" crossorigin>
-<link rel="stylesheet" href="style.css?v=228">
+<link rel="stylesheet" href="style.css?v=234">
 </head>
 <body>
   <a class="skip-link" href="#scene2">바로 편지 쓰기로 건너뛰기</a>
@@ -85,8 +85,8 @@
         <h2 class="scene-title" id="pickTitle" tabindex="-1" data-chars>당신의 마음을<br>제주어로 전해보세요</h2>
         <!-- 내 편지 쓰기: 누르면 아래에 편지 쓰는 칸(받는 사람 · 하고 싶은 말 · 보내는 사람)이 생김. 처음에는 엽서 템플릿 글만 -->
         <div class="pick-tools">
-          <!-- 위쪽 '제주어로 바꾸기': 아래 '제주어로 바꾸기'와 같은 동작 (스크롤하지 않고 바로 누를 수 있게) -->
-          <button type="button" class="translate-top-btn" id="translateTopBtn">제주어로 바꾸기 <span aria-hidden="true">→</span></button>
+          <!-- '이대로 보내기': 엽서 글을 제주어로 바꿔 바로 보내기 화면으로 (숨겨 둔 아래 #translateBtn을 누름) -->
+          <button type="button" class="translate-top-btn" id="translateTopBtn">이대로 보내기 <span aria-hidden="true">→</span></button>
           <button type="button" class="write-open-btn" id="writeOpenBtn" aria-controls="writerPanel" aria-expanded="false"><span class="write-open-t" aria-hidden="true">T</span>내 편지 쓰기</button>
         </div>
         <!-- 고른 엽서: 입력칸 위치는 엽서 이미지(1920×1280)의 줄에 맞춰 style.css에서 %로 잡음.
@@ -121,7 +121,7 @@
         <!-- 엽서 템플릿 단추 줄 (엽서 바로 아래, 엽서 그림 고르기 위): 엽서를 고르면 그 엽서의 To · 편지 글이 바로 써짐
              (app.js CARD_TEMPLATES). 모든 엽서에서 보임 -->
         <div class="letter-templates" role="group" aria-labelledby="templateLabel" hidden>
-          <p class="letter-templates-label" id="templateLabel">이 엽서에 어울리는 글</p>
+          <p class="letter-templates-label sr-only" id="templateLabel">이 엽서에 어울리는 글</p>   <!-- 화면에는 안 보임(읽어 주기용) -->
           <div class="letter-templates-list" id="templateList"></div>
         </div>
         <!-- 내 사진을 넣었을 때만: 사진 크기 · 위치 단추 (엽서 왼쪽 그림 자리 안에서) -->
@@ -160,6 +160,10 @@
                 <!-- 템플릿으로 바꾸기 전 글로 되돌리기 (직접 쓴 글이 있었을 때만 잠깐 보임) -->
                 <p class="template-undo" id="templateUndo" role="status" hidden><button type="button" class="text-btn" id="templateUndoBtn">← 방금 쓴 글로 되돌리기</button></p>
               </div>
+        <!-- 다 쓰면 바로 보내기: 위 '이대로 보내기'와 같은 동작 (쓰는 칸이 열릴 때만 함께 보임) -->
+        <div class="writer-send">
+          <button type="button" class="tale-btn is-primary" id="writerSendBtn">편지 보내기 <span aria-hidden="true">→</span></button>
+        </div>
         </div>
 
       
@@ -175,7 +179,8 @@
                   <button type="button" class="edit-alert-dismiss" id="editAlertDismiss">이대로 둘게요</button>
                 </div>
               </div>
-        <div class="write-actions">
+        <!-- 아래 '제주어로 바꾸기' 단추는 숨김(위 '이대로 보내기'가 대신). 동작은 이 단추에 그대로 있어 여러 곳에서 누름 -->
+        <div class="write-actions" hidden>
           <button type="button" class="tale-btn is-primary" id="translateBtn">제주어로 바꾸기 <span aria-hidden="true">→</span></button>
         </div>
         <p class="status" id="status" aria-live="polite"></p>
@@ -422,7 +427,7 @@
   <script src="jeju-dict.js?v=1"></script>
   <script src="translate.js?v=5"></script>
   <script src="badwords.js?v=1"></script>
-  <script src="app.js?v=228"></script>
+  <script src="app.js?v=234"></script>
 </body>
 
 </html>
