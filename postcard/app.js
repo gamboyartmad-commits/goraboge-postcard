@@ -1588,9 +1588,21 @@ function uploadCardImage() {
 }
 
 // 카카오톡 링크는 주소 끝 #보다 ?가 더 안전하게 전달되어 ?p= 로 보냄 (받을 때는 둘 다 읽음)
+// v7.13: 카카오톡 메시지는 1만 자를 넘으면 휴대폰에서 보내지지 않음(카카오 SDK 가 거절 → '잘못된 요청입니다' 화면 · 웹진 안에서는 흰 화면).
+//        카카오는 메시지 안에 이 링크를 15번쯤 되풀이해 넣어서(링크 1자 = 메시지 약 15자) 링크가 KAKAO_LINK_MAX 자를 넘으면
+//        ① 표준어 글(s)을 빼 보고(받은 사람의 '표준어로 보기'는 제주어 글을 풀어서 보여 줌) ② 그래도 길면 편지 사이트 첫 화면 주소로 보냄
+//        (엽서 글은 카카오톡 메시지의 엽서 그림에 담겨 있음). 링크가 짧은 다른 기기에서도 똑같이(같은 엽서는 어디서 보내도 같은 메시지)
+//        잰 값: 링크 56자 → 메시지 3,750자, 577자 → 11,565자 → 링크 약 470자까지 됨. 여유를 두고 420자
+const KAKAO_LINK_MAX = 420;
 function kakaoUrl() {
-  return `${location.origin}${location.pathname}?p=${encodePost(currentPost())}`;
+  const base = `${location.origin}${location.pathname}?p=`;
+  const post = currentPost();
+  const full = base + encodePost(post);
+  if (full.length <= KAKAO_LINK_MAX) return full;
+  const noStandard = base + encodePost({ ...post, standard: '' });
+  return noStandard.length <= KAKAO_LINK_MAX ? noStandard : siteUrl();
 }
+const KAKAO_LONG_NOTE = ' 편지가 길어서 카카오톡 메시지에는 엽서 그림이 담기고, 메시지를 누르면 편지 사이트 첫 화면이 열려요.';
 
 // 받는 사람 칸으로 '○○에게 제주어 엽서가 도착했어요'를 만듦. 템플릿의 To(예: 엄마에게 · 오랜만의 안부)도 자연스럽게
 function arrivalTitle(to) {
@@ -1601,6 +1613,7 @@ function arrivalTitle(to) {
 }
 const mailToName = (to) => (/에게$/.test(to) ? to.replace(/에게$/, '') : TEMPLATE_TOS.has(to) ? '' : to);
 
+// 돌려주는 값: 편지가 길어 받은 엽서 대신 편지 사이트 첫 화면 주소로 보냈는지(v7.13)
 async function shareToKakao() {
   const K = await kakao();
   const url = kakaoUrl();
@@ -1626,6 +1639,7 @@ async function shareToKakao() {
     },
     buttons: [],   // 아래 단추는 두지 않음
   });
+  return url === siteUrl();
 }
 
 document.getElementById('kakaoBtn').addEventListener('click', async () => {
@@ -1636,8 +1650,8 @@ document.getElementById('kakaoBtn').addEventListener('click', async () => {
     btn.disabled = true;
     setSheetStatus('카카오톡을 여는 중이에요...');
     try {
-      await shareToKakao();
-      finishSend('카카오톡 공유 창을 열었어요. 받을 친구를 골라 보내 주세요.' + PHOTO_NOTE() + LOCAL_NOTE, 'kakao');
+      const toHome = await shareToKakao();
+      finishSend('카카오톡 공유 창을 열었어요. 받을 친구를 골라 보내 주세요.' + (toHome ? KAKAO_LONG_NOTE : '') + PHOTO_NOTE() + LOCAL_NOTE, 'kakao');
     } catch (e) {
       setSheetStatus(`카카오톡을 열지 못했어요. 카카오 개발자 사이트에 이 사이트 주소(${location.origin})가 등록돼 있는지 확인해 주세요. (${e.message || e})`, true);
     } finally {
@@ -2040,7 +2054,7 @@ receivedView.addEventListener('close', clearReceived);
 
 const receivedCode = location.hash.startsWith('#p=') ? location.hash.slice(3) : new URLSearchParams(location.search).get('p');
 const received = receivedCode ? decodePost(receivedCode) : null;
-// 받은 엽서의 '표준어로 보기' ↔ '제주어로 보기': 엽서 글만 바꿔 보여 줌 (표준어 글이 담긴 링크일 때만 단추가 보임)
+// 받은 엽서의 '표준어로 보기' ↔ '제주어로 보기': 엽서 글만 바꿔 보여 줌 (표준어 글이 있을 때만 단추가 보임 — 없으면 아래에서 풀어서 채움)
 const receivedToggle = document.getElementById('receivedToggle');
 receivedToggle.addEventListener('click', () => {
   const showStandard = receivedToggle.getAttribute('aria-pressed') !== 'true';
@@ -2051,8 +2065,10 @@ receivedToggle.addEventListener('click', () => {
 
 if (received) {
   hy('pc_received_view', { standard: received.standard ? 'yes' : 'no' });   // 받은 엽서 링크로 들어옴
+  // v7.13: 표준어 글이 없는 링크(예전 링크 · 카카오톡 메시지 크기 때문에 뺀 링크)는 게시판처럼 제주어 글을 풀어서 보여 줌
+  if (!received.standard && window.translateToStandard) received.standard = window.translateToStandard(received.message);
   fillMiniCard(receivedCard, received);
-  receivedToggle.hidden = !received.standard;
+  receivedToggle.hidden = !received.standard || received.standard === received.message;
   receivedView.showModal();
 }
 
