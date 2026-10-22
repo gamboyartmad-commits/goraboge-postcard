@@ -85,8 +85,8 @@
         <h2 class="scene-title" id="pickTitle" tabindex="-1" data-chars>당신의 마음을<br>제주어로 전해보세요</h2>
         <!-- 내 편지 쓰기: 누르면 아래에 편지 쓰는 칸(받는 사람 · 하고 싶은 말 · 보내는 사람)이 생김. 처음에는 엽서 템플릿 글만 -->
         <div class="pick-tools">
-          <!-- '이대로 보내기': 엽서 글을 제주어로 바꿔 바로 보내기 화면으로 (숨겨 둔 아래 #translateBtn을 누름) -->
-          <button type="button" class="translate-top-btn" id="translateTopBtn">이대로 보내기 <span aria-hidden="true">→</span></button>
+          <!-- '제주어로 바꾸기': 엽서 글을 제주어로 바꿔 바로 보내기 화면으로 (숨겨 둔 아래 #translateBtn을 누름) -->
+          <button type="button" class="translate-top-btn" id="translateTopBtn">제주어로 바꾸기 <span aria-hidden="true">→</span></button>
           <button type="button" class="write-open-btn" id="writeOpenBtn" aria-controls="writerPanel" aria-expanded="false"><span class="write-open-t" aria-hidden="true">T</span>내 편지 쓰기</button>
         </div>
         <!-- 고른 엽서: 입력칸 위치는 엽서 이미지(1920×1280)의 줄에 맞춰 style.css에서 %로 잡음.
@@ -160,7 +160,7 @@
                 <!-- 템플릿으로 바꾸기 전 글로 되돌리기 (직접 쓴 글이 있었을 때만 잠깐 보임) -->
                 <p class="template-undo" id="templateUndo" role="status" hidden><button type="button" class="text-btn" id="templateUndoBtn">← 방금 쓴 글로 되돌리기</button></p>
               </div>
-        <!-- 다 쓰면 바로 보내기: 위 '이대로 보내기'와 같은 동작 (쓰는 칸이 열릴 때만 함께 보임) -->
+        <!-- 다 쓰면 바로 보내기: 위 '제주어로 바꾸기'와 같은 동작 (쓰는 칸이 열릴 때만 함께 보임) -->
         <div class="writer-send">
           <button type="button" class="tale-btn is-primary" id="writerSendBtn">편지 보내기 <span aria-hidden="true">→</span></button>
         </div>
@@ -179,7 +179,7 @@
                   <button type="button" class="edit-alert-dismiss" id="editAlertDismiss">이대로 둘게요</button>
                 </div>
               </div>
-        <!-- 아래 '제주어로 바꾸기' 단추는 숨김(위 '이대로 보내기'가 대신). 동작은 이 단추에 그대로 있어 여러 곳에서 누름 -->
+        <!-- 아래 '제주어로 바꾸기' 단추는 숨김(위 '제주어로 바꾸기'가 대신). 동작은 이 단추에 그대로 있어 여러 곳에서 누름 -->
         <div class="write-actions" hidden>
           <button type="button" class="tale-btn is-primary" id="translateBtn">제주어로 바꾸기 <span aria-hidden="true">→</span></button>
         </div>
