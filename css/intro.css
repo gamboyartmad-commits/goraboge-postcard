@@ -9,8 +9,8 @@
 /* 0. 치수 · 상태 값 ---------------------------------------------------------- */
 .intro {
   --stage-h: 100vh; /* 화면 높이(모바일 주소창이 보일 때 기준) */
-  --intro-screens: 1.15; /* ✏️ 교체: 무대가 고정된 채 스크롤하는 길이(화면 높이의 몇 배) — 클수록 장면이 천천히 흐른다.
-                            (29차: 엽서가 펼쳐지는 장면을 되살려 0.85 → 1.15 — 처음 1.3 일 때와 같은 빠르기. js/intro.js 의 AT.end(88) 와 같은 비율) */
+  --intro-screens: 1.3; /* ✏️ 교체: 무대가 고정된 채 스크롤하는 길이(화면 높이의 몇 배) — 클수록 장면이 천천히 흐른다.
+                            (29차: 엽서가 펼쳐지는 장면을 되살려 0.85 → 1.15. 32차: 봉투 화면이 걷히는 장면을 더해 1.3 — js/intro.js 의 AT.end(100) 와 같은 비율) */
   --intro-scroll: calc(var(--stage-h) * var(--intro-screens));
   --env-w: min(78vw, 520px, 58vh); /* 봉투 폭 — 조각·엽서·글자 크기가 모두 이 값을 따른다(58vh: 낮은 화면에서 열린 뚜껑 끝이 화면 위로 잘리지 않는 한계) */
   --env-h: calc(var(--env-w) / 1.45);
@@ -63,6 +63,22 @@ html.motion-ok:not(.intro-static) .intro {
   --seal-y: 57%; /* 닫힌 뚜껑 끝 */
   --seal-w: 19%; /* ✏️ 교체: 스크롤 연출 첫 화면의 스티커 크기(봉투 폭 대비) */
   --seal-r: 0deg;
+  /* (32차) 아래 '엽서 쓰기'를 덮어 그린다. 무대 밖의 빈 자리는 비워 두고 눌리지 않게 */
+  z-index: 2;
+  background-color: transparent;
+  pointer-events: none;
+}
+
+/* (32차) 인트로가 끝나면 그 자리에 '엽서 쓰기'가 드러난다 — 아래로 미끄러져 내려가지 않는다(예전 메인 화면처럼).
+   다음 섹션('엽서 쓰기')을 무대 한 화면만큼 끌어올려 인트로의 마지막 한 화면 밑에 깔아 두고,
+   js/intro.js 의 마지막 장면(AT.reveal)에서 무대를 걷어 낸다 → 인트로 끝 = '엽서 쓰기' 맨 위.
+   scroll-margin-top: 위쪽 목차 · 주소의 #write 로 와도 인트로 끝에 서게(html 의 scroll-padding-top 을 되돌린다 — 섹션 위 여백이 목차보다 넓다) */
+html.motion-ok:not(.intro-static) .intro + * {
+  position: relative;
+  z-index: 1;
+  margin-top: -100vh;
+  margin-top: -100lvh;
+  scroll-margin-top: calc(-1 * (var(--topbar-space, 0px) + 0.5rem));
 }
 
 /* 1. 무대 · 책상 ------------------------------------------------------------- */
@@ -78,6 +94,7 @@ html.motion-ok:not(.intro-static) .intro__stage {
   height: 100vh;
   height: 100lvh;
   padding-top: 0;
+  pointer-events: auto;
 }
 
 /* 스크립트가 준비되기 전(또는 끝내 실행되지 않을 때)에는 CSS 가 대신 무대를 붙잡아 둔다 */

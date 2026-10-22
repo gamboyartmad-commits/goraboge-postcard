@@ -41,7 +41,9 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: var(--q-vh); /* 한 화면. 화면이 낮아 내용이 다 들어가지 않으면 내용 높이만큼 길어진다 */
+  /* (32차) 한 화면으로 늘이지 않는다 — 섹션 높이 = 내용 높이. 예전(min-height: 한 화면)에는 화면이 내용보다 높으면
+     제목 · 슬라이드 · 아이콘 줄 사이가 비었다(넓은 화면 = 제목 아래, 세로로 긴 창 = 슬라이드 아래).
+     사진 높이(--q-photo-h)가 화면 높이를 따르므로 보통 노트북 화면에서는 지금도 한 화면에 꼭 맞는다 */
   padding-top: var(--q-top);
   padding-bottom: var(--q-bottom);
 }
@@ -636,6 +638,34 @@
     margin-top: 0;
     padding-top: var(--space-4);
     border-top: 1.5px dashed color-mix(in srgb, var(--q-ink) 34%, transparent);
+  }
+}
+
+/* 6-5. (32차) 세로로 긴 화면(폭 600px 이상 · 세로 — 태블릿, 세로로 길게 연 PC 창): 휴대폰처럼 창 높이 = 지금 슬라이드 ----------
+   예전에는 큰 사진 · 가장 긴 슬라이드 기준의 최소 높이(--q-slide-min)로 창을 잡아 슬라이드 아래가 비었다.
+   넘길 때 창 높이가 부드럽게 바뀐다(js/quotes.js 의 resize — 높이를 바꾸는 시간 = --q-dur) */
+@media (min-width: 600px) and (orientation: portrait) {
+  .quotes {
+    --q-slide-min: 0px;
+  }
+
+  .quotes__list {
+    position: relative;
+  }
+
+  .quotes__item:not(.is-active) {
+    position: absolute;
+    inset: 0 0 auto;
+  }
+
+  .quotes__viewport {
+    flex: 0 0 auto;
+    transition: height var(--q-dur) var(--ease-out);
+  }
+
+  /* 사진 아래 동그라미 테두리가 아이콘 줄에 닿지 않게 */
+  .quotes__controls {
+    margin-top: var(--space-5);
   }
 }
 

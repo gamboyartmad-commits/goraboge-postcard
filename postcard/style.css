@@ -3288,11 +3288,12 @@ html.intro-open { overflow: hidden; }
 /* 쓰는 칸 아래 '편지 보내기' (쓰는 칸이 열려 있을 때만 보임) */
 .writer-send { display: flex; justify-content: center; margin: 22px 0 4px; }
 
-/* v7.11: 보내기 화면의 '← 편지 다시 쓰기'를 '제주어로 바꾸기'와 같은 짙은 알약 단추로(예전에는 작은 글자 단추라 잘 안 보였음) */
+/* v7.11: 보내기 화면의 '← 편지 다시 쓰기'를 '제주어로 바꾸기'와 같은 짙은 알약 단추로(예전에는 작은 글자 단추라 잘 안 보였음).
+   v7.12: '어떻게 보낼까요?' 위에 놓는다(index.html — 보내기 단추들 바로 위) */
 .send-back.translate-top-btn {
   display: flex;
   width: max-content;
-  margin: 16px auto 0;
+  margin: 0 auto 14px;
   background: var(--tale-dark);
   box-shadow: 0 6px 16px rgb(50 40 28 / 0.2);
   font-size: 15px;
@@ -3300,3 +3301,11 @@ html.intro-open { overflow: hidden; }
 }
 .send-back.translate-top-btn:hover { background: #4a433c; color: #fbf3e4; box-shadow: 0 6px 16px rgb(50 40 28 / 0.2); }
 
+/* v7.12: 보내기 화면에서 엽서 · '← 편지 다시 쓰기' · '어떻게 보낼까요?' · 보내기 단추 줄이 한 화면에 다 보이게.
+   엽서 그림의 폭을 화면 높이에 맞춰 줄인다: (화면 높이 − 위 제목과 아래 단추들 자리 470px) × 3/2(엽서 가로:세로), 최소 320px · 최대 680px.
+   화면이 아주 낮으면(최소 320px 보다 작아져야 할 때) 조금 내려 봐야 함 */
+.scene-send .final-card {
+  width: min(100%, clamp(320px, calc((100vh - 470px) * 1.5), 680px));
+  width: min(100%, clamp(320px, calc((100svh - 470px) * 1.5), 680px));
+  margin-block: 24px;
+}

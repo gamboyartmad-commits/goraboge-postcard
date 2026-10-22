@@ -20,7 +20,7 @@
 <link rel="preload" as="image" href="images/tale/prologue-sky.webp">
 <link rel="preload" as="font" type="font/woff2" href="fonts/BookkMyungjo-Bold.woff2?v=228" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="fonts/Griun-NeatHandwriting.woff2?v=228" crossorigin>
-<link rel="stylesheet" href="style.css?v=235">
+<link rel="stylesheet" href="style.css?v=236">
 </head>
 <body>
   <a class="skip-link" href="#scene2">바로 편지 쓰기로 건너뛰기</a>
@@ -238,6 +238,8 @@
             </div>
         </div>
         <dialog class="send-panel" id="sendPanel" aria-labelledby="sendTitle">
+                <!-- v7.11: 글자 단추 → 위 '제주어로 바꾸기'와 같은 짙은 알약 단추(잘 보이게). v7.12: '어떻게 보낼까요?' 위로(아래 보내기 단추들과 한 화면에) -->
+                <button type="button" class="translate-top-btn send-back" id="sendBack"><span aria-hidden="true">←</span> 편지 다시 쓰기</button>
                 <h3 class="send-title" id="sendTitle">어떻게 보낼까요?</h3>
                 <div class="send-hint" id="sendHint" hidden>
                   <p>아직 표준어 그대로예요. 제주어로 바꿔서 보낼까요?</p>
@@ -277,8 +279,6 @@
                   <button type="button" class="stitch-btn is-accent" id="newCardBtn" hidden>새 엽서 쓰기</button>
                   <button type="button" class="text-btn" id="viewBoardBtn" hidden>게시판에서 보기</button>
                 </div>
-                <!-- v7.11: 글자 단추 → 위 '제주어로 바꾸기'와 같은 짙은 알약 단추(잘 보이게) -->
-                <button type="button" class="translate-top-btn send-back" id="sendBack"><span aria-hidden="true">←</span> 편지 다시 쓰기</button>
               </dialog>
 
         <!-- 맨 끝: 웹진 하영 고라보게 홍보 띠 (간단하게 한 줄). 누르면 웹진이 새 탭으로.

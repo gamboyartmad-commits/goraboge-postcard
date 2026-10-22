@@ -1,10 +1,11 @@
 // intro.js — 1. 인트로: 봉투가 열리고 엽서가 꺼내져 화면 가운데에서 크게 펼쳐진다 (ScrollTrigger pin + scrub). 그다음은 '엽서 쓰기' 섹션
 // (27차: 메인 화면(엽서 앞면)을 지웠다. 29차: 엽서가 꺼내져 펼쳐지는 장면을 되살렸다 — 화면을 다 덮지 않고 엽서 앞면 그대로 크게.
-//  스티커 · 저절로 열기는 이 장면 끝에서 멈춘다 — 화면이 '엽서 쓰기'까지 저절로 내려가지 않는다)
+//  32차: 마지막 장면에서 봉투 화면이 걷히며 그 자리에 '엽서 쓰기'가 드러난다 — 예전 메인 화면처럼, 아래로 미끄러져 내려가지 않는다.
+//  '엽서 쓰기'는 스크롤 연출 동안 인트로의 마지막 한 화면 밑에 깔려 있다(css/intro.css '0.' 의 32차 규칙))
 // 움직일 수 있을 때(GSAP 있음 + '동작 줄이기' 꺼짐)만 핀·스크럽을 만들고,
 // 아니면 <html class="intro-static"> 을 붙여 css/intro.css 의 정적 배치(봉투 한 화면)로 보여 준다.
-// 여는 방법은 두 가지: (가) 스크롤 (나) 봉인 스티커(.intro__seal 단추)를 누른다 → 같은 연출이 재생되고 '엽서 쓰기' 섹션까지 이어서 내려간다(30차).
-// 가만히 있으면 저절로 열리는데(AUTO_OPEN), 이때는 펼쳐진 엽서에서 멈춘다(29차).
+// 여는 방법은 두 가지: (가) 스크롤 (나) 봉인 스티커(.intro__seal 단추)를 누른다 → 같은 연출이 끝까지 재생되고 '엽서 쓰기'가 드러난다(30 · 32차).
+// 가만히 있으면 저절로 열리는데(AUTO_OPEN), 이때는 펼쳐진 엽서에서 멈춘다(29차 — AT.hold).
 // 정적 배치에서는 스티커를 누르면 '엽서 쓰기' 섹션으로 바로 내려간다.
 
 import { t } from './i18n.js';
@@ -25,15 +26,19 @@ const AT = {
   riseEnd: 56.5, // 엽서가 주머니를 완전히 벗어남 → 이때부터 봉투 앞으로
   grow: 57, // 엽서가 화면 가운데로 오며 크게 펼쳐진다(봉투는 아래로 내려가며 사라진다)
   growEnd: 80,
-  end: 88, // 80 이후는 여유 — 펼쳐진 엽서를 잠깐 보여 준다. 이 수를 바꾸면 css/intro.css 의 --intro-screens 도 같은 비율로
+  hold: 82, // 펼쳐진 엽서를 잠깐 보여 준다 — 저절로 열기는 여기서 멈춘다
+  reveal: 84, // (32차) 봉투 화면이 걷히며 그 밑에 깔린 '엽서 쓰기'가 드러난다
+  revealEnd: 98,
+  end: 100, // 이 수를 바꾸면 css/intro.css 의 --intro-screens 도 같은 비율로(32차: 88 → 100, 1.15 → 1.3)
 };
 // ✏️ 교체: 펼쳐진 엽서의 크기 — 화면 폭의 몇 배 · 화면 높이의 몇 배 안에 들어가게(둘 중 작은 쪽)
 const OPEN_W = 0.86;
 const OPEN_H = 0.62;
 
-// ✏️ 교체: 봉인 스티커를 눌렀을 때 맨 위에서 인트로 끝(펼쳐진 엽서)까지 저절로 넘어가는 데 걸리는 시간(초).
+// ✏️ 교체: 맨 위에서 저절로 넘어가는 데 걸리는 시간(초) — 저절로 열기(펼쳐진 엽서까지) · 봉인 스티커(인트로 끝, '엽서 쓰기'가 드러날 때까지).
 //          중간에서 누르면 남은 거리만큼 짧아진다(가장 짧게는 PLAY_MIN 초)
 const PLAY_SECONDS = 2.2;
+const PLAY_SECONDS_END = 3;
 const PLAY_MIN = 0.8;
 // ✏️ 교체: 가만히 있으면 봉투가 저절로 열리기까지의 시간(밀리초). 광고(utm · gclid · fbclid)로 들어오면 더 빨리.
 //          저절로 열지 않으려면 AUTO_OPEN = false. '동작 줄이기' 설정에서는 열지 않는다(정적 화면 + 바로 보기 단추)
@@ -134,10 +139,6 @@ function buildScene(root, stage, html) {
       : (stage.offsetWidth - node.offsetLeft + pad) * reach;
   };
 
-  // 인트로 다음 섹션('엽서 쓰기')의 윗변이 화면 맨 위에 오는 스크롤 위치(섹션의 scroll-margin-top 만큼 덜) — 스티커 · 바로 보기가 여기로 간다
-  const next = root.nextElementSibling;
-  const nextTop = () => (next ? next.getBoundingClientRect().top + window.scrollY - (parseFloat(getComputedStyle(next).scrollMarginTop) || 0) : 0);
-
   const setIntro = (state) => { html.dataset.intro = state; };
   let tl = null;
   let flapOpen = null;
@@ -200,7 +201,7 @@ function buildScene(root, stage, html) {
     }
   };
 
-  /* 스티커로 열기: 창 스크롤을 지금 자리에서 인트로 끝까지 부드럽게 옮긴다 → 스크럽 타임라인이 그대로 재생된다(펼쳐진 엽서에서 멈춘다) */
+  /* 스티커로 열기: 창 스크롤을 지금 자리에서 인트로 끝까지 부드럽게 옮긴다 → 스크럽 타임라인이 그대로 재생된다 */
   // 포커스가 스티커 단추에 있을 때 스페이스로 멈추면, 손을 떼는 순간(keyup) 단추가 '눌린' 것으로 처리돼 다시 재생된다 → 그 한 번은 막는다
   let swallowSpaceUp = false;
   const isSpace = (event) => event.key === ' ' || event.key === 'Spacebar';
@@ -238,13 +239,14 @@ function buildScene(root, stage, html) {
     STOP_EVENTS.forEach((type) => window.removeEventListener(type, onUserInput));
   }
   // onDone = 끝까지 다 넘어갔을 때 부를 함수(도중에 사용자가 멈추면 부르지 않는다)
-  // toNext: 펼쳐진 엽서에서 멈추지 않고 '엽서 쓰기' 섹션까지 이어서 내려간다(봉인 스티커를 눌렀을 때 — 30차). 저절로 열기는 펼쳐진 엽서에서 멈춘다
-  function play(onDone, toNext = false) {
+  // toEnd: 인트로 끝까지 — 봉투 화면이 걷히고 '엽서 쓰기'가 그 자리에 드러난다(봉인 스티커 — 30 · 32차). 아니면 펼쳐진 엽서(AT.hold)에서 멈춘다(저절로 열기 — 29차)
+  // 끝 = st.end + 1: 핀이 확실히 풀려(onLeave) 인트로가 '끝남'으로 바뀌게
+  function play(onDone, toEnd = false) {
     const st = tl && tl.scrollTrigger;
     if (!st || auto || sealOff) return;
     // 스크롤 위치가 아니라 진행률(0~1)을 움직이고, 그때그때 인트로의 시작 · 끝 위치로 바꿔 스크롤한다
     // → 재생 중에 위치가 다시 계산되면(위 onResize) 새 자리에서 정확히 멈춘다
-    const goal = () => (toNext ? Math.max(st.end, nextTop()) : st.end);
+    const goal = () => (toEnd ? st.end + 1 : st.start + (st.end - st.start) * (AT.hold / AT.end));
     const span = () => Math.max(1, goal() - st.start);
     const from = Math.min(1, Math.max(0, (window.scrollY - st.start) / span()));
     if ((1 - from) * span() < 1) return;
@@ -253,7 +255,7 @@ function buildScene(root, stage, html) {
     const pos = { p: from };
     auto = gsap.to(pos, {
       p: 1,
-      duration: Math.max(PLAY_MIN, (toNext ? PLAY_SECONDS + 0.6 : PLAY_SECONDS) * (1 - from)),
+      duration: Math.max(PLAY_MIN, (toEnd ? PLAY_SECONDS_END : PLAY_SECONDS) * (1 - from)),
       ease: 'power1.inOut',
       onUpdate: () => window.scrollTo(0, st.start + span() * pos.p),
       onComplete: () => {
@@ -319,12 +321,17 @@ function buildScene(root, stage, html) {
       .to(el.envelope, { y: sink, rotation: 0, duration: 30, ease: 'power1.inOut' }, AT.rise);
 
     /* 4) 57–80%: 엽서가 봉투 앞으로 나와 화면 가운데로 오며 크게 펼쳐진다(살짝 기울었다가 반듯하게).
-          봉투는 아래로 내려가며 사라진다. 80 이후는 여유 → 핀이 풀리면 '엽서 쓰기'가 올라온다 */
+          봉투는 아래로 내려가며 사라진다. 80–84 는 여유(펼쳐진 엽서) */
     tl.to(el.card, { x: toCenterX, y: toCenterY, scale: openScale, rotation: 0, duration: AT.growEnd - AT.grow, ease: 'power2.inOut' }, AT.grow)
       .to(el.card, { rotationX: 14, transformPerspective: 900, duration: (AT.growEnd - AT.grow) / 2, ease: 'sine.out' }, AT.grow) // 종이가 펴지듯 살짝 젖혔다가
       .to(el.card, { rotationX: 0, transformPerspective: 900, duration: (AT.growEnd - AT.grow) / 2, ease: 'sine.in' }, (AT.grow + AT.growEnd) / 2) // 반듯하게
       .to([el.inside, el.flapWrap, el.pocket], { y: () => stage.offsetHeight * 0.5, opacity: 0, duration: 16, ease: 'power2.in' }, AT.grow + 2)
-      .to(optional('.intro__scroll'), { opacity: 0, duration: 6 }, AT.grow)
+      .to(optional('.intro__scroll'), { opacity: 0, duration: 6 }, AT.grow);
+
+    /* 5) 84–98%: (32차) 펼쳐진 엽서가 조금 더 다가오며 봉투 화면 전체가 걷히고, 그 밑에 깔려 있던 '엽서 쓰기'가 드러난다.
+          인트로 끝(100%) = '엽서 쓰기' 섹션의 맨 위 → 핀이 풀려도 화면이 아래로 미끄러지지 않는다 */
+    tl.to(el.card, { scale: () => openScale() * 1.06, duration: AT.revealEnd - AT.reveal, ease: 'sine.in' }, AT.reveal)
+      .to(stage, { autoAlpha: 0, duration: AT.revealEnd - AT.reveal, ease: 'power1.inOut' }, AT.reveal)
       .set({}, {}, AT.end); // 타임라인 길이를 AT.end 로 맞춘다
 
     sync();
@@ -334,10 +341,11 @@ function buildScene(root, stage, html) {
     throw err;
   }
 
-  // 바로 보기: 저절로 넘기기를 멈추고 '엽서 쓰기' 섹션으로 바로
+  // 바로 보기: 저절로 넘기기를 멈추고 인트로 끝('엽서 쓰기'가 드러난 자리)으로 바로
   function skip() {
     stopAuto();
-    window.scrollTo(0, nextTop());
+    const st = tl && tl.scrollTrigger;
+    if (st) window.scrollTo(0, st.end + 1);
   }
 
   return {
@@ -381,7 +389,7 @@ export function init(root) {
       cancelAutoOpen();
       track('intro_open', { method: 'seal' });
       if (scene) {
-        scene.play(focusTitle, true);   // 스티커: 엽서가 펼쳐진 뒤 '엽서 쓰기'까지 이어서(30차)
+        scene.play(focusTitle, true);   // 스티커: 엽서가 펼쳐진 뒤 봉투 화면이 걷히고 '엽서 쓰기'가 그 자리에(30 · 32차)
       } else if (next) {
         next.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
         focusTitle();
