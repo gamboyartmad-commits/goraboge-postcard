@@ -517,6 +517,17 @@ a:focus-visible { outline: 2px solid var(--tangerine); outline-offset: 3px; bord
 .interviews .sec-label { color: #ffc4a6; }
 .iv-nav a { background: rgba(30, 20, 14, .38); }
 
+/* (37차) 인터뷰로 내려갈 때 어색하지 않게(사용자): 위 종이의 찢어진 가장자리 아래가 검은 띠(--night #0E0D0C)였고 사진이 뚝 끊겨 시작했다 →
+   --night 를 인터뷰 섹션과 같은 밤색으로(찢어진 가장자리 두 곳 · 사진 바탕도 함께), 섹션 위 · 아래에 그라데이션을 깔아 사진이 서서히 나타나고 사라지게 */
+:root { --night: #3b2f27; }
+.interviews { position: relative; }
+.interviews::before,
+.interviews::after { content: ""; position: absolute; left: 0; right: 0; z-index: 1; pointer-events: none; }
+.interviews::before { top: 0; height: clamp(160px, 28vh, 300px); background: linear-gradient(#3b2f27 0%, rgba(59, 47, 39, .82) 32%, rgba(59, 47, 39, 0) 100%); }
+.interviews::after { bottom: 0; height: clamp(120px, 20vh, 220px); background: linear-gradient(rgba(59, 47, 39, 0) 0%, #3b2f27 100%); }
+.interviews > .wrap,
+.interview > .wrap { position: relative; z-index: 2; }
+
 /* 기사 끝: 웹진 홈으로(다음 기사 카드 아래) */
 .next__home { display: flex; justify-content: center; margin: clamp(28px, 5vh, 44px) 0 clamp(8px, 2vh, 16px); }
 .btn--home { display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 26px; border-radius: 999px;
@@ -811,7 +822,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="hy-footer__grid">
         <div>
           <p class="hy-footer__name"><img class="brand-logo" src="../assets/logo-hayeong.png" alt="하영 고라보게" width="860" height="556" loading="lazy" decoding="async"></p>
-          <p class="hy-footer__tagline">여러분은 그냥 쓰고, 남겨 주세요. 제주어를 많이 말하면 사라져가는 제주어를 지킬 수 있어요.</p>
+          <p class="hy-footer__tagline">제주어가 사라지고 있어요. 당신이 쓴 엽서 한 장이 제주어를 지킬 수 있어요. 제주어를 남겨 주세요.</p>
           <!-- (36차) 팀 인스타그램 -->
           <p class="hy-footer__sns"><a class="hy-footer__insta" href="https://www.instagram.com/jeju_goraboge/" target="_blank" rel="noopener" data-track-label="footer_instagram" aria-label="하영 고라보게 인스타그램 @jeju_goraboge (새 탭)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor"/></svg><span>@jeju_goraboge</span></a></p>
         </div>
@@ -834,7 +845,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
       <div class="hy-footer__bottom">
         <p class="hy-footer__links"><a class="hy-footer__privacy" href="../privacy.html">개인정보처리방침</a><a class="hy-footer__en" href="../en/" lang="en" hreflang="en">Welcome to Jeju (English)</a><a class="hy-footer__en" href="https://www.hankyung.com/travel">한경 트래블 메인</a></p>
-        <p>발행 [발행 연월 입력]</p>
+        <p>발행 2026년 10월</p>
         <p aria-hidden="true">JEJU · POSTCARD · VOL.01</p>
       </div>
     </div>

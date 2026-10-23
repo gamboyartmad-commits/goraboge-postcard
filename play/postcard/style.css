@@ -3321,10 +3321,10 @@ html.intro-open { overflow: hidden; }
 .story { height: 230svh; }
 
 /* 첫 화면 글이 더 빨리 다 보이게(약 2초) — 잠시 뒤 저절로 내려가므로 */
-@media (prefers-reduced-motion: no-preference) {   /* '동작 줄이기'는 위의 규칙대로 바로 보임 */
-  .prologue-main .ch { animation-duration: 0.8s; animation-delay: calc(var(--i) * 35ms + 150ms); }
-  .prologue-sub { animation: soft-rise 1s ease 0.9s forwards; }
-  .jump-btn { animation: soft-rise 0.8s ease 1.3s forwards; }
+@media (prefers-reduced-motion: no-preference) {   /* '동작 줄이기'는 위의 규칙대로 바로 보임. v7.17: 인트로 2.3초 — 글이 1초 안에 다 나타나게 */
+  .prologue-main .ch { animation-duration: 0.5s; animation-delay: calc(var(--i) * 20ms + 60ms); }
+  .prologue-sub { animation: soft-rise 0.6s ease 0.3s forwards; }
+  .jump-btn { animation: soft-rise 0.5s ease 0.5s forwards; }
 }
 
 /* 첫 화면 글: 하늘 쪽(위)에 — 편지 봉투를 가리지 않게 */
@@ -3348,6 +3348,8 @@ html.intro-open { overflow: hidden; }
 
 /* 내 사진 · 엽서 그림 고르기를 단추 바로 아래로 옮김 → 엽서와 간격 */
 .scene-pick .pick-tools + .picker { margin: 16px auto 18px; }
+/* v7.17: 템플릿 단추 줄이 엽서 그림 고르기 줄 바로 아래 → 그다음 엽서 */
+.scene-pick .picker + .letter-templates { margin: -6px auto 16px; }
 .strip-photo-label { font-size: 12px; line-height: 1.3; text-align: center; word-break: keep-all; padding: 0 6px; }
 
 /* 보내기 화면: '← 편지 다시 쓰기' 오른쪽에 돋보기 */

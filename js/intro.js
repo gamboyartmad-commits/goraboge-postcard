@@ -28,12 +28,13 @@ const AT = {
 const OPEN_W = 0.86;
 const OPEN_H = 0.62;
 
-// ✏️ 교체: 열리는 데 걸리는 시간(초). (36차 — 사용자: '속도를 더 당겨 이탈하지 않게' — 예전 스티커 3초 → 1.6초)
-const PLAY_SECONDS = 1.6;
+// ✏️ 교체: 열리는 데 걸리는 시간(초). (36차 — 사용자: '속도를 더 당겨 이탈하지 않게' — 예전 스티커 3초 → 1.6초.
+//          37차 — 사용자: '인트로를 2초로' → 가만히 있을 때 처음 화면 0.7초(AUTO_OPEN_MS) + 연출 1.3초 = 2초)
+const PLAY_SECONDS = 1.3;
 // ✏️ 교체: 가만히 있으면 봉투가 저절로 열리기까지의 시간(밀리초). 광고(utm · gclid · fbclid)로 들어오면 더 빨리.
 //          저절로 열지 않으려면 AUTO_OPEN = false. 편집 모드(?tune · ?edit · ?photo)에서는 열지 않는다
 const AUTO_OPEN = true;
-const AUTO_OPEN_MS = 1800;
+const AUTO_OPEN_MS = 700;
 const AUTO_OPEN_AD_MS = 700;
 // 손가락으로 위로 이만큼(px) 밀면 연다
 const SWIPE_PX = 24;

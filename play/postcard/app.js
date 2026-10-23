@@ -1551,6 +1551,8 @@ function siteUrl() {
 // v7.14: 웹진 「하영 고라보게」 첫 화면 주소 — 공유할 때 엽서와 함께 보냄(사용자: '웹진 링크도 같이').
 // config.js 의 WEBZINE_URL(통합본은 '../' = 같은 사이트의 웹진)을 전체 주소로
 const WEBZINE_NAME = '웹진 하영 고라보게';
+// v7.17: 카카오톡 · 메일로 보낼 때 엽서 아래에 붙는 한 줄(사용자 — 예전 '제주어로 엽서 적기 · 웹진 하영 고라보게')
+const SHARE_LINE = '제주어가 사라지고 있어요. 사라지지 않게 제주어 엽서를 남겨 보세요.';
 function webzineUrl() {
   try { return new URL((window.POSTCARD_CONFIG || {}).WEBZINE_URL || '../', location.href).href; } catch (e) { return ''; }
 }
@@ -1695,7 +1697,7 @@ async function shareToKakao() {
     objectType: 'feed',
     content: {
       title: arrivalTitle(post.to),
-      description: `제주어로 엽서 적기 · ${WEBZINE_NAME}`,
+      description: SHARE_LINE,   // v7.17: '제주어로 엽서 적기 · 웹진 하영 고라보게' → 사용자 문구
       imageUrl,
       imageWidth: 1920,
       imageHeight: 1280,
@@ -2470,8 +2472,9 @@ window.addEventListener('load', () => { measureStory(); requestStory(); });
 // 편지 쓰는 화면(SCENE 02)까지 저절로 내려간다(AUTO_SLIDE_MS 동안 — 그사이 카메라가 편지에 다가가고 엽서가 빠져나옴).
 // 손으로 스크롤 · 터치 · 키를 누르면 그 자리에서 멈추고 손에 맡긴다. '동작 줄이기'는 움직임 없이 바로.
 // 웹진에서 '제주어 엽서 써보기'로 온 사람(주소에 ?start=write)은 처음부터 편지 쓰기 화면, 받은 엽서 링크는 그 엽서가 먼저
-const AUTO_SLIDE_HOLD = 3000;   // 첫 화면 글(약 2초에 다 나타남)을 읽을 시간
-const AUTO_SLIDE_MS = 2600;
+// v7.17: 사용자 — '엽서 페이지 인트로도 너무 길다, 2.3초로' → 첫 화면 1초 + 내려가기 1.3초
+const AUTO_SLIDE_HOLD = 1000;   // 첫 화면 글은 1초 안에 다 나타난다(style.css v7.17)
+const AUTO_SLIDE_MS = 1300;
 const STOP_SLIDE = ['wheel', 'touchstart', 'keydown', 'pointerdown'];
 let slideTimer = 0;
 let slideFrame = 0;

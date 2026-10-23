@@ -20,7 +20,7 @@
 <link rel="preload" as="image" href="images/tale/desk-scene.webp">
 <link rel="preload" as="font" type="font/woff2" href="fonts/BookkMyungjo-Bold.woff2?v=228" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="fonts/Griun-NeatHandwriting.woff2?v=228" crossorigin>
-<link rel="stylesheet" href="style.css?v=237">
+<link rel="stylesheet" href="style.css?v=238">
 </head>
 <body>
   <a class="skip-link" href="#scene2">바로 편지 쓰기로 건너뛰기</a>
@@ -99,6 +99,13 @@
                 <div class="carousel" id="carousel" tabindex="0" aria-label="엽서 그림 고르기. 옆으로 넘기면 가운데 그림이 골라져요"></div>
               </div>
 
+        <!-- 엽서 템플릿 단추 줄 (v7.17: '내 사진 추가하기' · 엽서 그림 고르기 줄 바로 아래 — 사용자): 엽서를 고르면 그 엽서의 To · 편지 글이 바로 써짐
+             (app.js CARD_TEMPLATES). 모든 엽서에서 보임 -->
+        <div class="letter-templates" role="group" aria-labelledby="templateLabel" hidden>
+          <p class="letter-templates-label sr-only" id="templateLabel">이 엽서에 어울리는 글</p>   <!-- 화면에는 안 보임(읽어 주기용) -->
+          <div class="letter-templates-list" id="templateList"></div>
+        </div>
+
         <!-- 고른 엽서: 입력칸 위치는 엽서 이미지(1920×1280)의 줄에 맞춰 style.css에서 %로 잡음.
              '제주어로 바꾸기'를 누르면 엽서 위로 바람(.wind)이 스치고 글이 제주어로 바뀜 -->
         <div class="write-card" id="writeCard">
@@ -127,12 +134,6 @@
             <path d="M-40 280 C90 250 210 320 320 270 S530 230 660 290"/>
             <path d="M-40 160 C120 140 240 190 380 150 S560 130 660 160"/>
           </svg>
-        </div>
-        <!-- 엽서 템플릿 단추 줄 (엽서 바로 아래, 엽서 그림 고르기 위): 엽서를 고르면 그 엽서의 To · 편지 글이 바로 써짐
-             (app.js CARD_TEMPLATES). 모든 엽서에서 보임 -->
-        <div class="letter-templates" role="group" aria-labelledby="templateLabel" hidden>
-          <p class="letter-templates-label sr-only" id="templateLabel">이 엽서에 어울리는 글</p>   <!-- 화면에는 안 보임(읽어 주기용) -->
-          <div class="letter-templates-list" id="templateList"></div>
         </div>
         <!-- 내 사진을 넣었을 때만: 사진 크기 · 위치 단추 (엽서 왼쪽 그림 자리 안에서) -->
         <div class="photo-tools" id="photoTools" hidden>
@@ -425,7 +426,7 @@
     <!-- 단추는 팝업 아래에 늘 붙어 있음 (글을 스크롤하지 않아도 보임) -->
     <div class="intro-pop-foot">
       <button type="button" class="intro-pop-btn" id="introStart">
-        <span>제주어 엽서 써보기</span>
+        <span>제주어 웹진 보기</span>   <!-- v7.17: 누르면 웹진으로 가므로 이름도 -->
         <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M4 10h11M11 5.5 15.5 10 11 14.5"/></svg>
         <img class="intro-pop-btn-stamp" src="images/intro/stamp-citrus.webp" width="180" height="241" alt="">
       </button>
@@ -437,7 +438,7 @@
   <script src="jeju-dict.js?v=1"></script>
   <script src="translate.js?v=5"></script>
   <script src="badwords.js?v=1"></script>
-  <script src="app.js?v=239"></script>
+  <script src="app.js?v=240"></script>
 </body>
 
 </html>
