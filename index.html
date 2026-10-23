@@ -28,7 +28,9 @@
   <meta property="og:image" content="https://lxwebzine.hankyung.com/2026-1/team1/assets/og-image.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="엽서 모양 카드에 하영 고라보게 로고와 ‘여행은 지나가도, 글은 남으니까 · 제주에서만 만들 수 있는 엽서를 보내 보세요’ 문구, 뒤로 흐린 제주 바닷가">   <!-- 40차: 웹진메인 카드 · 공유 미리보기 그림 설명 -->
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image:alt" content="엽서 모양 카드에 하영 고라보게 로고와 ‘여행은 지나가도, 글은 남으니까 · 제주에서만 만들 수 있는 엽서를 보내 보세요’ 문구, 뒤로 흐린 제주 바닷가">
 
   <!-- 파비콘(감귤색 우표): .ico 는 SVG 아이콘을 못 읽는 브라우저용 -->
   <link rel="icon" href="favicon.ico" sizes="32x32">
@@ -133,8 +135,8 @@
               <!-- ✏️ 교체: 봉투 속 작은 엽서의 호수와 작은 로고(아래 큰 타이틀과 같은 그림 — 로고 파일을 바꾸면 src 를 함께 고친다) -->
               <div class="intro__card-face">
                 <span class="intro__card-vol">VOL.01</span>
-                <img class="intro__card-stamp" src="assets/intro/stamp-citrus.webp" alt="" width="478" height="640" decoding="async">
-                <img class="intro__card-logo" src="assets/logo-hayeong.png" alt="" width="860" height="556" decoding="async">
+                <img class="intro__card-stamp" src="assets/intro/stamp-citrus.webp" alt="귤 가지가 그려진 우표" width="478" height="640" decoding="async">
+                <img class="intro__card-logo" src="assets/logo-hayeong.png" alt="하영 고라보게 로고" width="860" height="556" decoding="async">
               </div>
             </div>
           </div>
@@ -158,7 +160,7 @@
           <!-- 봉인 스티커 = 동그란 스티커 안의 하영고라보게 로고(단추). 누르면 스크롤하지 않아도 봉투가 열리고 엽서가 나온다(js/intro.js 가 인트로 끝까지 저절로 스크롤한다).
                ✏️ 교체: 단추 이름(aria-label). 로고 파일을 바꾸면 src · width · height 도 -->
           <button type="button" class="intro__seal" aria-label="봉투 열기" aria-describedby="intro-hint" data-i18n-attr="aria-label:intro.seal-label">
-            <img class="intro__seal-logo" src="assets/logo-hayeong.png" alt="" width="860" height="556" decoding="async">
+            <img class="intro__seal-logo" src="assets/logo-hayeong.png" alt="하영 고라보게 로고 스티커" width="860" height="556" decoding="async">
           </button>
         </div>
 
@@ -224,7 +226,7 @@
                  data-open-maker 가 붙은 단추는 플로팅 배너와 같은 곳으로 간다(js/maker.js):
                  config.js 의 links.postcard 에 주소가 있으면 그 주소를 새 탭(새 창)으로 열고, 비어 있으면 변환 창을 연다 -->
             <div class="write__cta">
-              <button type="button" class="write__btn" data-open-maker data-track-location="write" aria-haspopup="dialog" aria-describedby="write-cta-note"><span class="write__btn-text" data-i18n="write.cta" data-edit="write-cta">제주어 엽서 써보기</span><svg class="write__btn-icon" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M8 4.5H4.5v11h11V12M11 4.5h4.5V9M15.2 4.8 9 11"/></svg><img class="write__btn-stamp" src="assets/intro/stamp-citrus.webp" alt="" width="478" height="640" decoding="async" loading="lazy"></button>
+              <button type="button" class="write__btn" data-open-maker data-track-location="write" aria-haspopup="dialog" aria-describedby="write-cta-note"><span class="write__btn-text" data-i18n="write.cta" data-edit="write-cta">제주어 엽서 써보기</span><svg class="write__btn-icon" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M8 4.5H4.5v11h11V12M11 4.5h4.5V9M15.2 4.8 9 11"/></svg><img class="write__btn-stamp" src="assets/intro/stamp-citrus.webp" alt="귤 가지가 그려진 우표" aria-hidden="true" width="478" height="640" decoding="async" loading="lazy"></button>
               <p class="write__cta-note" id="write-cta-note" data-i18n="write.cta-note" data-edit="write-cta-note">누르면 제주어 엽서 쓰기 페이지로 넘어가요.</p>
             </div>
           </div>

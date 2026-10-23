@@ -15,6 +15,7 @@
 <meta property="og:image" content="https://lxwebzine.hankyung.com/2026-1/team1/play/postcard/images/og-start.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="제주 바다와 들판 그림 위에 ‘지금, 생각나는 사람이 있나요? 전하지 못한 마음이 있다면 제주의 바람에 살며시 실어보세요.’ 문구와 ‘바로 편지 쓰기’ 단추">   <!-- v7.19 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="images/tale/desk-scene.webp">
@@ -56,12 +57,12 @@
           <!-- 색연필 그림(images/tale, _tools/build_tale_art.py): 돌담 옆 책상 위의 편지 — 뒤로 바다와 들판.
                v7.16: 첫 화면부터 이 그림(사용자가 고른 첫 화면). 예전 첫 장면(제주 풍경 — 하늘 · 땅 · 풀밭 세 층)은 뺐다 -->
           <div class="world" id="world" aria-hidden="true">
-            <img class="art art-desk" id="artDesk" src="images/tale/desk-scene.webp" alt="" width="1122" height="1402" fetchpriority="high">
+            <img class="art art-desk" id="artDesk" src="images/tale/desk-scene.webp" alt="바다가 보이는 들판에 놓인 나무 책상 그림" width="1122" height="1402" fetchpriority="high">
             <!-- 실제 편지: 봉투 뒷면 · 고른 엽서 · 앞주머니(귤 봉인) 세 겹. 펼쳐지면 엽서가 위로 빠져나옴 -->
             <div class="letter" id="letter">
-              <img class="letter-layer" src="images/tale/letter-back.webp" alt="">
-              <img class="letter-card" id="letterCard" src="images/card-01.webp?v=3" alt="">
-              <img class="letter-layer" src="images/tale/letter-front.webp" alt="">
+              <img class="letter-layer" src="images/tale/letter-back.webp" alt="열린 편지 봉투 뒤쪽">
+              <img class="letter-card" id="letterCard" src="images/card-01.webp?v=3" alt="봉투에 든 엽서 — 해녀가 헤엄치는 바다">
+              <img class="letter-layer" src="images/tale/letter-front.webp" alt="귤 스티커를 붙인 편지 봉투 앞쪽">
             </div>
           </div>
 
@@ -92,7 +93,7 @@
                 <input type="file" id="photoInput" accept="image/*" hidden>
                 <div class="photo-slot">
                   <button type="button" class="strip-item strip-photo" id="photoTile" aria-pressed="false">
-                    <img id="photoThumb" alt="" hidden>
+                    <img id="photoThumb" alt="내가 넣은 사진" hidden>
                     <span class="strip-photo-label" id="photoLabel"><b>+</b>내 사진 추가하기</span>
                   </button>
                 </div>
@@ -112,7 +113,7 @@
           <div class="card" id="card">
                     <img id="cardImage" src="images/card-01.webp?v=3" alt="해녀가 헤엄치는 바다 엽서">
                     <!-- 직접 넣은 사진은 엽서 왼쪽 그림 자리(960×1280)를 덮음 -->
-                    <img id="cardPhoto" alt="" hidden>   <!-- 넣은 사진 원본 (화면에는 아래 캔버스로 그림) -->
+                    <img id="cardPhoto" alt="엽서에 넣은 내 사진" hidden>   <!-- 넣은 사진 원본 (화면에는 아래 캔버스로 그림) -->
                     <canvas id="cardPhotoView" class="card-photo" width="960" height="1280" role="img" aria-label="직접 넣은 사진. 끌어서 옮기고, 두 손가락으로 벌리거나 아래 + − 단추로 크기를 바꿀 수 있어요" hidden></canvas>
                     <label class="card-field card-to">
                       <span class="sr-only">받는 사람</span>
@@ -126,7 +127,7 @@
                     <div class="card-field card-date" id="cardDate" aria-label="쓴 날짜"></div>
                     <!-- 엽서 안 글 바로 아랫줄(8줄을 다 채우면 From 줄 밑): 누르면 지금 엽서 글 그대로 아래 편지 쓰는 칸으로 -->
                     <button type="button" class="card-edit-btn" id="cardEditBtn" aria-controls="writerPanel"><span class="write-open-t" aria-hidden="true">T</span>메시지 편집</button>
-                              <img class="card-stamp" id="cardStamp" src="images/stamp-goraboge.png?v=2" alt="" aria-hidden="true" hidden>
+                              <img class="card-stamp" id="cardStamp" src="images/stamp-goraboge.png?v=2" alt="하영 고라보게 소인" aria-hidden="true" hidden>
                   </div>
           <svg class="wind" id="wind" viewBox="0 0 600 400" preserveAspectRatio="none" aria-hidden="true">
             <path d="M-40 120 C80 80 180 150 300 110 S520 70 660 120"/>
@@ -195,7 +196,7 @@
         <h2 class="scene-title" id="sendSecTitle" tabindex="-1" data-chars>이제, 마음을 전할 시간이에요.</h2>
         <figure class="final-card" id="finalCard">
           <img class="final-image" id="finalImage" alt="완성된 제주어 엽서">
-          <img class="final-postmark" id="finalPostmark" src="images/stamp-goraboge.png?v=2" alt="" aria-hidden="true">
+          <img class="final-postmark" id="finalPostmark" src="images/stamp-goraboge.png?v=2" alt="하영 고라보게 소인" aria-hidden="true">
         </figure>
 
         <!-- 제주어 편지 고치기: 눌러서 펼침. 표준어 원문 · 제주어 결과(둘 다 고칠 수 있음) · 다시 바꾸기. 고치면 위 엽서에 바로 반영 -->
@@ -286,7 +287,7 @@
         <!-- 맨 끝: 웹진 하영 고라보게 홍보 띠 (간단하게 한 줄). 누르면 웹진이 새 탭으로.
              그림은 웹진 인터뷰 그림 (_tools/build_promo_assets.py → images/promo/) -->
         <a class="webzine-promo" href="https://claude.ai/artifact/3EHktt3KU8zWRdGv1MFnvC" target="_blank" rel="noopener" data-webzine-link="promo">
-          <img class="promo-thumb" src="images/promo/interview-02.webp" width="720" height="540" loading="lazy" alt="">
+          <img class="promo-thumb" src="images/promo/interview-02.webp" width="720" height="540" loading="lazy" alt="노을 지는 제주 바닷가 돌담 곁에서 할머니의 이야기를 녹음하며 귀 기울이는 두 사람을 그린 그림" aria-hidden="true">
           <span class="promo-text">
             <span class="promo-eyebrow">웹진 하영 고라보게</span>
             <b>제주어 이야기, <span class="nowrap">더 읽어 볼까요?</span></b>
@@ -302,8 +303,8 @@
       <div class="book-page" id="pageEnd" hidden>
       <section class="scene scene-end" id="ending" aria-labelledby="endTitle" hidden>
         <div class="end-sky" aria-hidden="true">
-          <img class="end-art" src="images/tale/prologue-sky.webp" alt="" loading="lazy">
-          <img class="fly-letter" id="flyLetter" src="images/tale/letter-full.webp" alt="" loading="lazy">
+          <img class="end-art" src="images/tale/prologue-sky.webp" alt="구름 낀 하늘 아래 제주 바다와 억새 들판 그림" loading="lazy">
+          <img class="fly-letter" id="flyLetter" src="images/tale/letter-full.webp" alt="엽서가 든 편지 봉투" loading="lazy">
         </div>
         <p class="end-text" id="endTitle"><span>당신의 마음이 닿는 곳에,</span><span>제주어도 함께 닿기를.</span></p>
         <img class="end-logo" src="images/logo-goraboge.png" alt="하영 고라보게" width="398" height="259">
@@ -428,7 +429,7 @@
       <button type="button" class="intro-pop-btn" id="introStart">
         <span>제주어 웹진 보기</span>   <!-- v7.17: 누르면 웹진으로 가므로 이름도 -->
         <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M4 10h11M11 5.5 15.5 10 11 14.5"/></svg>
-        <img class="intro-pop-btn-stamp" src="images/intro/stamp-citrus.webp" width="180" height="241" alt="">
+        <img class="intro-pop-btn-stamp" src="images/intro/stamp-citrus.webp" width="180" height="241" alt="귤 가지가 그려진 우표" aria-hidden="true">
       </button>
     </div>
   </dialog>
@@ -438,7 +439,7 @@
   <script src="jeju-dict.js?v=1"></script>
   <script src="translate.js?v=5"></script>
   <script src="badwords.js?v=1"></script>
-  <script src="app.js?v=241"></script>
+  <script src="app.js?v=242"></script>
 </body>
 
 </html>

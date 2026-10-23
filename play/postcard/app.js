@@ -101,6 +101,7 @@ function selectCard(index) {
 function syncPreview() {
   const letterCard = document.getElementById('letterCard');
   if (letterCard && letterCard.getAttribute('src') !== cardImage.getAttribute('src')) letterCard.src = cardImage.getAttribute('src');
+  if (letterCard) letterCard.alt = `봉투에 든 엽서 — ${CARDS[currentCard].alt}`;   // v7.19: 대체텍스트도 고른 엽서로
 }
 
 const tileCenter = (k) => cardTiles[k].offsetLeft + cardTiles[k].offsetWidth / 2;
@@ -1819,7 +1820,7 @@ function fillMiniCard(el, post) {
     <div class="card-field card-message"></div>
     <div class="card-field card-from"></div>
     <div class="card-field card-date"></div>
-    <img class="mini-stamp" src="images/stamp-goraboge.png?v=2" alt="">`;
+    <img class="mini-stamp" src="images/stamp-goraboge.png?v=2" alt="하영 고라보게 소인">`;
   // 글은 textContent로 넣어서 나중에 사람들이 쓴 글이 들어와도 HTML로 해석되지 않게 함
   el.querySelector('.card-to').textContent = post.to;
   fitToField(el.querySelector('.card-to'), post.to);

@@ -35,6 +35,7 @@ GitHub Pages(Settings → Pages → Branch `main` · `/ (root)`) 주소 https://
 - **카카오톡 공유**: 카카오 개발자 사이트 → 앱 '하영고라보게'에 `https://lxwebzine.hankyung.com` 을 **두 곳** 등록해야 해요 — 플랫폼 → Web 의 사이트 도메인(JavaScript SDK 도메인), 제품 링크 관리 → 웹 도메인. 없으면 이 주소에서 카카오톡 보내기가 '도메인이 맞지 않음'으로 거절돼요.
 - **메일 보내기**: `play/postcard/` 의 메일은 구글 Apps Script 가 보냅니다. 코드 = `제주어 엽서 사이트/_tools/mail_script.gs`(팀 작업 폴더) — 고친 뒤 script.google.com 에서 다시 배포(배포 관리 → 새 버전).
 - **성과 측정**: Google 태그 관리자 `GTM-K97VS62N` 이 웹진의 모든 쪽 `<head>` · `<body>` 에 들어 있고, 엽서 사이트(`play/postcard/config.js` 의 `GTM_ID`)도 같은 컨테이너를 불러요. 이벤트 목록은 `README-webzine.md` 의 '성과 측정'.
+- **웹진메인 카드**: 한경 웹진 메인(`/2026-1/`)은 이 폴더의 `webzine.json` 을 읽어 카드를 만들어요(이름 · 큰 문구 · 설명 · 가로 사진 `assets/card/card-wide.jpg` · 세로 4:5 사진 `assets/card/card-tall.jpg` · 사진 설명 · 기사). 카드 문구나 사진을 바꾸려면 이 파일을 고치면 돼요.
 - **엽서 게시판**: Supabase 주소와 공개용 키는 `play/postcard/config.js`(공개돼도 되는 키만).
 - 하위 폴더 주소가 `/` 로 끝나면 그 폴더의 `index.html` 을 열어 주도록(일반 웹 서버의 기본값) 해 주세요 — `play/postcard/` · `en/` · `postcard/`.
 

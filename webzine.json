@@ -1,0 +1,32 @@
+{
+  "name": "하영 고라보게",
+  "title": "제주어가 사라지고 있어요",
+  "lead": "사라져 가는 제주어를 지키는 사람들의 목소리와 인터뷰, 제주어로 쓰는 엽서, 제주어 상호 지도 100곳을 담은 웹진",
+  "image": "assets/card/card-wide.jpg",
+  "image45": "assets/card/card-tall.jpg",
+  "alt": "바다와 오름, 풀밭이 어우러진 제주 풍경",
+  "href": "index.html",
+  "articles": [
+    {
+      "title": "제주어를 잇고 지키는 세 사람",
+      "kicker": "인터뷰",
+      "href": "articles/interview01.html",
+      "image": "assets/interviews/interview-01-thumb.jpg",
+      "alt": "제주어 자료와 지도, 책을 펼쳐 놓은 책상에 둘러앉아 이야기를 나누는 네 사람을 그린 그림"
+    },
+    {
+      "title": "제주어를 쓰는 두 사람",
+      "kicker": "인터뷰",
+      "href": "articles/interview02.html",
+      "image": "assets/interviews/interview-02-thumb.jpg",
+      "alt": "노을 지는 제주 바닷가 돌담 곁에서 할머니의 이야기를 녹음하며 귀 기울이는 두 사람을 그린 그림"
+    },
+    {
+      "title": "제주어 엽서 써보기",
+      "kicker": "엽서",
+      "href": "play/postcard/",
+      "image": "assets/write/example-01.jpg",
+      "alt": "나에게 보내는 제주어 예시 엽서 — 턱을 괴고 엽서를 쓰는 사람 그림 옆에 제주어 글"
+    }
+  ]
+}

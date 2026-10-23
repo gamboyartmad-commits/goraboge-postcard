@@ -127,7 +127,7 @@ function itemHTML(q, i, total) {
 // 인물 아이콘(누르면 그 사람의 슬라이드로)
 function thumbHTML(q, i) {
   const src = q.thumb || q.photo;
-  const face = src ? `<img src="${src}" alt="" loading="lazy" decoding="async">` : i + 1;
+  const face = src ? `<img src="${src}" alt="${q.photoAlt}" loading="lazy" decoding="async">` : i + 1;   // 40차: 인물 아이콘에도 대체텍스트(단추 이름은 aria-label)
   const style = q.facePos && !q.thumb ? ` style="${q.facePos}"` : '';
   return `
     <li>

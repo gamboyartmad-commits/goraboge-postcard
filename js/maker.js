@@ -301,7 +301,7 @@ function watchSize(card, onFit = () => {}) {
 // 플로팅 버튼: 짙은 알약에 두 줄 글자(제목 · 작은 설명) + 오른쪽 위로 삐져나온 우표('인트로 사진/우표'). 이름은 위의 TEXT.fab. ✏️ 우표 그림을 바꾸려면 아래 src
 // link 가 있으면(바깥 링크 모드) 그 주소를 새 탭으로 여는 링크로, 없으면 변환 창을 여는 단추로 만든다
 const fabInner = () => `<span class="fab__text" aria-hidden="true"><b class="fab__title">${escapeHTML(TEXT.fab)}</b><span class="fab__sub">${escapeHTML(TEXT.fabSub)}</span></span>
-  <img class="fab__stamp" src="${STAMP_SRC}" alt="" width="478" height="640" decoding="async">`;
+  <img class="fab__stamp" src="${STAMP_SRC}" alt="귤 가지가 그려진 우표" width="478" height="640" decoding="async">`;
 const fabHTML = (link = '', newTab = true) =>
   link && !newTab
     ? `<a class="fab" href="${escapeHTML(link)}" data-track-cta data-track-location="fab" aria-label="${escapeHTML(TEXT.fab)}">
@@ -561,7 +561,7 @@ function initZoom(box) {
     layer.innerHTML = `
       <div class="zoom__backdrop" data-zoom-close></div>
       <figure class="zoom__figure">
-        <picture><source class="zoom__source" media="(max-width: 599px)"><img class="zoom__img" alt="" decoding="async"></picture>
+        <picture><source class="zoom__source" media="(max-width: 599px)"><img class="zoom__img" alt="크게 본 예시 엽서" decoding="async"></picture>
       </figure>
       <button type="button" class="zoom__btn zoom__close" data-zoom-close aria-label="${escapeHTML(TEXT.zoomClose)}">${ZOOM_ICON.close}</button>
       ${many ? `<button type="button" class="zoom__btn zoom__nav zoom__nav--prev" data-zoom-step="-1" aria-label="${escapeHTML(TEXT.zoomPrev)}">${ZOOM_ICON.prev}</button>
