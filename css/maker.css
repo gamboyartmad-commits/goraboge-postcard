@@ -8,10 +8,13 @@
    ✏️ 교체: 플로팅 버튼의 크기와 화면 가장자리 여백 */
 :root {
   --fab-size: 3.75rem; /* 버튼 높이 */
-  --fab-gap: clamp(1rem, 0.62rem + 1.6vw, 1.75rem); /* 화면 오른쪽 · 아래 가장자리와의 간격 */
-  /* 버튼이 차지하는 높이(버튼 + 아래 여백). 화면 오른쪽 아래에 놓이는 다른 요소(인용 섹션의 순번 쪽지 등)가
-     이만큼 위로 비켜난다 — css/quotes.css · css/intro.css 가 읽는다 */
-  --fab-clear: calc(var(--fab-size) + var(--fab-gap) + env(safe-area-inset-bottom, 0px));
+  --fab-gap: clamp(0.75rem, 0.5rem + 0.8vw, 1.25rem); /* 화면 오른쪽 가장자리와의 간격(36차: 더 오른쪽으로) */
+  /* (36차) 화면 아랫변에서 버튼 아랫변까지 — 화면 높이의 약 20% 위(사용자: '너무 아래라 눌러 보고 싶지 않다').
+     휴대폰은 브라우저 아래 막대에 가리지 않는 높이 */
+  --fab-bottom: clamp(5rem, 20vh, 11rem);
+  /* 페이지 맨 아래의 여백(예전에는 오른쪽 아래 구석의 버튼을 비켜 두는 높이였다 — 36차부터 버튼이 위로 올라가 작게).
+     css/quotes.css · css/interviews.css · 푸터가 읽는다 */
+  --fab-clear: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
   /* 버튼의 폭 — 글자에 따라 달라지므로 js/maker.js 가 실제 폭을 재서 <html> 에 적어 준다(--fab-w). 이 값을 직접 고칠 일은 없다 */
 }
 
@@ -46,7 +49,7 @@
   --fab-ink: #fffaf0;
   position: fixed;
   right: calc(var(--fab-gap) + env(safe-area-inset-right, 0px));
-  bottom: calc(var(--fab-gap) + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--fab-bottom) + env(safe-area-inset-bottom, 0px));
   z-index: var(--z-fab);
   display: inline-flex;
   align-items: center;
@@ -167,28 +170,8 @@ html.maker-open .fab {
   transition: opacity 0.25s, translate 0.25s, visibility 0s 0.25s;
 }
 
-/* 휴대폰: '제주어 엽서 써보기' 단추(엽서 쓰기 섹션)가 화면에 보이는 동안에도 숨는다(js 가 <html class="write-in-view"> 를 붙인다).
-   그 단추가 화면 폭을 다 써서 버튼이 그 위에 얹히고, 같은 창을 여는 단추가 한 화면에 둘이 되기 때문.
-   키보드 포커스가 버튼에 있을 때는 숨기지 않는다 */
-@media (max-width: 767px) {
-  html.write-in-view .fab:not(:focus-visible) {
-    opacity: 0;
-    visibility: hidden;
-    translate: 0 1.25rem;
-    pointer-events: none;
-    transition: opacity 0.25s, translate 0.25s, visibility 0s 0.25s;
-  }
-}
-
-/* 버튼 자리에 눌러야 하는 단추가 들어와 있는 동안에도 숨는다(인용 섹션의 아래 단추 줄 — HTML 의 data-fab-avoid.
-   js 가 <html class="fab-avoid"> 를 붙인다). 모든 화면 폭. 키보드 포커스가 버튼에 있을 때는 숨기지 않는다 */
-html.fab-avoid .fab:not(:focus-visible) {
-  opacity: 0;
-  visibility: hidden;
-  translate: 0 1.25rem;
-  pointer-events: none;
-  transition: opacity 0.25s, translate 0.25s, visibility 0s 0.25s;
-}
+/* (36차) 예전에는 '엽서 쓰기' 단추가 보일 때(휴대폰) · 다른 단추와 겹칠 때도 숨었는데, 스크롤하면 깜빡이며 사라져 뺐다(사용자 — '계속 고정되어 뜨게').
+   이제 숨는 때는 위의 두 경우(인트로 · 엽서 쓰기 창)뿐이다 */
 
 /* Tab 으로 화면 아래쪽 요소에 갔을 때 브라우저가 그 요소를 버튼 위까지만 올려 보이게(버튼에 가리지 않게) */
 html {
@@ -1609,6 +1592,12 @@ html.maker-open {
   margin-top: var(--space-6);
 }
 
+/* (36차) 견본 엽서 · 크게 본 엽서를 좌우로 밀어 넘긴다(js/maker.js 의 onSwipe) — 세로로 미는 손가락은 페이지 스크롤로 */
+.write__examples,
+.zoom__figure {
+  touch-action: pan-y;
+}
+
 /* 7-9. (33차) 맨 아래 엽서 쓰기(#write-again) — 지도 다음 · 푸터 바로 위. 엽서 한 장(34차: 항공우편 줄무늬 테두리를 뺐다 — 사용자)
    왼쪽 글 세 줄 + '제주어 엽서 써보기' 단추(위 '엽서 쓰기'와 같은 .write__btn), 오른쪽 감귤 우표. 휴대폰은 우표를 엽서 오른쪽 위 모서리에 */
 .write-again {
@@ -1912,9 +1901,7 @@ html.maker-open {
 
   /* 숨을 때도 미끄러지지 않고 바로(위의 숨는 규칙이 더 구체적이라 따로 적는다) */
   html[data-intro="active"] .fab,
-  html.maker-open .fab,
-  html.write-in-view .fab:not(:focus-visible),
-  html.fab-avoid .fab:not(:focus-visible) {
+  html.maker-open .fab {
     transition: none;
     translate: none;
   }

@@ -96,7 +96,7 @@ function initWithData(name, initFn, root, result) {
 }
 
 // 위쪽 고정 목차(index.html 의 <nav data-topbar>): 지금 화면 가운데에 걸친 섹션의 링크에 aria-current 를 단다.
-// 인트로(메인 화면까지)를 다 지나 첫 섹션의 윗변이 목차 아래에 닿으면 <html class="past-intro"> — CSS 가 이때 목차와 주황 테두리를 보여 준다
+// 인트로를 다 지나(36차: 인트로가 걷히면 — js/intro.js 가 scroll 신호를 보낸다) 첫 섹션의 윗변이 목차 아래에 닿으면 <html class="past-intro"> — CSS 가 이때 목차와 주황 테두리를 보여 준다
 function initTopbar() {
   const bar = document.querySelector('[data-topbar]');
   const first = document.getElementById('write');
@@ -106,7 +106,8 @@ function initTopbar() {
   const check = () => {
     ticking = false;
     const space = bar.offsetHeight + bar.offsetTop;
-    html.classList.toggle('past-intro', Boolean(first) && first.getBoundingClientRect().top <= space + 1);
+    // (36차) 인트로가 화면을 덮고 있는 동안은 아니다('엽서 쓰기'가 처음부터 페이지 맨 위에 있어도)
+    html.classList.toggle('past-intro', html.dataset.intro !== 'active' && Boolean(first) && first.getBoundingClientRect().top <= space + 1);
   };
   const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(check); } };
   window.addEventListener('scroll', onScroll, { passive: true });

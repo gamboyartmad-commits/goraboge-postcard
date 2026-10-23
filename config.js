@@ -21,7 +21,7 @@ window.JEJU_CONFIG = {
     //          (30차) 팀의 '제주어로 엽서 적기' 사이트(GitHub Pages — 원본은 작업 폴더 '제주어 엽서 사이트/').
     //          웹진의 엽서 단추는 모두 웹진 안 '엽서 쓰러가기' 쪽(play/postcard/)으로 가고, 그 쪽이 이 사이트를 화면 가득 띄운다.
     //          엽서 사이트 안에서 누른 단추 · 보낸 방법 · 머문 시간은 웹진의 GA4 로 함께 잰다(js/play.js ↔ 엽서 사이트 track.js)
-    postcard: 'postcard/',   // GitHub 통합본: 같은 사이트 안의 엽서 사이트(.work/github/build.py)
+    postcard: 'play/postcard/',   // 통합본: 이 사이트의 play/postcard/ 가 엽서 사이트 자체(.work/github/build.py)
     // 엽서 쓰러가기 쪽에서 엽서 사이트를 여는 방식: 'frame' = 쪽 안에 화면 가득 띄움(실제 사이트) · 'link' = '엽서 사이트 열기' 큰 단추(새 탭).
     //          claude.ai 공유 링크는 다른 사이트를 페이지 안에 띄우지 못해서 발행용 사본만 'link' 로 바꾼다(.work/publish/build.py)
     postcardOpen: 'frame',

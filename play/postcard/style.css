@@ -3309,3 +3309,141 @@ html.intro-open { overflow: hidden; }
   width: min(100%, clamp(320px, calc((100svh - 470px) * 1.5), 680px));
   margin-block: 24px;
 }
+
+/* =====================================================================
+   v7.16 (2026-10-23)
+   ===================================================================== */
+
+/* 첫 화면: 처음부터 책상 그림(편지가 놓인 책상 · 뒤로 바다와 들판). 예전 첫 장면(제주 풍경)은 뺐다.
+   이야기 길이를 줄였다(스크롤하지 않아도 app.js 의 '저절로 내려가기'가 편지 쓰는 화면까지 데려간다) */
+.art-desk { opacity: 1; }
+.letter { opacity: 1; }
+.story { height: 230svh; }
+
+/* 첫 화면 글이 더 빨리 다 보이게(약 2초) — 잠시 뒤 저절로 내려가므로 */
+@media (prefers-reduced-motion: no-preference) {   /* '동작 줄이기'는 위의 규칙대로 바로 보임 */
+  .prologue-main .ch { animation-duration: 0.8s; animation-delay: calc(var(--i) * 35ms + 150ms); }
+  .prologue-sub { animation: soft-rise 1s ease 0.9s forwards; }
+  .jump-btn { animation: soft-rise 0.8s ease 1.3s forwards; }
+}
+
+/* 첫 화면 글: 하늘 쪽(위)에 — 편지 봉투를 가리지 않게 */
+.story-copy {
+  place-content: start center;
+  padding: max(84px, 11svh) 24px 0;
+}
+@media (min-width: 720px) {
+  .story-copy { padding-top: max(96px, 9svh); }
+}
+
+/* '당신의 마음을 제주어로 전해보세요' 아래 아주 작은 설명 */
+.scene-desc {
+  margin: -6px auto 14px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  color: var(--tale-soft, #7a6c5c);
+  text-align: center;
+}
+
+/* 내 사진 · 엽서 그림 고르기를 단추 바로 아래로 옮김 → 엽서와 간격 */
+.scene-pick .pick-tools + .picker { margin: 16px auto 18px; }
+.strip-photo-label { font-size: 12px; line-height: 1.3; text-align: center; word-break: keep-all; padding: 0 6px; }
+
+/* 보내기 화면: '← 편지 다시 쓰기' 오른쪽에 돋보기 */
+.send-back-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 0 auto 14px;
+}
+.send-back-row .send-back.translate-top-btn { margin: 0; order: 0; }
+.send-back-row .letter-zoom-btn { order: 1; }   /* 예전 휴대폰 규칙(.send-back { order: 7 })이 돋보기를 왼쪽으로 보내지 않게 */
+/* 홍보 띠 제목: '더 읽어 볼까요?'는 한 줄로 */
+.webzine-promo .nowrap { white-space: nowrap; }
+.letter-zoom-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--tale-dark);
+  box-shadow: 0 6px 16px rgb(50 40 28 / 0.2);
+  color: #fbf3e4;
+  cursor: pointer;
+}
+.letter-zoom-btn svg { width: 22px; height: 22px; }
+.letter-zoom-btn:hover { background: #4a433c; }
+.letter-zoom-btn:focus-visible { outline: 3px solid var(--tale-tangerine); outline-offset: 3px; }
+
+/* 제주어 편지 크게 보기: 엽서 그림의 편지 반쪽을 화면 가득 */
+.letter-zoom {
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: max(56px, env(safe-area-inset-top, 0px)) 12px max(16px, env(safe-area-inset-bottom, 0px));
+  border: 0;
+  background: transparent;
+  overflow: auto;
+}
+.letter-zoom::backdrop { background: rgb(24 18 10 / 0.86); }
+.letter-zoom[open] { display: grid; place-items: center; }
+.letter-zoom-canvas {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(100%, 720px);
+  max-height: calc(100dvh - 90px);
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 18px 40px rgb(0 0 0 / 0.45);
+  touch-action: pinch-zoom;
+}
+.letter-zoom-x {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top, 0px));
+  right: max(12px, env(safe-area-inset-right, 0px));
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: #fffaf1;
+  color: var(--tale-ink);
+  cursor: pointer;
+}
+.letter-zoom-x svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+
+/* 휴대폰: 편지를 쓰는 동안(키보드가 올라와도) '편지 보내기'가 키보드 바로 위에 떠 있음(app.js 가 .is-typing 과 --kb 를 붙인다) */
+.writer-send.is-typing {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--kb, 0px);
+  z-index: 60;
+  margin: 0;
+  padding: 8px max(16px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  background: rgb(250 243 230 / 0.96);
+  box-shadow: 0 -6px 16px rgb(60 45 30 / 0.12);
+}
+.writer-send.is-typing .tale-btn { width: min(100%, 420px); }
+html.is-typing-letter .back-fab { display: none; }
+
+/* ? 안내 팝업: 'No.01 · Write' 대신 강조 한 줄 */
+.intro-pop-alert {
+  display: inline-block;
+  margin: 0 0 12px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #d4532a;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #fff8ee;
+}
+.intro-pop-examples { touch-action: pan-y; }

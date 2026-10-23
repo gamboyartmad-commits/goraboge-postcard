@@ -157,7 +157,8 @@
   /* ── 웹진으로 돌아가기(기사 보러가기 · 웹진 홍보 띠) ───────────── */
   // 웹진 안이면 새 탭이 아니라 그 웹진(바깥 창)이 돌아가게 하고, 따로 열렸으면 링크 그대로(WEBZINE_URL)
   if (cfg.WEBZINE_URL) {
-    document.querySelectorAll('[data-webzine-link]').forEach((a) => { a.href = cfg.WEBZINE_URL; });
+    // v7.16: data-webzine-hash 가 있으면 웹진의 그 섹션으로(위 막대 '영상 보러 가기' → #why)
+    document.querySelectorAll('[data-webzine-link]').forEach((a) => { a.href = cfg.WEBZINE_URL + (a.dataset.webzineHash ? `#${a.dataset.webzineHash}` : ''); });
   }
   document.addEventListener('click', (event) => {
     const a = event.target instanceof Element ? event.target.closest('[data-webzine-link]') : null;

@@ -188,7 +188,8 @@ let plate, ovMul, ovScr, shades = {};
 function buildLayer(name, img) {
   const b = L[name], c = CFG[name];
   const small = cv.width < W * 0.7;
-  const cs = Math.max(2, Math.round(c.cs * (small ? 1.5 : 1)));
+  // (36차) 가루를 조금 굵게(큰 화면 1.5배 · 휴대폰 2배) — 그리는 조각 수가 절반 아래로(웹진과 같은 스레드라 무거우면 웹진까지 끊긴다)
+  const cs = Math.max(2, Math.round(c.cs * (small ? 2 : 1.5)));
   const tmp = mk(b.w, b.h), tx = tmp.getContext('2d', { willReadFrequently: true });
   tx.drawImage(img, 0, 0);
   const id = tx.getImageData(0, 0, b.w, b.h), d = id.data;
@@ -254,7 +255,8 @@ function drawDust(Ly, P, pass, rev) {
   const { b, P: Q, cs, n, img, lit, c } = Ly;
   const src = pass ? lit : img;
   const reach = rev ? 0.45 : 1;                // returning fragments gather from close by
-  for (let i = 0; i < n; i++) {
+  // (36차) 아주 옅은 빛 가루(pass 1)는 세 조각에 하나만(번갈아) — 보이는 차이는 거의 없고 그리는 양은 크게 준다
+  for (let i = pass ? frameNo % 3 : 0; i < n; i += pass ? 3 : 1) {
     const u = (P - Q.r[i] * 0.5) / 0.5;
     if (u <= 0 || u >= 1) continue;
     const e = u * u;
@@ -345,14 +347,24 @@ function closing(t) {
 
 // ---------------- playback ----------------
 let t = 0, playing = false, visible = false, last = 0, started = false, raf = 0;
+// (36차) 끊김 줄이기: 시간은 실제 흐른 만큼(느린 기기에서 애니메이션이 늘어지지 않게 — 한 번에 0.1초까지),
+// 휴대폰 · 그리기가 느린 기기는 초당 약 30번만 다시 그린다(lowPower). slow = 최근 그리기가 14ms 를 넘은 비율
+let frameNo = 0, lastDraw = 0, slow = 0;
+const lowPower = () => cv.width < W * 0.7 || slow > 0.5;
 function tick(now) {
   raf = 0;
   if (!playing || !visible) return;          // the observer restarts the loop when the photo is back on screen
-  if (!document.hidden) t += Math.min(0.05, (now - last) / 1000);
+  if (!document.hidden) t += Math.min(0.1, (now - last) / 1000);
   last = now;
-  render(t); captions(t);
+  if (!lowPower() || now - lastDraw >= 30) {
+    const t0 = performance.now();
+    render(t);
+    slow = slow * 0.9 + (performance.now() - t0 > 14 ? 0.1 : 0);
+    lastDraw = now; frameNo++;
+  }
+  captions(t);
   closing(t);
-  if (t >= END) { playing = false; return; }
+  if (t >= END) { render(t); playing = false; return; }
   raf = requestAnimationFrame(tick);
 }
 function play(from = 0) {
@@ -365,7 +377,21 @@ function size() {
   const r = frame.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
   k = clamp((r.width * dpr) / W, 0.4, 1);
   const w = Math.round(W * k), h = Math.round(H * k);
-  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; if (plate) render(t); }
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; if (plate) { if (layers[ORDER[0]]) render(t); else poster(); } }
+}
+
+// 첫 그림(포스터): 가루로 나누는 준비(buildLayer)를 하기 전에 사진 그대로 한 장
+let raw = null;
+function poster(imgs) {
+  if (imgs) raw = imgs;
+  if (!plate || !raw) return;
+  ctx.setTransform(k, 0, 0, k, 0, 0);
+  ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+  ctx.drawImage(plate, 0, 0, W, H);
+  ORDER.forEach((n, i) => ctx.drawImage(raw[i], L[n].x, L[n].y));
+  ctx.globalCompositeOperation = 'multiply'; ctx.drawImage(ovMul, 0, 0, W, H);
+  ctx.globalCompositeOperation = 'screen'; ctx.drawImage(ovScr, 0, 0, W, H);
+  ctx.globalCompositeOperation = 'source-over';
 }
 
 async function boot() {
@@ -373,17 +399,33 @@ async function boot() {
   const [p, m, s, ...rest] = await Promise.all([load(IMG.plate), load(IMG.mul), load(IMG.scr),
     ...ORDER.map(n => load(IMG[n])), ...SCENES.map(sc => load(IMG['spot_' + sc.g]))]);
   plate = p; ovMul = m; ovScr = s;
-  ORDER.forEach((n, i) => buildLayer(n, rest[i]));
-  shades.all = shadeFor(rest.slice(ORDER.length));
-  render(0);
+  poster(rest);
+  // (36차) 가루 준비는 무거워서(그림의 점을 하나하나 읽는다) 화면에 들어올 때 한 겹씩 나눠서 한다 — 그사이 웹진 스크롤이 멈추지 않게
+  let built = null;
+  const build = () => built || (built = (async () => {
+    for (let i = 0; i < ORDER.length; i++) {
+      buildLayer(ORDER[i], rest[i]);
+      await new Promise((r) => setTimeout(r, 0));
+    }
+    shades.all = shadeFor(rest.slice(ORDER.length));
+  })());
+  const go = () => build().then(() => {
+    if (!visible) return;
+    if (!started) play(0);
+    else if (playing && !raf) { last = performance.now(); raf = requestAnimationFrame(tick); }
+  });
   if ('IntersectionObserver' in window) {
+    // (36차) 화면에 30% 이상 보이면 시작하고, 거의 다 벗어날 때(5% 아래)까지 멈추지 않는다 — 예전(55%)에는 휴대폰 · 낮은 화면에서 시작을 못 하거나 자주 멈췄다
     new IntersectionObserver((es) => {
-      for (const e of es) { visible = e.isIntersecting; if (visible && !started) play(0); if (visible && playing && !raf) { last = performance.now(); raf = requestAnimationFrame(tick); } }
-    }, { threshold: 0.55 }).observe(frame);
-  } else { visible = true; play(0); }
+      for (const e of es) {
+        visible = visible ? e.intersectionRatio > 0.05 : e.intersectionRatio >= 0.3;
+        if (visible) go();
+      }
+    }, { threshold: [0, 0.05, 0.3, 0.55, 1] }).observe(frame);
+  } else { visible = true; go(); }
 }
 // lets a host page (or a check) jump to a moment: __jeju.seek(seconds)
-window.__jeju = { seek(s) { playing = false; started = true; t = s; render(t); captions(t); closing(t); }, get time() { return t; }, play };
+window.__jeju = { seek(s) { if (!layers[ORDER[0]]) return; playing = false; started = true; t = s; render(t); captions(t); closing(t); }, get time() { return t; }, play };
 window.addEventListener('resize', size);
 document.addEventListener('visibilitychange', () => { last = performance.now(); });
 boot();

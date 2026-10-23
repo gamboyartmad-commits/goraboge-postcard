@@ -954,6 +954,33 @@ html.has-header {
 }
 
 /* (29차) 손글씨 → 본문 글꼴(Pretendard)로 깔끔하게 */
+/* (36차) 팀 인스타그램 — 한 줄 소개 아래 */
+.site-footer__sns {
+  margin-top: var(--space-4);
+}
+
+.site-footer__insta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  min-height: 2.75rem;
+  padding: 0 1.1em 0 0.9em;
+  border: 1.5px solid currentColor;
+  border-radius: 999px;
+  color: inherit;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.site-footer__insta svg {
+  width: 1.3em;
+  height: 1.3em;
+}
+
+.site-footer__insta:hover {
+  background-color: rgb(255 250 240 / 0.14);
+}
+
 .site-footer__tagline {
   max-width: 34em;
   margin-top: var(--space-3);

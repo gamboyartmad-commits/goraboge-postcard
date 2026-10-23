@@ -17,9 +17,9 @@ window.POSTCARD_CONFIG = {
   // 웹진 안(…/play/postcard/)에서는 웹진 페이지의 GTM 이 이 사이트의 이벤트(pc_…)까지 받으므로 부르지 않음(두 번 세지 않게)
   GTM_ID: 'GTM-K97VS62N',
   // 웹진 주소(이 사이트를 띄우는 바깥 페이지)의 출처 — 여기서 온 '인사'만 믿고 측정 · 이동 신호를 보냄. 웹진 주소가 바뀌면 함께 고칠 것
-  WEBZINE_ORIGINS: ['https://gamboyartmad-commits.github.io', 'https://www.hankyung.com', 'https://hankyung.com', 'http://localhost:4174', 'http://127.0.0.1:4174', 'http://localhost:4175', 'http://127.0.0.1:4175'],
+  WEBZINE_ORIGINS: ['https://gamboyartmad-commits.github.io', 'https://lxwebzine.hankyung.com', 'https://www.hankyung.com', 'https://hankyung.com', 'http://localhost:4174', 'http://127.0.0.1:4174', 'http://localhost:4175', 'http://127.0.0.1:4175'],
   // GA4 교차 도메인(따로 열렸을 때 웹진과 같은 방문으로 이어 보기)
   WEBZINE_DOMAINS: ['hankyung.com', 'gamboyartmad-commits.github.io'],
   // 따로 열렸을 때 '기사 보러가기' · 웹진 홍보 띠가 갈 웹진 주소. 웹진이 실제 주소(…/team1/)에 올라가면 그 주소로 바꿀 것
-  WEBZINE_URL: '../',   // GitHub 통합본: 같은 사이트의 웹진 첫 화면
+  WEBZINE_URL: '../../',   // 통합본: 같은 사이트의 웹진 첫 화면(엽서 사이트 = play/postcard/)
 };

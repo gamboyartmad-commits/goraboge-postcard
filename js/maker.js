@@ -55,7 +55,8 @@ const NAME_SIZES = [4.8, 4.2, 3.6, 3.1];
 const SITE_ROOT = new URL('../', import.meta.url);
 const STAMP_SRC = new URL('assets/intro/stamp-citrus.webp', SITE_ROOT).href;
 // 21차: '제주어 엽서 써보기'(섹션 단추 · 플로팅 버튼)가 가는 엽서 쓰러가기 쪽('/'로 끝나는 주소)
-const PLAY_URL = new URL('play/postcard/', SITE_ROOT).href;
+// (36차) ?start=write — 엽서 사이트가 첫 장면(책상 · 저절로 내려가기)을 건너뛰고 바로 편지 쓰기 화면으로(웹진에서 온 사람은 봉투 인트로를 이미 봤다 — 사용자)
+const PLAY_URL = new URL('play/postcard/?start=write', SITE_ROOT).href;
 
 const TEXT = {
   get title() { return t('maker.title', '제주어 엽서 쓰기'); },
@@ -427,50 +428,8 @@ function watchFab(fab) {
       if (fab.offsetWidth) html.style.setProperty('--fab-w', `${fab.offsetWidth}px`);
     }).observe(fab);
   }
-  // 휴대폰에서는 엽서 쓰기 섹션의 '제주어 엽서 써보기' 단추가 화면에 보이는 동안 플로팅 버튼을 숨긴다
-  // — 같은 곳으로 가는 두 단추가 겹치지 않게(css/maker.css 의 html.write-in-view)
-  const cta = document.querySelector('.write__btn');
-  if (cta && 'IntersectionObserver' in window) {
-    new IntersectionObserver(([entry]) => html.classList.toggle('write-in-view', entry.isIntersecting)).observe(cta);
-  }
-  watchAvoid(fab);
-}
-
-// 버튼이 놓인 자리(화면 오른쪽 아래)에 눌러야 하는 것이 들어와 있는 동안 버튼을 숨긴다(css/maker.css 의 html.fab-avoid)
-// — 버튼이 그 단추를 가려, 누르면 엉뚱하게 엽서 창이 열리지 않게. 지켜볼 것은 HTML 에서 data-fab-avoid 를 붙인 요소(인용 섹션의 아래 단추 줄 · 지도 단추 줄 등).
-// 나중에 생기는 요소(지도 저작권 표시 — js/map.js)는 data-fab-avoid 를 붙인 뒤 document 에 'fab-avoid:refresh' 를 보내면 함께 지켜본다
-function watchAvoid(fab) {
-  if (!fab || !('IntersectionObserver' in window)) return;
-  const html = document.documentElement;
-  const inside = new Set();
-  let observer = null;
-  let box = '';
-  const watch = () => {
-    // 버튼의 제자리(숨어 있어도 같은 자리) + 둘레 8px 만 보는 관찰 창. 버튼이 아직 그려지지 않았으면 기다린다
-    const cs = getComputedStyle(fab);
-    if (!fab.offsetWidth || cs.position !== 'fixed') return;
-    const view = document.documentElement;
-    const top = view.clientHeight - parseFloat(cs.bottom) - fab.offsetHeight - 8;
-    const left = view.clientWidth - parseFloat(cs.right) - fab.offsetWidth - 8;
-    const next = `${-Math.max(0, Math.round(top))}px 0px 0px ${-Math.max(0, Math.round(left))}px`;
-    if (next === box) return;
-    box = next;
-    if (observer) observer.disconnect();
-    inside.clear();
-    observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => (entry.isIntersecting ? inside.add(entry.target) : inside.delete(entry.target)));
-      html.classList.toggle('fab-avoid', inside.size > 0);
-    }, { rootMargin: next });
-    document.querySelectorAll('[data-fab-avoid]').forEach((el) => observer.observe(el));
-  };
-  watch();
-  document.addEventListener('fab-avoid:refresh', () => {
-    box = '';
-    watch();
-  });
-  // 창 크기 · 버튼 크기(글자)가 바뀌면 관찰 창을 다시 잡는다
-  window.addEventListener('resize', watch);
-  if ('ResizeObserver' in window) new ResizeObserver(watch).observe(fab);
+  // (36차) 예전에는 '엽서 쓰기' 단추가 보일 때 · 다른 단추와 겹칠 때 버튼을 숨겼다(write-in-view · watchAvoid) —
+  // 스크롤하면 깜빡이며 사라져 뺐다(사용자). 버튼은 인트로 · 엽서 쓰기 창이 열린 동안만 숨는다(css/maker.css '2.')
 }
 
 // 링크 모드: 모달 없이 플로팅 버튼(링크)만 붙이고, data-open-maker 단추도 같은 주소로 간다.
@@ -503,6 +462,35 @@ function initLink(root, link, newTab = true) {
 // '동작 줄이기'에서는 저절로 넘기지 않는다. 아래 동그라미 단추로 직접 고를 수 있다.
 // ✏️ 교체: 넘어가는 간격(밀리초)
 const EXAMPLE_INTERVAL = 4500;
+// (36차) 손가락 · 마우스로 좌우로 밀어 넘기기. 가로로 SWIPE_MIN px 넘게(세로보다 많이) 밀면 onStep(+1 | -1).
+// 민 뒤에 따라오는 '누름'(엽서 크게 보기)은 한 번 막는다. 세로로 미는 손가락은 브라우저가 평소처럼 페이지를 스크롤한다(css 의 touch-action: pan-y)
+const SWIPE_MIN = 40;
+function onSwipe(el, onStep) {
+  let start = null;
+  let swiped = false;
+  el.addEventListener('pointerdown', (event) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    start = { x: event.clientX, y: event.clientY };
+  });
+  el.addEventListener('pointerup', (event) => {
+    if (!start) return;
+    const dx = event.clientX - start.x;
+    const dy = event.clientY - start.y;
+    start = null;
+    if (Math.abs(dx) < SWIPE_MIN || Math.abs(dx) < Math.abs(dy)) return;
+    swiped = true;
+    setTimeout(() => { swiped = false; }, 0);
+    onStep(dx < 0 ? 1 : -1);
+  });
+  el.addEventListener('pointercancel', () => { start = null; });
+  el.addEventListener('click', (event) => {
+    if (!swiped) return;
+    event.preventDefault();
+    event.stopPropagation();
+  }, true);
+  el.addEventListener('dragstart', (event) => event.preventDefault()); // 그림을 끌어 옮기지 않게
+}
+
 function initExamples(box) {
   const items = [...box.querySelectorAll('.write__example')];
   const dots = [...box.querySelectorAll('[data-example-dot]')];
@@ -529,6 +517,8 @@ function initExamples(box) {
   dots.forEach((dot) => dot.addEventListener('click', () => { show(Number(dot.dataset.exampleDot) || 0); tick(); }));
   // 좌우 꺾쇠(27차): 앞 · 다음 장으로 바로(끝에서는 반대쪽 끝으로 돈다)
   box.querySelectorAll('[data-example-step]').forEach((btn) => btn.addEventListener('click', () => { show(current + (Number(btn.dataset.exampleStep) || 1)); tick(); }));
+  // (36차) 좌우로 밀어 넘기기(사용자)
+  onSwipe(box, (step) => { show(current + step); tick(); });
   box.addEventListener('pointerenter', () => { paused = true; tick(); });
   box.addEventListener('pointerleave', () => { paused = false; tick(); });
   box.addEventListener('focusin', () => { paused = true; tick(); });
@@ -590,6 +580,8 @@ function initZoom(box) {
       const step = el.closest('[data-zoom-step]');
       if (step) fill(index + Number(step.dataset.zoomStep));
     });
+    // (36차) 크게 본 엽서도 좌우로 밀어 넘기기
+    if (many) onSwipe(parts.figure, (dir) => fill(index + dir));
     layer.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
         event.preventDefault();
