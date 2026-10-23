@@ -649,10 +649,8 @@ html.motion-ok:not(.intro-static) .intro__desk {
   background-image: var(--tex-paper);
 }
 
-/* 작은 엽서의 얼굴(커지는 동안 사라진다) */
+/* 작은 엽서의 얼굴(커지는 동안 사라진다). 34차: 항공우편 줄무늬 테두리를 뺐다(사용자) — 다시 넣으려면 index.html 의 이 div 에 class="airmail" */
 .intro__card-face {
-  --airmail-w: 5;
-  --airmail-stripe: 6px;
   position: absolute;
   inset: 0;
   display: grid;
