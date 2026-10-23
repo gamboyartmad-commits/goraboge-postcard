@@ -1552,7 +1552,8 @@ function siteUrl() {
 // config.js 의 WEBZINE_URL(통합본은 '../' = 같은 사이트의 웹진)을 전체 주소로
 const WEBZINE_NAME = '웹진 하영 고라보게';
 // v7.17: 카카오톡 · 메일로 보낼 때 엽서 아래에 붙는 한 줄(사용자 — 예전 '제주어로 엽서 적기 · 웹진 하영 고라보게')
-const SHARE_LINE = '제주어가 사라지고 있어요. 사라지지 않게 제주어 엽서를 남겨 보세요.';
+// v7.18: 두 문장을 두 줄로(사용자 — 문단 나누기)
+const SHARE_LINE = '제주어가 사라지고 있어요.\n사라지지 않게 제주어 엽서를 남겨 보세요.';
 function webzineUrl() {
   try { return new URL((window.POSTCARD_CONFIG || {}).WEBZINE_URL || '../', location.href).href; } catch (e) { return ''; }
 }
@@ -2260,8 +2261,35 @@ function updateBackBtn() {
   }[target] || '뒤로');
 }
 
+// v7.18: 웹진에서 넘어온 사람은 위 막대 로고가 웹진 첫 화면으로 돌아감(사용자). 웹진에서 온 사람 = 웹진의 '제주어 엽서 써보기'(?start=write)
+// 또는 웹진 쪽(첫 화면 · 기사 · 영어 · 개인정보처리방침)에서 누른 링크. 이 사이트 안 · 예전 엽서 주소(postcard/ — 받은 엽서 넘겨주기)는 빼고,
+// 같은 방문 동안 기억(새로고침해도). 광고 · 받은 엽서로 바로 온 사람은 예전처럼 이 사이트 첫 페이지로
+const FROM_WEBZINE_KEY = 'hayeong-from-webzine';
+const taleLogo = document.querySelector('.tale-logo');
+const fromWebzine = (() => {
+  const base = webzineUrl();
+  if (!base) return false;
+  let ref = '';
+  try { ref = document.referrer ? new URL(document.referrer).href : ''; } catch (e) {}
+  const rest = ref.startsWith(base) ? ref.slice(base.length) : null;
+  const now = new URLSearchParams(location.search).get('start') === 'write' || (rest !== null && !/^(play|postcard)\//.test(rest));
+  try {
+    if (now) sessionStorage.setItem(FROM_WEBZINE_KEY, '1');
+    return now || sessionStorage.getItem(FROM_WEBZINE_KEY) === '1';
+  } catch (e) {
+    return now;
+  }
+})();
+if (fromWebzine) {
+  taleLogo.href = webzineUrl();
+  taleLogo.dataset.webzineLink = 'logo';   // 웹진 안에 띄워졌을 때는 track.js 가 바깥 창(웹진)을 돌림
+  taleLogo.dataset.track = 'logo_webzine';
+  taleLogo.setAttribute('aria-label', '웹진 하영 고라보게로 돌아가기');
+}
+
 // 위 막대 로고: 어느 페이지에서든 첫 페이지로 (주소 뒤 #story로 건너뛰지 않고 페이지 기록을 따라감)
-document.querySelector('.tale-logo').addEventListener('click', (e) => {
+taleLogo.addEventListener('click', (e) => {
+  if (fromWebzine) return;   // v7.18: 링크 그대로 웹진으로
   e.preventDefault();
   if (view === 'flow') {
     window.scrollTo({ top: 0, behavior: smoothScroll() });
