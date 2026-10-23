@@ -2,6 +2,7 @@
 // ① 웹진의 '엽서 쓰러가기' 쪽(…/team1/play/postcard/) 안에 띄워져 있으면: 여기서 일어난 일을 웹진으로 넘긴다(postMessage).
 //    웹진 쪽 js/play.js 가 받아 웹진의 GA4 로 보낸다(같은 방문 · 같은 사용자로 이어짐). 체류 시간은 웹진 쪽이 재고, 여기서는 '쓰는 중' 신호만 보낸다.
 // ② 따로 열리면(카카오톡 · 메일 · 링크로 바로): config.js 의 GA4_ID 로 직접 보낸다. 웹진 주소(WEBZINE_DOMAINS)와는 GA4 교차 도메인으로 이어 본다.
+//    v7.15: config.js 의 GTM_ID(웹진과 같은 Google 태그 관리자)도 이때만 불러 이벤트를 dataLayer 로 보낸다(웹진 안에서는 웹진 페이지의 GTM 이 받는다)
 // 보내는 이벤트(모두 pc_ 로 시작 — 웹진 이벤트와 한 속성 안에서 구분):
 //   pc_click(누른 단추) · pc_view(화면) · pc_view_time(화면마다 머문 초) · pc_card_pick · pc_send_open · pc_send_done(method)
 //   · pc_received_view · 따로 열렸을 때만 pc_dwell_milestone · pc_page_time · page_view(GA4 기본)
@@ -12,6 +13,8 @@
   const rawId = String(cfg.GA4_ID || '').trim();
   const GA4_ID = /^G-[A-Z0-9]{4,}$/.test(rawId) ? rawId : '';
   if (rawId && !GA4_ID) console.warn(`[track] config.js 의 GA4_ID 값(${rawId})의 꼴이 맞지 않아 불러오지 않았어요(G-로 시작)`);
+  const rawGtm = String(cfg.GTM_ID || '').trim();
+  const GTM_ID = /^GTM-[A-Z0-9]{4,}$/.test(rawGtm) ? rawGtm : '';   // v7.15
   const ORIGINS = (cfg.WEBZINE_ORIGINS || []).map((o) => String(o).replace(/\/$/, ''));
   const DOMAINS = cfg.WEBZINE_DOMAINS || [];
   const debug = /[?&]track-debug(?:[=&]|$)/.test(location.search);
@@ -55,6 +58,7 @@
       return;
     }
     if (GA4_ID && typeof window.gtag === 'function') window.gtag('event', name, params);
+    if (GTM_ID) window.dataLayer.push({ event: name, ...params });   // v7.15: GTM '맞춤 이벤트' 트리거로 받는다
     showDebug(name, params, 'ga4');
   }
 
@@ -84,11 +88,24 @@
     document.head.append(s);
   }
 
+  /* ── GTM (v7.15, 따로 열렸을 때만 — 웹진과 같은 컨테이너. 웹진 안에서는 웹진 페이지의 GTM 이 받는다) ── */
+  function loadGtm() {
+    if (!GTM_ID) return;
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(GTM_ID)}`;
+    s.addEventListener('error', () => console.warn('[track] GTM 을 불러오지 못했어요(광고 차단 프로그램일 수 있어요)'));
+    document.head.append(s);
+  }
+
   function becomeAlone() {
     if (mode === 'alone' && loadGa4.done) return;
     mode = 'alone';
     loadGa4.done = true;
     loadGa4();
+    loadGtm();
     queue.splice(0).forEach(([n, p]) => deliver(n, p));
     watchDwell();
   }

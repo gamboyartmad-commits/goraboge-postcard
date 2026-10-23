@@ -13,6 +13,9 @@ window.POSTCARD_CONFIG = {
   // 성과 측정 (track.js, v7.11) — 웹진 '하영 고라보게'와 같은 GA4 측정 ID(G-로 시작)를 넣는다. 비어 있으면 아무 데도 보내지 않음.
   // 웹진 안(…/team1/play/postcard/)에 띄워졌을 때는 이 값과 상관없이 웹진의 GA4 로 넘김(웹진 config.js 의 analytics.ga4)
   GA4_ID: '',
+  // v7.15: Google 태그 관리자(GTM) — 웹진과 같은 컨테이너. 이 사이트가 따로 열렸을 때만 부른다(track.js).
+  // 웹진 안(…/play/postcard/)에서는 웹진 페이지의 GTM 이 이 사이트의 이벤트(pc_…)까지 받으므로 부르지 않음(두 번 세지 않게)
+  GTM_ID: 'GTM-K97VS62N',
   // 웹진 주소(이 사이트를 띄우는 바깥 페이지)의 출처 — 여기서 온 '인사'만 믿고 측정 · 이동 신호를 보냄. 웹진 주소가 바뀌면 함께 고칠 것
   WEBZINE_ORIGINS: ['https://gamboyartmad-commits.github.io', 'https://www.hankyung.com', 'https://hankyung.com', 'http://localhost:4174', 'http://127.0.0.1:4174', 'http://localhost:4175', 'http://127.0.0.1:4175'],
   // GA4 교차 도메인(따로 열렸을 때 웹진과 같은 방문으로 이어 보기)

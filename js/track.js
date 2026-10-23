@@ -133,7 +133,8 @@ function readIds() {
 
 function loadTools(ids) {
   window.dataLayer = window.dataLayer || [];
-  if (ids.gtm) {
+  // (35차) 페이지 <head> 에 GTM 기본 코드가 이미 있으면(같은 ID) 다시 부르지 않는다 — 이벤트는 track() 이 dataLayer 로 보낸다
+  if (ids.gtm && !document.querySelector(`script[src*="googletagmanager.com/gtm.js?id=${ids.gtm}"]`)) {
     window.dataLayer.push({ 'gtm.start': Date.now(), event: 'gtm.js' });
     loadScript(`https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(ids.gtm)}`);
   }

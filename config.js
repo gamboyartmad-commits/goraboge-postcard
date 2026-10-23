@@ -101,7 +101,9 @@ window.JEJU_CONFIG = {
     // ✏️ 교체: Google 애널리틱스 4 측정 ID (예: 'G-AB12CD34EF') — 애널리틱스 > 관리 > 데이터 스트림
     ga4: '',
     // ✏️ 교체: Google 태그 관리자 컨테이너 ID (예: 'GTM-ABCD123'). 태그 관리자를 쓰면 위 · 아래 도구는 비워 두고 태그 관리자 안에서 설정해도 됩니다
-    gtm: '',
+    //          (35차) 사용자가 준 GTM 기본 코드를 각 페이지 <head> · <body> 에 그대로 붙였다(index · privacy · play/postcard · 기사 두 편 · en — 같은 ID).
+    //          여기 같은 ID 를 두면 js/track.js 가 GTM 을 다시 부르지는 않고 웹진의 이벤트(cta_click · section_time · pc_… 등)를 dataLayer 로 보낸다
+    gtm: 'GTM-K97VS62N',
     // ✏️ 교체: Google 광고 태그 ID (예: 'AW-123456789')와 '엽서 써보기' 전환의 전환 라벨(예: 'AbCdEfGh123') — Google 광고 > 목표 > 전환 > 태그 설정
     googleAds: '',
     googleAdsLabel: '',
